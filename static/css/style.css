@@ -1,14 +1,146 @@
-/* Estilos customizados para o Gerenciador de Casos de Teste */
+/* Neurotech Theme - Minimalista e Moderno */
 
-body {
-    background-color: #f8f9fa;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+:root {
+    --neurotech-primary: #1a365d;
+    --neurotech-secondary: #2d3748;
+    --neurotech-accent: #3182ce;
+    --neurotech-success: #38a169;
+    --neurotech-warning: #d69e2e;
+    --neurotech-danger: #e53e3e;
+    --neurotech-light: #f7fafc;
+    --neurotech-dark: #1a202c;
+    --neurotech-gray: #718096;
+    --neurotech-border: #e2e8f0;
+    --neurotech-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    --neurotech-shadow-lg: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-/* Header personalizado */
-header {
-    background: linear-gradient(135deg, #0052cc 0%, #0065ff 100%) !important;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+* {
+    box-sizing: border-box;
+}
+
+body {
+    background-color: #ffffff;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    margin: 0;
+    padding: 0;
+    line-height: 1.6;
+    color: var(--neurotech-secondary);
+    font-size: 14px;
+}
+
+.neurotech-theme {
+    min-height: 100vh;
+}
+
+/* Header */
+.app-header {
+    background: #ffffff;
+    border-bottom: 1px solid var(--neurotech-border);
+    padding: 1rem 0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--neurotech-primary);
+}
+
+.logo i {
+    font-size: 1.5rem;
+    color: var(--neurotech-accent);
+}
+
+.header-actions {
+    display: flex;
+    gap: 0.75rem;
+}
+
+/* Main Content */
+.main-content {
+    padding: 2rem 0;
+}
+
+/* Search Section */
+.search-section {
+    margin-bottom: 3rem;
+}
+
+.search-container {
+    text-align: center;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.search-container h1 {
+    font-size: 2rem;
+    font-weight: 600;
+    color: var(--neurotech-primary);
+    margin-bottom: 0.5rem;
+}
+
+.search-container p {
+    color: var(--neurotech-gray);
+    margin-bottom: 2rem;
+}
+
+.search-box {
+    background: #ffffff;
+    border: 1px solid var(--neurotech-border);
+    border-radius: 12px;
+    padding: 0.5rem;
+    box-shadow: var(--neurotech-shadow);
+}
+
+.search-input {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.search-input i {
+    color: var(--neurotech-gray);
+    margin-left: 1rem;
+}
+
+.search-input input {
+    flex: 1;
+    border: none;
+    outline: none;
+    padding: 0.75rem 0;
+    font-size: 1rem;
+    background: transparent;
+}
+
+.search-input input::placeholder {
+    color: var(--neurotech-gray);
+}
+
+.search-btn {
+    background: var(--neurotech-accent);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.search-btn:hover {
+    background: var(--neurotech-primary);
 }
 
 /* Cards com sombra suave */
@@ -33,31 +165,51 @@ header {
 
 /* Botões personalizados */
 .btn {
-    border-radius: 8px;
+    border-radius: 6px;
     font-weight: 500;
     transition: all 0.2s ease;
+    border: 1px solid transparent;
+    font-size: 0.875rem;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, #0052cc 0%, #0065ff 100%);
-    border: none;
+    background: var(--neurotech-accent);
+    color: white;
+    border-color: var(--neurotech-accent);
 }
 
 .btn-primary:hover {
-    background: linear-gradient(135deg, #0047b3 0%, #0052cc 100%);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0,82,204,0.3);
+    background: var(--neurotech-primary);
+    border-color: var(--neurotech-primary);
 }
 
 .btn-success {
-    background: linear-gradient(135deg, #36b37e 0%, #57d9a3 100%);
-    border: none;
+    background: var(--neurotech-success);
+    color: white;
+    border-color: var(--neurotech-success);
 }
 
 .btn-success:hover {
-    background: linear-gradient(135deg, #2d9d6b 0%, #36b37e 100%);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(54,179,126,0.3);
+    background: #2f855a;
+    border-color: #2f855a;
+}
+
+.btn-outline {
+    background: transparent;
+    color: var(--neurotech-gray);
+    border-color: var(--neurotech-border);
+}
+
+.btn-outline:hover {
+    background: var(--neurotech-light);
+    color: var(--neurotech-primary);
+    border-color: var(--neurotech-accent);
 }
 
 .btn-warning {
@@ -84,72 +236,172 @@ header {
     box-shadow: 0 4px 12px rgba(222,53,11,0.3);
 }
 
+/* Results Section */
+.results-section {
+    background: #ffffff;
+    border: 1px solid var(--neurotech-border);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.results-header {
+    background: var(--neurotech-light);
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--neurotech-border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.results-info h2 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--neurotech-primary);
+    margin: 0;
+}
+
+.results-count {
+    background: var(--neurotech-accent);
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    margin-left: 0.75rem;
+}
+
+.results-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.results-content {
+    padding: 1.5rem;
+}
+
+.loading {
+    text-align: center;
+    padding: 3rem 1.5rem;
+}
+
+.loading-spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid var(--neurotech-border);
+    border-top: 3px solid var(--neurotech-accent);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 1rem;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.cases-grid {
+    display: grid;
+    gap: 1rem;
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 3rem 1.5rem;
+    color: var(--neurotech-gray);
+}
+
+.empty-state i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+
+.empty-state h4 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--neurotech-primary);
+    margin-bottom: 0.5rem;
+}
+
+.empty-state p {
+    margin-bottom: 1.5rem;
+    font-size: 0.875rem;
+}
+
 /* Lista de casos de teste */
 .caso-teste-item {
-    background: white;
-    border: 1px solid #e9ecef;
+    background: #ffffff;
+    border: 1px solid var(--neurotech-border);
     border-radius: 8px;
-    padding: 20px;
-    margin-bottom: 15px;
+    padding: 1.25rem;
     transition: all 0.2s ease;
 }
 
 .caso-teste-item:hover {
-    border-color: #0052cc;
-    box-shadow: 0 2px 8px rgba(0,82,204,0.1);
+    border-color: var(--neurotech-accent);
+    box-shadow: var(--neurotech-shadow);
 }
 
 .caso-teste-header {
     display: flex;
-    justify-content: between;
-    align-items: center;
-    margin-bottom: 15px;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+    gap: 1rem;
 }
 
 .caso-teste-titulo {
-    font-size: 1.1rem;
+    font-size: 1.125rem;
     font-weight: 600;
-    color: #172b4d;
+    color: var(--neurotech-primary);
     margin: 0;
+    line-height: 1.4;
 }
 
 .caso-teste-id {
-    background: #0052cc;
+    background: var(--neurotech-accent);
     color: white;
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-size: 0.85rem;
+    padding: 0.375rem 0.75rem;
+    border-radius: 6px;
+    font-size: 0.875rem;
     font-weight: 500;
+    white-space: nowrap;
 }
 
 .caso-teste-status {
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-size: 0.85rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
     font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .status-todo {
-    background: #ffebe6;
-    color: #de350b;
+    background: #fed7d7;
+    color: #c53030;
 }
 
 .status-progress {
-    background: #fffae6;
-    color: #ff8b00;
+    background: #fef5e7;
+    color: #d69e2e;
 }
 
 .status-done {
-    background: #e3fcef;
-    color: #36b37e;
+    background: #c6f6d5;
+    color: #38a169;
 }
 
 .caso-teste-meta {
-    display: flex;
-    gap: 20px;
-    margin-bottom: 15px;
-    font-size: 0.9rem;
-    color: #6b778c;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+    font-size: 0.875rem;
+    color: var(--neurotech-gray);
 }
 
 .caso-teste-meta span {
@@ -173,8 +425,17 @@ header {
 
 .caso-teste-acoes {
     display: flex;
-    gap: 10px;
+    gap: 0.5rem;
     justify-content: flex-end;
+    flex-wrap: wrap;
+}
+
+.caso-teste-acoes .btn {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    border-radius: 4px;
+    transition: all 0.2s ease;
 }
 
 /* Modal personalizado */
@@ -234,25 +495,75 @@ header {
 
 /* Responsividade */
 @media (max-width: 768px) {
+    .search-container h1 {
+        font-size: 1.5rem;
+    }
+    
+    .search-container {
+        padding: 0 1rem;
+    }
+    
+    .results-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    
+    .results-actions {
+        width: 100%;
+        justify-content: flex-start;
+    }
+    
     .caso-teste-header {
         flex-direction: column;
         align-items: flex-start;
-        gap: 10px;
+        gap: 0.75rem;
     }
     
     .caso-teste-meta {
-        flex-direction: column;
-        gap: 10px;
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
     }
     
     .caso-teste-acoes {
         justify-content: flex-start;
         flex-wrap: wrap;
+        width: 100%;
+    }
+    
+    .header-content {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: flex-start;
+    }
+    
+    .header-actions {
+        width: 100%;
+        justify-content: flex-start;
+    }
+}
+
+@media (max-width: 480px) {
+    .search-container h1 {
+        font-size: 1.25rem;
+    }
+    
+    .search-input {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .search-input input {
+        width: 100%;
+    }
+    
+    .search-btn {
+        width: 100%;
     }
     
     .btn {
-        font-size: 0.9rem;
-        padding: 8px 16px;
+        font-size: 0.875rem;
+        padding: 0.5rem 0.75rem;
     }
 }
 

@@ -16,25 +16,46 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Permitir busca com Enter
-    document.getElementById('issuePai').addEventListener('keypress', function(e) {
+    document.getElementById('requisitoPai').addEventListener('keypress', function(e) {
         if (e.key === 'Enter') {
-            buscarCasosTeste();
+            buscarRequisito();
         }
+    });
+    
+    // Verificar se há um requisito na URL ao carregar a página
+    verificarRequisitoNaURL();
+    
+    // Listener para mudanças na URL (navegação com botões voltar/avançar)
+    window.addEventListener('popstate', function(event) {
+        verificarRequisitoNaURL();
     });
     
     console.log('✅ Aplicação inicializada com sucesso');
 });
 
-// Função para buscar casos de teste
-async function buscarCasosTeste() {
-    const issuePai = document.getElementById('issuePai').value.trim();
+// Função para buscar requisitos e seus casos de teste
+async function buscarRequisito() {
+    const requisitoPai = document.getElementById('requisitoPai').value.trim();
     
-    if (!issuePai) {
-        mostrarNotificacao('Por favor, digite o ID da issue pai', 'warning');
+    if (!requisitoPai) {
+        mostrarNotificacao('Por favor, digite o ID do requisito', 'warning');
         return;
     }
     
-    issuePaiAtual = issuePai;
+    // Atualizar URL com o ID do requisito
+    const url = new URL(window.location);
+    url.pathname = `/${requisitoPai}`;
+    window.history.pushState({ requisito: requisitoPai }, '', url);
+    
+    await carregarCasosTeste(requisitoPai);
+}
+
+// Função para carregar casos de teste (separada da busca)
+async function carregarCasosTeste(requisitoPai) {
+    issuePaiAtual = requisitoPai;
+    
+    // Atualizar campo de busca
+    document.getElementById('requisitoPai').value = requisitoPai;
     
     // Mostrar loading
     document.getElementById('loading').style.display = 'block';
@@ -42,32 +63,55 @@ async function buscarCasosTeste() {
     document.getElementById('resultados').style.display = 'block';
     
     try {
-        console.log('📡 Fazendo requisição para:', `http://127.0.0.1:8080/api/casos-teste/${issuePai}`);
+        console.log('📡 Buscando requisito:', requisitoPai);
         
-        const response = await fetch(`http://127.0.0.1:8080/api/casos-teste/${issuePai}`);
+        const response = await fetch(`http://127.0.0.1:8080/api/casos-teste/${requisitoPai}`);
         console.log('📡 Resposta recebida:', response.status, response.statusText);
         
         const data = await response.json();
         console.log('📡 Dados recebidos:', data);
         
         if (response.ok) {
-            console.log('✅ Requisição bem-sucedida, exibindo casos de teste');
+            console.log('✅ Requisito encontrado, exibindo casos de teste');
             exibirCasosTeste(data);
+            // Mostrar botão de criar novo caso quando requisito é encontrado
+            document.getElementById('btnNovoCaso').style.display = 'inline-block';
         } else {
             console.error('❌ Erro na resposta:', data);
-            mostrarNotificacao(data.erro || 'Erro ao buscar casos de teste', 'error');
+            mostrarNotificacao(data.erro || 'Requisito não encontrado', 'error');
             document.getElementById('resultados').style.display = 'none';
+            document.getElementById('btnNovoCaso').style.display = 'none';
         }
     } catch (error) {
         console.error('❌ Erro capturado:', error);
-        console.error('❌ Tipo do erro:', error.constructor.name);
-        console.error('❌ Mensagem do erro:', error.message);
         mostrarNotificacao(`Erro de conexão: ${error.message}`, 'error');
         document.getElementById('resultados').style.display = 'none';
+        document.getElementById('btnNovoCaso').style.display = 'none';
     } finally {
         document.getElementById('loading').style.display = 'none';
     }
 }
+
+// Função para verificar se há um requisito na URL
+function verificarRequisitoNaURL() {
+    const pathname = window.location.pathname;
+    
+    // Verificar se a URL tem um padrão de requisito (ex: /CREDT-1161)
+    const requisitoMatch = pathname.match(/^\/([A-Z]+-\d+)$/);
+    
+    if (requisitoMatch) {
+        const requisitoPai = requisitoMatch[1];
+        console.log('🔍 Requisito encontrado na URL:', requisitoPai);
+        carregarCasosTeste(requisitoPai);
+    } else if (pathname === '/') {
+        // Se estiver na home, limpar resultados
+        document.getElementById('resultados').style.display = 'none';
+        document.getElementById('requisitoPai').value = '';
+        issuePaiAtual = '';
+    }
+}
+
+
 
 // Função para exibir casos de teste
 function exibirCasosTeste(data) {
@@ -79,12 +123,12 @@ function exibirCasosTeste(data) {
     
     if (data.casos_teste.length === 0) {
         btnPlanilha.style.display = 'none';
-        document.getElementById('btnDebug').style.display = 'none';
+        document.getElementById('btnNovoCaso').style.display = 'inline-block'; // Mostrar botão para criar primeiro caso
         listaCasos.innerHTML = `
             <div class="empty-state">
                 <i class="fas fa-inbox"></i>
                 <h4>Nenhum caso de teste encontrado</h4>
-                <p>Não foram encontrados casos de teste para a issue pai ${data.issue_pai}</p>
+                <p>Não foram encontrados casos de teste para o requisito ${data.issue_pai}</p>
                 <button class="btn btn-primary" onclick="abrirModalCriar()">
                     <i class="fas fa-plus me-1"></i>
                     Criar Primeiro Caso de Teste
@@ -96,7 +140,6 @@ function exibirCasosTeste(data) {
     
     // Mostrar botões quando há casos de teste
     btnPlanilha.style.display = 'inline-block';
-    document.getElementById('btnDebug').style.display = 'inline-block';
     
     const casosHTML = data.casos_teste.map(caso => criarHTMLCasoTeste(caso)).join('');
     listaCasos.innerHTML = casosHTML;
@@ -455,49 +498,4 @@ function visualizarPlanilha() {
     window.open(`http://127.0.0.1:8080/planilha/${issuePaiAtual}`, '_blank');
 }
 
-// Função para debug da hierarquia
-async function debugHierarchy() {
-    if (!issuePaiAtual) {
-        mostrarNotificacao('Nenhuma issue pai selecionada', 'warning');
-        return;
-    }
-    
-    try {
-        console.log('🔍 Iniciando debug para:', issuePaiAtual);
-        
-        const response = await fetch(`http://127.0.0.1:8080/api/debug/${issuePaiAtual}`);
-        const data = await response.json();
-        
-        if (response.ok) {
-            console.log('📊 Resultados do debug:', data);
-            
-            let debugInfo = `=== DEBUG PARA ${issuePaiAtual} ===\n\n`;
-            
-            debugInfo += `📊 Subtarefas com 'parent': ${data.parent_issues.length}\n`;
-            data.parent_issues.forEach(issue => {
-                debugInfo += `   - ${issue.key} (${issue.type}) - ${issue.summary}\n`;
-            });
-            
-            debugInfo += `\n📊 Issues vinculadas por links: ${data.linked_issues.length}\n`;
-            data.linked_issues.forEach(issue => {
-                debugInfo += `   - ${issue.key} (${issue.type}) - ${issue.summary}\n`;
-            });
-            
-            debugInfo += `\n📊 Issues do projeto com parent: ${data.project_issues.length}\n`;
-            data.project_issues.forEach(issue => {
-                debugInfo += `   - ${issue.key} (${issue.type}) - ${issue.summary}\n`;
-            });
-            
-            // Mostrar no console e em um alert
-            console.log(debugInfo);
-            alert(debugInfo);
-            
-        } else {
-            console.error('❌ Erro no debug:', data);
-            mostrarNotificacao(data.erro || 'Erro ao fazer debug', 'error');
-        }
-    } catch (error) {
-        console.error('❌ Erro capturado no debug:', error);
-        mostrarNotificacao(`Erro de conexão: ${error.message}`, 'error');
-    }
-}
+

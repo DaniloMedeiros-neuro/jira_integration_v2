@@ -127,6 +127,17 @@ def index():
     """Página principal"""
     return render_template('index.html')
 
+@app.route('/<requisito_id>')
+def requisito_direto(requisito_id):
+    """Rota para acessar diretamente um requisito via URL"""
+    # Verificar se o formato é válido (ex: CREDT-1161)
+    import re
+    if re.match(r'^[A-Z]+-\d+$', requisito_id):
+        return render_template('index.html')
+    else:
+        # Se não for um formato válido, retornar 404
+        return "Página não encontrada", 404
+
 @app.route('/api/casos-teste/<issue_pai>')
 def buscar_casos_teste(issue_pai):
     """Busca todos os casos de teste filhos de uma issue pai"""
@@ -245,126 +256,6 @@ def buscar_casos_teste(issue_pai):
         traceback.print_exc()
         return jsonify({"erro": str(e)}), 500
 
-@app.route('/api/debug/fields/<project_key>')
-def debug_project_fields(project_key):
-    """Função de debug para descobrir campos customizados do projeto"""
-    try:
-        print(f"=== DEBUG CAMPOS DO PROJETO {project_key} ===")
-        
-        # Buscar metadados do projeto
-        url = f"{JIRA_BASE_URL}/rest/api/3/issue/createmeta?projectKeys={project_key}&expand=projects.issuetypes.fields"
-        response = requests.get(url, headers=HEADERS, auth=(JIRA_EMAIL, JIRA_API_TOKEN))
-        
-        if response.status_code != 200:
-            return jsonify({"erro": f"Erro ao buscar metadados do projeto {project_key}"}), 500
-        
-        data = response.json()
-        campos_customizados = {}
-        
-        if 'projects' in data and data['projects']:
-            project = data['projects'][0]
-            if 'issuetypes' in project:
-                for issue_type in project['issuetypes']:
-                    if issue_type['name'] == 'Caso de Teste':
-                        print(f"📋 Campos para 'Caso de Teste':")
-                        fields = issue_type.get('fields', {})
-                        
-                        for field_id, field_info in fields.items():
-                            if field_id.startswith('customfield_'):
-                                field_name = field_info.get('name', 'Nome não encontrado')
-                                field_type = field_info.get('schema', {}).get('type', 'Tipo não encontrado')
-                                print(f"   - {field_id}: {field_name} ({field_type})")
-                                campos_customizados[field_id] = {
-                                    "name": field_name,
-                                    "type": field_type
-                                }
-        
-        return jsonify({
-            "project_key": project_key,
-            "campos_customizados": campos_customizados
-        })
-        
-    except Exception as e:
-        print(f"❌ Erro no debug de campos: {str(e)}")
-        import traceback
-        traceback.print_exc()
-        return jsonify({"erro": str(e)}), 500
-
-@app.route('/api/debug/<issue_pai>')
-def debug_issue_hierarchy(issue_pai):
-    """Função de debug para investigar a hierarquia de issues"""
-    try:
-        print(f"=== DEBUG HIERARQUIA PARA {issue_pai} ===")
-        
-        # Teste 1: Buscar a issue pai
-        url_pai = f"{JIRA_BASE_URL}/rest/api/3/issue/{issue_pai}"
-        response_pai = requests.get(url_pai, headers=HEADERS, auth=(JIRA_EMAIL, JIRA_API_TOKEN))
-        
-        if response_pai.status_code != 200:
-            return jsonify({"erro": f"Issue pai {issue_pai} não encontrada"}), 404
-        
-        issue_pai_data = response_pai.json()
-        print(f"✅ Issue pai encontrada: {issue_pai}")
-        print(f"   Tipo: {issue_pai_data['fields']['issuetype']['name']}")
-        print(f"   Status: {issue_pai_data['fields']['status']['name']}")
-        
-        # Teste 2: Buscar subtarefas com parent
-        jql_parent = f'parent = "{issue_pai}" ORDER BY key DESC'
-        url_search = f"{JIRA_BASE_URL}/rest/api/3/search"
-        payload_parent = {
-            "jql": jql_parent,
-            "maxResults": 100,
-            "fields": ["summary", "issuetype", "status"]
-        }
-        
-        response_parent = requests.post(url_search, headers=HEADERS, json=payload_parent, auth=(JIRA_EMAIL, JIRA_API_TOKEN))
-        parent_issues = response_parent.json().get("issues", [])
-        
-        print(f"📊 Subtarefas com 'parent': {len(parent_issues)}")
-        for issue in parent_issues:
-            print(f"   - {issue['key']} ({issue['fields']['issuetype']['name']}) - {issue['fields']['summary']}")
-        
-        # Teste 3: Buscar issues que referenciam a issue pai
-        jql_references = f'issue in linkedIssues("{issue_pai}") ORDER BY key DESC'
-        payload_refs = {
-            "jql": jql_references,
-            "maxResults": 100,
-            "fields": ["summary", "issuetype", "status"]
-        }
-        
-        response_refs = requests.post(url_search, headers=HEADERS, json=payload_refs, auth=(JIRA_EMAIL, JIRA_API_TOKEN))
-        ref_issues = response_refs.json().get("issues", [])
-        
-        print(f"📊 Issues vinculadas por links: {len(ref_issues)}")
-        for issue in ref_issues:
-            print(f"   - {issue['key']} ({issue['fields']['issuetype']['name']}) - {issue['fields']['summary']}")
-        
-        # Teste 4: Buscar todas as issues do projeto que podem ser subtarefas
-        project_key = issue_pai_data['fields']['project']['key']
-        jql_project = f'project = {project_key} AND parent = "{issue_pai}" ORDER BY key DESC'
-        payload_project = {
-            "jql": jql_project,
-            "maxResults": 100,
-            "fields": ["summary", "issuetype", "status"]
-        }
-        
-        response_project = requests.post(url_search, headers=HEADERS, json=payload_project, auth=(JIRA_EMAIL, JIRA_API_TOKEN))
-        project_issues = response_project.json().get("issues", [])
-        
-        print(f"📊 Issues do projeto com parent: {len(project_issues)}")
-        for issue in project_issues:
-            print(f"   - {issue['key']} ({issue['fields']['issuetype']['name']}) - {issue['fields']['summary']}")
-        
-        return jsonify({
-            "issue_pai": issue_pai,
-            "parent_issues": [{"key": i["key"], "type": i["fields"]["issuetype"]["name"], "summary": i["fields"]["summary"]} for i in parent_issues],
-            "linked_issues": [{"key": i["key"], "type": i["fields"]["issuetype"]["name"], "summary": i["fields"]["summary"]} for i in ref_issues],
-            "project_issues": [{"key": i["key"], "type": i["fields"]["issuetype"]["name"], "summary": i["fields"]["summary"]} for i in project_issues]
-        })
-        
-    except Exception as e:
-        print(f"❌ Erro no debug: {str(e)}")
-        import traceback
         traceback.print_exc()
         return jsonify({"erro": str(e)}), 500
 
