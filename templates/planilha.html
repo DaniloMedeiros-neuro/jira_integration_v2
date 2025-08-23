@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Casos de Teste - Visualização em Planilha</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .planilha-container {
+            margin: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .planilha-header {
+            background: #366092;
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .planilha-header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+        
+        .planilha-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn-exportar {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn-exportar:hover {
+            background: #218838;
+        }
+        
+        .btn-voltar {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn-voltar:hover {
+            background: #5a6268;
+        }
+        
+        .btn-salvar-todos {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn-salvar-todos:hover {
+            background: #0056b3;
+        }
+        
+        .btn-salvar-todos:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+        
+        .planilha-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+        
+        .planilha-table th {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 12px 8px;
+            text-align: left;
+            font-weight: bold;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        
+        .planilha-table td {
+            border: 1px solid #dee2e6;
+            padding: 8px;
+            vertical-align: top;
+            position: relative;
+        }
+        
+        .planilha-table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+        
+        .planilha-table tr:hover {
+            background: #e9ecef;
+        }
+        
+        .status-concluido {
+            background: #d4edda;
+            color: #155724;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        
+        .status-pendente {
+            background: #fff3cd;
+            color: #856404;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px;
+        }
+        
+        .table-container {
+            overflow-x: auto;
+            max-height: 70vh;
+        }
+        
+        .descricao-cell {
+            max-width: 400px;
+            word-wrap: break-word;
+        }
+        
+        .id-cell {
+            font-weight: bold;
+            color: #366092;
+        }
+        
+        .id-link {
+            color: #366092;
+            text-decoration: none;
+            font-weight: bold;
+            transition: color 0.2s;
+        }
+        
+        .id-link:hover {
+            color: #0056b3;
+            text-decoration: underline;
+        }
+        
+        /* Aumentar tamanho dos campos de texto */
+        .editable-field[data-field="descricao"],
+        .editable-field[data-field="objetivo"],
+        .editable-field[data-field="pre_condicoes"] {
+            min-height: 80px;
+            resize: vertical;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+        
+        /* Ajustar largura das colunas */
+        .planilha-table th:nth-child(1), /* ID */
+        .planilha-table td:nth-child(1) {
+            width: 100px;
+            min-width: 100px;
+        }
+        
+        .planilha-table th:nth-child(2), /* Título */
+        .planilha-table td:nth-child(2) {
+            width: 200px;
+            min-width: 200px;
+        }
+        
+        .planilha-table th:nth-child(3), /* Status */
+        .planilha-table td:nth-child(3) {
+            width: 120px;
+            min-width: 120px;
+        }
+        
+        .planilha-table th:nth-child(4), /* Tipo Execução */
+        .planilha-table td:nth-child(4) {
+            width: 140px;
+            min-width: 140px;
+        }
+        
+        .planilha-table th:nth-child(5), /* Tipo Teste */
+        .planilha-table td:nth-child(5) {
+            width: 120px;
+            min-width: 120px;
+        }
+        
+        .planilha-table th:nth-child(6), /* Componentes */
+        .planilha-table td:nth-child(6) {
+            width: 120px;
+            min-width: 120px;
+        }
+        
+        .planilha-table th:nth-child(7), /* Objetivo */
+        .planilha-table td:nth-child(7) {
+            width: 250px;
+            min-width: 250px;
+        }
+        
+        .planilha-table th:nth-child(8), /* Pré-condições */
+        .planilha-table td:nth-child(8) {
+            width: 250px;
+            min-width: 250px;
+        }
+        
+        .planilha-table th:nth-child(9), /* Descrição */
+        .planilha-table td:nth-child(9) {
+            width: 350px;
+            min-width: 350px;
+        }
+        
+        .planilha-table th:nth-child(10), /* Criado em */
+        .planilha-table td:nth-child(10) {
+            width: 120px;
+            min-width: 120px;
+        }
+        
+        .planilha-table th:nth-child(11), /* Atualizado em */
+        .planilha-table td:nth-child(11) {
+            width: 120px;
+            min-width: 120px;
+        }
+        
+        /* Estilos para campos editáveis */
+        .editable-field {
+            border: 1px solid transparent;
+            padding: 4px;
+            border-radius: 3px;
+            transition: all 0.2s;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        
+        .editable-field:hover {
+            border-color: #007bff;
+            background: #f8f9fa;
+        }
+        
+        .editable-field:focus {
+            border-color: #007bff;
+            background: white;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(0,123,255,0.25);
+        }
+        
+        .editable-field.modified {
+            border-color: #ffc107;
+            background: #fff3cd;
+        }
+        
+        .editable-field.saving {
+            border-color: #28a745;
+            background: #d4edda;
+        }
+        
+        .editable-field.error {
+            border-color: #dc3545;
+            background: #f8d7da;
+        }
+        
+        /* Botão de salvar individual */
+        .btn-salvar-cell {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 10px;
+            cursor: pointer;
+            display: none;
+            z-index: 5;
+        }
+        
+        .btn-salvar-cell:hover {
+            background: #218838;
+        }
+        
+        .cell-container {
+            position: relative;
+        }
+        
+        .cell-container:hover .btn-salvar-cell {
+            display: block;
+        }
+        
+        /* Select customizado */
+        .editable-select {
+            border: 1px solid transparent;
+            padding: 4px;
+            border-radius: 3px;
+            transition: all 0.2s;
+            width: 100%;
+            box-sizing: border-box;
+            background: white;
+        }
+        
+        .editable-select:hover {
+            border-color: #007bff;
+        }
+        
+        .editable-select:focus {
+            border-color: #007bff;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(0,123,255,0.25);
+        }
+        
+        .editable-select.modified {
+            border-color: #ffc107;
+            background: #fff3cd;
+        }
+        
+        /* Notificações */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 5px;
+            color: white;
+            font-weight: bold;
+            z-index: 1000;
+            display: none;
+        }
+        
+        .notification.success {
+            background: #28a745;
+        }
+        
+        .notification.error {
+            background: #dc3545;
+        }
+        
+        .notification.warning {
+            background: #ffc107;
+            color: #212529;
+        }
+    </style>
+</head>
+<body>
+    <div class="planilha-container">
+        <div class="planilha-header">
+            <h1>Casos de Teste - {{ issue_pai }}</h1>
+            <div class="planilha-actions">
+                <button id="btnSalvarTodos" class="btn-salvar-todos" onclick="salvarTodasAlteracoes()" disabled>
+                    <i class="fas fa-save"></i> Salvar Todas as Alterações
+                </button>
+                <a href="/" class="btn-voltar">Voltar</a>
+                <a href="/api/casos-teste/{{ issue_pai }}/exportar-excel" class="btn-exportar">Exportar Excel</a>
+            </div>
+        </div>
+        
+        <div id="loading" class="loading">
+            <p>Carregando casos de teste...</p>
+        </div>
+        
+        <div id="error" class="error" style="display: none;">
+            <p id="error-message"></p>
+        </div>
+        
+        <div id="table-container" class="table-container" style="display: none;">
+            <table class="planilha-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Título</th>
+                        <th>Status</th>
+                        <th>Tipo de Execução</th>
+                        <th>Tipo de Teste</th>
+                        <th>Componentes</th>
+                        <th>Objetivo</th>
+                        <th>Pré-condições</th>
+                        <th>Descrição</th>
+                        <th>Criado em</th>
+                        <th>Atualizado em</th>
+                    </tr>
+                </thead>
+                <tbody id="table-body">
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Notificação -->
+    <div id="notification" class="notification"></div>
+
+    <script>
+        let casosTeste = [];
+        let alteracoes = new Map(); // Map para armazenar alterações por issue_key
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            const issuePai = '{{ issue_pai }}';
+            carregarCasosTeste(issuePai);
+        });
+
+        async function carregarCasosTeste(issuePai) {
+            try {
+                const response = await fetch(`/api/casos-teste/${issuePai}`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    casosTeste = data.casos_teste;
+                    exibirCasosTeste(casosTeste);
+                } else {
+                    mostrarErro(data.erro || 'Erro ao carregar casos de teste');
+                }
+            } catch (error) {
+                mostrarErro('Erro de conexão: ' + error.message);
+            }
+        }
+
+        function exibirCasosTeste(casosTeste) {
+            const tableBody = document.getElementById('table-body');
+            const loading = document.getElementById('loading');
+            const tableContainer = document.getElementById('table-container');
+            
+            loading.style.display = 'none';
+            tableContainer.style.display = 'block';
+            
+            tableBody.innerHTML = '';
+            
+            if (casosTeste.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="11" style="text-align: center; padding: 20px;">Nenhum caso de teste encontrado</td></tr>';
+                return;
+            }
+            
+            casosTeste.forEach(caso => {
+                const row = document.createElement('tr');
+                
+                const statusClass = caso.status.toLowerCase().includes('concluído') ? 'status-concluido' : 'status-pendente';
+                
+                row.innerHTML = `
+                    <td class="id-cell">
+                        <a href="https://neurotech.atlassian.net/browse/${caso.id}" target="_blank" class="id-link" title="Abrir no Jira">
+                            <i class="fas fa-external-link-alt" style="margin-right: 5px; font-size: 10px;"></i>${caso.id}
+                        </a>
+                    </td>
+                    <td class="cell-container">
+                        <input type="text" class="editable-field" value="${caso.titulo}" 
+                               data-field="titulo" data-issue="${caso.id}" onchange="marcarAlteracao('${caso.id}', 'titulo', this.value)">
+                        <button class="btn-salvar-cell" onclick="salvarCampo('${caso.id}', 'titulo', this.previousElementSibling.value)">
+                            <i class="fas fa-save"></i>
+                        </button>
+                    </td>
+                    <td class="cell-container">
+                        <select class="editable-select" data-field="status" data-issue="${caso.id}" onchange="marcarAlteracao('${caso.id}', 'status', this.value)">
+                            <option value="To Do" ${caso.status === 'To Do' ? 'selected' : ''}>To Do</option>
+                            <option value="In Progress" ${caso.status === 'In Progress' ? 'selected' : ''}>In Progress</option>
+                            <option value="Done" ${caso.status === 'Done' ? 'selected' : ''}>Done</option>
+                            <option value="Concluído" ${caso.status === 'Concluído' ? 'selected' : ''}>Concluído</option>
+                        </select>
+                        <button class="btn-salvar-cell" onclick="salvarCampo('${caso.id}', 'status', this.previousElementSibling.value)">
+                            <i class="fas fa-save"></i>
+                        </button>
+                    </td>
+                    <td class="cell-container">
+                        <select class="editable-select" data-field="tipo_execucao" data-issue="${caso.id}" onchange="marcarAlteracao('${caso.id}', 'tipo_execucao', this.value)">
+                            <option value="Manual" ${caso.tipo_execucao === 'Manual' ? 'selected' : ''}>Manual</option>
+                            <option value="Automatizado" ${caso.tipo_execucao === 'Automatizado' ? 'selected' : ''}>Automatizado</option>
+                            <option value="Automatizável" ${caso.tipo_execucao === 'Automatizável' ? 'selected' : ''}>Automatizável</option>
+                            <option value="Semi-automatizado" ${caso.tipo_execucao === 'Semi-automatizado' ? 'selected' : ''}>Semi-automatizado</option>
+                        </select>
+                        <button class="btn-salvar-cell" onclick="salvarCampo('${caso.id}', 'tipo_execucao', this.previousElementSibling.value)">
+                            <i class="fas fa-save"></i>
+                        </button>
+                    </td>
+                    <td class="cell-container">
+                        <select class="editable-select" data-field="tipo_teste" data-issue="${caso.id}" onchange="marcarAlteracao('${caso.id}', 'tipo_teste', this.value)">
+                            <option value="Funcional" ${caso.tipo_teste === 'Funcional' ? 'selected' : ''}>Funcional</option>
+                            <option value="Não Funcional" ${caso.tipo_teste === 'Não Funcional' ? 'selected' : ''}>Não Funcional</option>
+                            <option value="Integração" ${caso.tipo_teste === 'Integração' ? 'selected' : ''}>Integração</option>
+                            <option value="Regressão" ${caso.tipo_teste === 'Regressão' ? 'selected' : ''}>Regressão</option>
+                        </select>
+                        <button class="btn-salvar-cell" onclick="salvarCampo('${caso.id}', 'tipo_teste', this.previousElementSibling.value)">
+                            <i class="fas fa-save"></i>
+                        </button>
+                    </td>
+                    <td class="cell-container">
+                        <input type="text" class="editable-field" value="${caso.componentes.join(', ')}" 
+                               data-field="componentes" data-issue="${caso.id}" onchange="marcarAlteracao('${caso.id}', 'componentes', this.value)">
+                        <button class="btn-salvar-cell" onclick="salvarCampo('${caso.id}', 'componentes', this.previousElementSibling.value)">
+                            <i class="fas fa-save"></i>
+                        </button>
+                    </td>
+                    <td class="cell-container">
+                        <textarea class="editable-field" data-field="objetivo" data-issue="${caso.id}" onchange="marcarAlteracao('${caso.id}', 'objetivo', this.value)" rows="3">${caso.objetivo || ''}</textarea>
+                        <button class="btn-salvar-cell" onclick="salvarCampo('${caso.id}', 'objetivo', this.previousElementSibling.value)">
+                            <i class="fas fa-save"></i>
+                        </button>
+                    </td>
+                    <td class="cell-container">
+                        <textarea class="editable-field" data-field="pre_condicoes" data-issue="${caso.id}" onchange="marcarAlteracao('${caso.id}', 'pre_condicoes', this.value)" rows="3">${caso.pre_condicoes || ''}</textarea>
+                        <button class="btn-salvar-cell" onclick="salvarCampo('${caso.id}', 'pre_condicoes', this.previousElementSibling.value)">
+                            <i class="fas fa-save"></i>
+                        </button>
+                    </td>
+                    <td class="cell-container">
+                        <textarea class="editable-field" data-field="descricao" data-issue="${caso.id}" onchange="marcarAlteracao('${caso.id}', 'descricao', this.value)" rows="3">${formatarDescricao(caso.descricao)}</textarea>
+                        <button class="btn-salvar-cell" onclick="salvarCampo('${caso.id}', 'descricao', this.previousElementSibling.value)">
+                            <i class="fas fa-save"></i>
+                        </button>
+                    </td>
+                    <td>${formatarData(caso.criado_em)}</td>
+                    <td>${formatarData(caso.atualizado_em)}</td>
+                `;
+                
+                tableBody.appendChild(row);
+            });
+        }
+
+        function marcarAlteracao(issueKey, campo, valor) {
+            if (!alteracoes.has(issueKey)) {
+                alteracoes.set(issueKey, {});
+            }
+            
+            const casoAlterado = alteracoes.get(issueKey);
+            casoAlterado[campo] = valor;
+            
+            // Marcar campo como modificado
+            const campoElement = document.querySelector(`[data-issue="${issueKey}"][data-field="${campo}"]`);
+            if (campoElement) {
+                campoElement.classList.add('modified');
+            }
+            
+            // Habilitar botão de salvar todos
+            document.getElementById('btnSalvarTodos').disabled = false;
+        }
+
+        async function salvarCampo(issueKey, campo, valor) {
+            const campoElement = document.querySelector(`[data-issue="${issueKey}"][data-field="${campo}"]`);
+            const btnSalvar = campoElement.nextElementSibling;
+            
+            try {
+                campoElement.classList.remove('modified');
+                campoElement.classList.add('saving');
+                btnSalvar.style.display = 'none';
+                
+                const payload = {
+                    casos: [{
+                        issue_key: issueKey,
+                        campos: { [campo]: valor }
+                    }]
+                };
+                
+                const response = await fetch('/api/casos-teste/batch-update', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok && result.sucessos > 0) {
+                    campoElement.classList.remove('saving');
+                    campoElement.classList.add('saved');
+                    mostrarNotificacao(`Campo ${campo} salvo com sucesso!`, 'success');
+                    
+                    // Remover da lista de alterações
+                    if (alteracoes.has(issueKey)) {
+                        delete alteracoes.get(issueKey)[campo];
+                        if (Object.keys(alteracoes.get(issueKey)).length === 0) {
+                            alteracoes.delete(issueKey);
+                        }
+                    }
+                    
+                    // Verificar se ainda há alterações pendentes
+                    if (alteracoes.size === 0) {
+                        document.getElementById('btnSalvarTodos').disabled = true;
+                    }
+                } else {
+                    throw new Error(result.erro || 'Erro ao salvar');
+                }
+                
+            } catch (error) {
+                campoElement.classList.remove('saving');
+                campoElement.classList.add('error');
+                mostrarNotificacao(`Erro ao salvar ${campo}: ${error.message}`, 'error');
+                
+                setTimeout(() => {
+                    campoElement.classList.remove('error');
+                }, 3000);
+            }
+        }
+
+        async function salvarTodasAlteracoes() {
+            if (alteracoes.size === 0) {
+                mostrarNotificacao('Nenhuma alteração para salvar', 'warning');
+                return;
+            }
+            
+            const btnSalvarTodos = document.getElementById('btnSalvarTodos');
+            btnSalvarTodos.disabled = true;
+            btnSalvarTodos.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Salvando...';
+            
+            try {
+                const casosParaAtualizar = [];
+                
+                for (const [issueKey, campos] of alteracoes) {
+                    casosParaAtualizar.push({
+                        issue_key: issueKey,
+                        campos: campos
+                    });
+                }
+                
+                const payload = {
+                    casos: casosParaAtualizar
+                };
+                
+                const response = await fetch('/api/casos-teste/batch-update', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    mostrarNotificacao(result.mensagem, 'success');
+                    
+                    // Limpar todas as alterações
+                    alteracoes.clear();
+                    
+                    // Remover classes de modificação
+                    document.querySelectorAll('.modified').forEach(el => {
+                        el.classList.remove('modified');
+                    });
+                    
+                    // Recarregar dados
+                    setTimeout(() => {
+                        carregarCasosTeste('{{ issue_pai }}');
+                    }, 1000);
+                    
+                } else {
+                    throw new Error(result.erro || 'Erro ao salvar alterações');
+                }
+                
+            } catch (error) {
+                mostrarNotificacao(`Erro ao salvar alterações: ${error.message}`, 'error');
+            } finally {
+                btnSalvarTodos.disabled = false;
+                btnSalvarTodos.innerHTML = '<i class="fas fa-save"></i> Salvar Todas as Alterações';
+            }
+        }
+
+        function formatarDescricao(descricao) {
+            if (!descricao) return '';
+            
+            // Manter quebras de linha para melhor visualização
+            const texto = descricao.replace(/\s+/g, ' ').trim();
+            return texto.length > 200 ? texto.substring(0, 200) + '...' : texto;
+        }
+
+        function formatarData(dataString) {
+            if (!dataString) return '-';
+            
+            try {
+                const data = new Date(dataString);
+                return data.toLocaleDateString('pt-BR') + ' ' + data.toLocaleTimeString('pt-BR', {hour: '2-digit', minute: '2-digit'});
+            } catch {
+                return dataString;
+            }
+        }
+
+        function mostrarErro(mensagem) {
+            const loading = document.getElementById('loading');
+            const error = document.getElementById('error');
+            const errorMessage = document.getElementById('error-message');
+            
+            loading.style.display = 'none';
+            error.style.display = 'block';
+            errorMessage.textContent = mensagem;
+        }
+
+        function mostrarNotificacao(mensagem, tipo = 'info') {
+            const notification = document.getElementById('notification');
+            notification.textContent = mensagem;
+            notification.className = `notification ${tipo}`;
+            notification.style.display = 'block';
+            
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 5000);
+        }
+    </script>
+</body>
+</html>
