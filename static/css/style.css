@@ -2538,7 +2538,7 @@ body.edicao-ativa {
 
 /* Estilos para status e ação dentro dos metadados */
 .case-meta-item.case-status {
-    background: rgba(255, 255, 255, 0.8);
+    background: transparent;
     border: 1px solid var(--neurotech-border);
     border-radius: var(--radius-sm);
     padding: var(--spacing-xs) var(--spacing-sm);
