@@ -1611,18 +1611,18 @@ body {
 }
 
 .status-todo {
-    background: #fed7d7;
-    color: #c53030;
+    background: transparent;
+    color: var(--neurotech-secondary);
 }
 
 .status-progress {
-    background: #fef5e7;
-    color: #d69e2e;
+    background: transparent;
+    color: var(--neurotech-secondary);
 }
 
 .status-done {
-    background: #c6f6d5;
-    color: #38a169;
+    background: transparent;
+    color: var(--neurotech-secondary);
 }
 
 .caso-teste-meta {
