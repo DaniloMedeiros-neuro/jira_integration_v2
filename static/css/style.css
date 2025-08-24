@@ -60,13 +60,29 @@ body {
 
 #topNavbar .navbar-logo {
     height: 40px;
-    width: auto;
+    width: 180px;
     filter: brightness(0) invert(1);
     transition: all 0.3s ease;
+    object-fit: contain;
 }
 
 #topNavbar .navbar-brand:hover .navbar-logo {
     filter: brightness(0) invert(1) drop-shadow(0 0 8px rgba(255, 255, 255, 0.3));
+}
+
+/* Responsividade da logo */
+@media (max-width: 768px) {
+    #topNavbar .navbar-logo {
+        width: 140px;
+        height: 35px;
+    }
+}
+
+@media (max-width: 576px) {
+    #topNavbar .navbar-logo {
+        width: 120px;
+        height: 30px;
+    }
 }
 
 #topNavbar .nav-link {
