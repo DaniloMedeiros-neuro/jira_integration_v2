@@ -271,12 +271,7 @@ function criarHTMLCasoTesteLista(caso) {
                     </div>
                 ` : ''}
             </div>
-            <div class="case-list-actions">
-                <span class="case-status ${statusClass}">${caso.status}</span>
-                <button class="btn btn-sm btn-outline-danger" onclick="event.stopPropagation(); excluirCasoTeste('${caso.id}', '${caso.titulo}')" title="Excluir">
-                    <i class="fas fa-trash"></i>
-                </button>
-            </div>
+
         </div>
     `;
 }
@@ -292,7 +287,6 @@ function criarHTMLCasoTesteCard(caso) {
         <div class="case-card" onclick="editarCasoTeste('${caso.id}')">
             <div class="case-header">
                 <h5 class="case-title">${caso.titulo}</h5>
-                <span class="case-status ${statusClass}">${caso.status}</span>
             </div>
             
             <div class="case-meta">
@@ -335,11 +329,7 @@ function criarHTMLCasoTesteCard(caso) {
                 </div>
             ` : ''}
             
-            <div class="case-actions">
-                <button class="btn btn-sm btn-outline-danger" onclick="event.stopPropagation(); excluirCasoTeste('${caso.id}', '${caso.titulo}')" title="Excluir">
-                    <i class="fas fa-trash"></i>
-                </button>
-            </div>
+
         </div>
     `;
 }

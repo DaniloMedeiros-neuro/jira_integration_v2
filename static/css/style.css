@@ -923,14 +923,7 @@ body {
     background: var(--neurotech-primary);
 }
 
-.case-list-actions {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-top: var(--spacing-md);
-    padding-top: var(--spacing-sm);
-    border-top: 1px solid var(--neurotech-border);
-}
+
 
 .case-status {
     padding: var(--spacing-xs) var(--spacing-sm);
@@ -960,11 +953,7 @@ body {
         max-height: 100px;
     }
     
-    .case-list-actions {
-        flex-direction: column;
-        gap: var(--spacing-sm);
-        align-items: flex-start;
-    }
+
 }
 
 /* Grid de Casos de Teste */
@@ -2557,21 +2546,21 @@ body.edicao-ativa {
 }
 
 .case-meta-item.case-status.status-todo {
-    background: rgba(254, 215, 215, 0.8);
-    border-color: #feb2b2;
-    color: #c53030;
+    background: transparent;
+    border-color: var(--neurotech-border);
+    color: var(--neurotech-secondary);
 }
 
 .case-meta-item.case-status.status-progress {
-    background: rgba(254, 243, 199, 0.8);
-    border-color: #f6e05e;
-    color: #d69e2e;
+    background: transparent;
+    border-color: var(--neurotech-border);
+    color: var(--neurotech-secondary);
 }
 
 .case-meta-item.case-status.status-done {
-    background: rgba(198, 246, 213, 0.8);
-    border-color: #68d391;
-    color: #38a169;
+    background: transparent;
+    border-color: var(--neurotech-border);
+    color: var(--neurotech-secondary);
 }
 
 .case-meta-item.case-action {
@@ -2607,11 +2596,7 @@ body.edicao-ativa {
     line-height: 1.5;
 }
 
-.case-actions {
-    display: flex;
-    justify-content: flex-end;
-    margin-top: var(--spacing-md);
-}
+
 
 /* Grid de cards */
 .cases-grid {
