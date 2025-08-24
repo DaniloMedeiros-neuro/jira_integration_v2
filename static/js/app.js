@@ -65,7 +65,7 @@ async function carregarCasosTeste(requisitoPai) {
     try {
         console.log('📡 Buscando requisito:', requisitoPai);
         
-        const response = await fetch(`http://127.0.0.1:8080/api/casos-teste/${requisitoPai}`);
+        const response = await fetch(`http://127.0.0.1:8081/api/casos-teste/${requisitoPai}`);
         console.log('📡 Resposta recebida:', response.status, response.statusText);
         
         const data = await response.json();
@@ -380,7 +380,7 @@ async function salvarCasoTesteCustomizado() {
     };
     
     const issueKey = formData.get('issueKey');
-    const url = issueKey ? `http://127.0.0.1:8080/api/caso-teste/${issueKey}` : 'http://127.0.0.1:8080/api/caso-teste';
+    const url = issueKey ? `http://127.0.0.1:8081/api/caso-teste/${issueKey}` : 'http://127.0.0.1:8081/api/caso-teste';
     const method = issueKey ? 'PUT' : 'POST';
     
     try {
@@ -425,7 +425,7 @@ async function confirmarExclusao() {
     if (!casoTesteEditando) return;
     
     try {
-        const response = await fetch(`http://127.0.0.1:8080/api/caso-teste/${casoTesteEditando}`, {
+        const response = await fetch(`http://127.0.0.1:8081/api/caso-teste/${casoTesteEditando}`, {
             method: 'DELETE'
         });
         
@@ -495,7 +495,7 @@ function visualizarPlanilha() {
     }
     
     // Navegar para a página de visualização em planilha
-    window.open(`http://127.0.0.1:8080/planilha/${issuePaiAtual}`, '_blank');
+    window.open(`http://127.0.0.1:8081/planilha/${issuePaiAtual}`, '_blank');
 }
 
 

@@ -1,0 +1,17 @@
+Título	Status	Tipo de Execução	Tipo de Teste	Componentes	Objetivo	Pré-condições	Descrição
+"[API] Detalhar Solicitação — documento não cadastrado"	Concluído	Automatizável	Funcional	API	"Como um usuário com perfil gerencial
+Quero incluir uma nova solicitação na Lista de Prioridades
+Para garantir o controle manual das inclusões"	"Dado que sou um usuário com perfil gerencial
+E tenho permissão de acesso ao sistema"	"Objetivo:Como um usuário com perfil gerencial
+Quero incluir uma nova solicitação na Lista de Prioridades
+Para garantir o controle manual das inclusõesPré Condição:Dado que sou um usuário com perfil gerencial
+E tenho permissão de acesso ao sistema
+Cenário: [API] Detalhar Solicitação — documento não cadastrado
+Dado que estou autenticado com perfil gerencial
+Quando envio uma requisição GET para ""/api/v1/records/{SCHEMA_NAME}?NUMERO_DOCUMENTO={VALOR_INEXISTENTE}""
+Então o sistema retorna 404 NOT_FOUND
+E valido o retorno da API
+{
+ ""statusCode"": ""404 - NOT_FOUND"",
+ ""message"": ""Não existem registros com esta chave!""
+}"

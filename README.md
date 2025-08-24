@@ -19,6 +19,8 @@ Sistema web para gerenciar casos de teste do Jira com integração completa à A
 - **Salvamento Individual**: Salvar alterações de cada campo individualmente
 - **Salvamento em Lote**: Salvar todas as alterações de uma vez
 - **Feedback Visual**: Indicadores visuais para campos modificados, salvando e com erro
+- **Planilha Manual**: Interface para criar casos de teste manualmente
+- **Importação em Massa**: Copiar e colar dados de tabelas para preencher automaticamente múltiplos casos de teste
 
 ## 📋 Pré-requisitos
 
@@ -57,7 +59,6 @@ Edite o arquivo `.env` com suas credenciais do Jira:
 JIRA_URL=https://seu-dominio.atlassian.net
 JIRA_EMAIL=seu-email@empresa.com
 JIRA_API_TOKEN=seu-token-api
-PROJECT_KEY=SEU_PROJETO
 JIRA_AUTH=base64(email:token)
 ```
 
@@ -66,7 +67,7 @@ JIRA_AUTH=base64(email:token)
 python app.py
 ```
 
-A aplicação estará disponível em: `http://localhost:8080`
+A aplicação estará disponível em: `http://localhost:8081`
 
 ## 🎯 Como Usar
 
@@ -98,6 +99,40 @@ A aplicação estará disponível em: `http://localhost:8080`
    - ✅ **Verde**: Salvo com sucesso
 
 **⚠️ Nota**: Apenas o campo Status pode retornar erro devido a restrições de permissão no Jira. Todos os outros campos (Título, Tipo de Execução, Tipo de Teste, Componentes, Objetivo, Pré-condições, Descrição) são editáveis e funcionam corretamente.
+
+### 4. Criar Casos de Teste Manualmente
+1. Acesse: `http://localhost:8081/planilha-manual`
+2. **Opção A - Importação em Massa**:
+   - Cole dados de uma tabela na seção "Importação em Massa"
+   - Clique em "Processar Dados" para analisar
+   - Revise o preview e clique em "Preencher Planilha"
+3. **Opção B - Edição Manual**:
+   - Use o botão "Adicionar Linha" para criar casos individuais
+   - Preencha os campos diretamente na planilha
+4. Clique em "Exportar para Jira" para criar os casos no Jira
+
+**📋 Formato para Importação em Massa**:
+```
+Título | Status | Tipo Execução | Tipo Teste | Componentes | Objetivo | Pré-condições | Descrição
+```
+
+**📝 Formato BDD para Descrição**:
+O campo descrição deve conter cenários BDD usando a sintaxe Gherkin:
+```
+Dado que [contexto/estado inicial]
+Quando [ação/evento]
+Então [resultado esperado]
+```
+
+Veja o arquivo `exemplo_dados_importacao.txt` para exemplos de dados.
+
+**🔧 Correção Recente**: Os casos de teste agora herdam automaticamente o prefixo do projeto da issue pai (ex: se a issue pai é `CREDT-1161`, os casos serão criados com prefixo `CREDT`).
+
+**🔄 Sistema Adaptável**: O sistema agora se adapta automaticamente a qualquer projeto do Jira, sem necessidade de configurar um projeto específico no arquivo `.env`.
+
+**💡 Sugestões Inteligentes**: Quando uma issue pai não é encontrada, o sistema sugere issues similares para ajudar na correção de erros de digitação.
+
+**📝 Formato BDD**: O campo descrição é automaticamente formatado em BDD (Behavior Driven Development) com sintaxe Gherkin para melhor clareza e compatibilidade com automação de testes.
 
 ### 4. Exportar para Excel
 1. Na visualização em planilha

@@ -1,215 +1,161 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Neurotech - Gerenciador de Casos de Teste</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
-</head>
-<body class="neurotech-theme">
-    <!-- Header -->
-    <header class="app-header">
-        <div class="container">
-            <div class="header-content">
-                <div class="logo">
-                    <i class="fas fa-brain"></i>
-                    <span>Neurotech</span>
-                </div>
-                <div class="header-actions">
-                    <a href="/planilha-manual" class="btn btn-outline">
-                        <i class="fas fa-table"></i>
-                        Planilha Manual
-                    </a>
-                    <button class="btn btn-outline" onclick="window.open('https://neurotech.atlassian.net', '_blank')">
-                        <i class="fab fa-jira"></i>
-                        Jira
-                    </button>
-                </div>
-            </div>
-        </div>
-    </header>
+{% extends "base.html" %}
 
-    <!-- Main Content -->
-    <main class="main-content">
-        <div class="container">
-            <!-- Search Section -->
-            <div class="search-section">
-                <div class="search-container">
-                    <h1>Gerenciador de Casos de Teste</h1>
-                    <p>Busque requisitos e visualize seus casos de teste</p>
-                    
-                    <div class="search-box">
-                        <div class="search-input">
-                            <i class="fas fa-clipboard-list"></i>
-                            <input type="text" id="requisitoPai" placeholder="Digite o ID do requisito (ex: CREDT-1161)">
-                            <button class="search-btn" onclick="buscarRequisito()">
-                                Buscar
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
+{% block title %}Neurotech - Gerenciador de Casos de Teste{% endblock %}
 
-            <!-- Results Section -->
-            <div id="resultados" class="results-section" style="display: none;">
-                <div class="results-header">
-                    <div class="results-info">
-                        <h2>Casos de Teste</h2>
-                        <span id="totalCasos" class="results-count"></span>
-                    </div>
-                    <div class="results-actions">
-                        <button id="btnNovoCaso" class="btn btn-primary" onclick="abrirModalCriar()" style="display: none;">
-                            <i class="fas fa-plus"></i>
-                            Novo Caso de Teste
-                        </button>
-                        <button id="btnPlanilha" class="btn btn-outline" onclick="visualizarPlanilha()" style="display: none;">
-                            <i class="fas fa-table"></i>
-                            Planilha
-                        </button>
+{% block page_title %}Gerenciador de Casos de Teste{% endblock %}
 
-                    </div>
-                </div>
-                
-                <div class="results-content">
-                    <div id="loading" class="loading" style="display: none;">
-                        <div class="loading-spinner"></div>
-                        <p>Carregando...</p>
-                    </div>
-                    
-                    <div id="listaCasos" class="cases-grid"></div>
-                </div>
-            </div>
-        </div>
-    </div>
+{% block page_subtitle %}Busque requisitos e visualize seus casos de teste{% endblock %}
 
-    <!-- Modal Customizado - SEM BOOTSTRAP -->
-    <div id="modalCustomizado" class="modal-customizado" style="display: none;">
-        <div class="modal-customizado-content">
-            <div class="modal-customizado-header">
-                <h5 id="modalTitleCustomizado">
-                    <i class="fas fa-plus me-2"></i>
-                    Novo Caso de Teste
-                </h5>
-                <button type="button" class="btn-close-customizado" onclick="fecharModalCustomizado()">&times;</button>
-            </div>
-            <div class="modal-customizado-body">
-                <form id="formCasoTesteCustomizado">
-                    <input type="hidden" id="issueKeyCustomizado" name="issueKey">
-                    <input type="hidden" id="issuePaiFormCustomizado" name="issuePai">
-                    
-                    <div class="mb-3">
-                        <label for="tituloCustomizado" class="form-label">Título *</label>
-                        <input type="text" class="form-control" id="tituloCustomizado" name="titulo" required>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="statusCustomizado" class="form-label">Status</label>
-                        <select class="form-select" id="statusCustomizado" name="status">
-                            <option value="To Do">To Do</option>
-                            <option value="In Progress">In Progress</option>
-                            <option value="Done">Done</option>
-                        </select>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="tipoExecucaoCustomizado" class="form-label">Tipo de Execução</label>
-                        <select class="form-select" id="tipoExecucaoCustomizado" name="tipoExecucao">
-                            <option value="Automatizado">Automatizado</option>
-                            <option value="Manual">Manual</option>
-                            <option value="Semi-automatizado">Semi-automatizado</option>
-                        </select>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="tipoTesteCustomizado" class="form-label">Tipo de Teste</label>
-                        <select class="form-select" id="tipoTesteCustomizado" name="tipoTeste">
-                            <option value="Funcional">Funcional</option>
-                            <option value="Não Funcional">Não Funcional</option>
-                            <option value="Integração">Integração</option>
-                            <option value="Regressão">Regressão</option>
-                        </select>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="componentesCustomizado" class="form-label">Componentes</label>
-                        <select class="form-select" id="componentesCustomizado" name="componentes">
-                            <option value="API">API</option>
-                            <option value="Frontend">Frontend</option>
-                            <option value="Backend">Backend</option>
-                            <option value="Mobile">Mobile</option>
-                            <option value="Web">Web</option>
-                        </select>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="objetivoCustomizado" class="form-label">Objetivo</label>
-                        <textarea class="form-control" id="objetivoCustomizado" name="objetivo" rows="3" placeholder="Descreva o objetivo do teste"></textarea>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="preCondicoesCustomizado" class="form-label">Pré-condições</label>
-                        <textarea class="form-control" id="preCondicoesCustomizado" name="preCondicoes" rows="3" placeholder="Descreva as pré-condições necessárias"></textarea>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="descricaoCustomizado" class="form-label">Descrição/Cenário *</label>
-                        <textarea class="form-control" id="descricaoCustomizado" name="descricao" rows="6" placeholder="Descreva o cenário de teste em formato Gherkin (Given/When/Then)" required></textarea>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-customizado-footer">
-                <button type="button" class="btn btn-secondary" onclick="fecharModalCustomizado()">Cancelar</button>
-                <button type="button" class="btn btn-primary" onclick="salvarCasoTesteCustomizado()">
-                    <i class="fas fa-save me-1"></i>
-                    Salvar
+{% block content %}
+<!-- Search Section -->
+<div class="search-section">
+    <div class="search-container">
+        <div class="search-box">
+            <div class="search-input">
+                <i class="fas fa-clipboard-list"></i>
+                <input type="text" id="requisitoPai" placeholder="Digite o ID do requisito (ex: CREDT-1161)">
+                <button class="search-btn" onclick="buscarRequisito()">
+                    Buscar
                 </button>
             </div>
         </div>
     </div>
+</div>
 
+<!-- Results Section -->
+<div id="resultados" class="results-section" style="display: none;">
+    <div class="results-header">
+        <div class="results-info">
+            <h2>Casos de Teste</h2>
+            <span id="totalCasos" class="results-count"></span>
+        </div>
+        <div class="results-actions">
+            <button id="btnNovoCaso" class="btn btn-primary" onclick="abrirModalCriar()" style="display: none;">
+                <i class="fas fa-plus"></i>
+                Novo Caso de Teste
+            </button>
+            <button id="btnPlanilha" class="btn btn-outline" onclick="visualizarPlanilha()" style="display: none;">
+                <i class="fas fa-table"></i>
+                Planilha
+            </button>
+        </div>
+    </div>
+    
+    <div class="results-content">
+        <div id="loading" class="loading" style="display: none;">
+            <div class="loading-spinner"></div>
+            <p>Carregando...</p>
+        </div>
+        
+        <div id="listaCasos" class="cases-grid"></div>
+    </div>
+</div>
 
+<!-- Modal Customizado - SEM BOOTSTRAP -->
+<div id="modalCustomizado" class="modal-customizado" style="display: none;">
+    <div class="modal-customizado-content">
+        <div class="modal-customizado-header">
+            <h5 id="modalTitleCustomizado">
+                <i class="fas fa-plus me-2"></i>
+                Novo Caso de Teste
+            </h5>
+            <button type="button" class="btn-close-customizado" onclick="fecharModalCustomizado()">&times;</button>
+        </div>
+        <div class="modal-customizado-body">
+            <form id="formCasoTesteCustomizado">
+                <input type="hidden" id="issueKeyCustomizado" name="issueKey">
+                <input type="hidden" id="issuePaiFormCustomizado" name="issuePai">
+                
+                <div class="mb-3">
+                    <label for="tituloCustomizado" class="form-label">Título *</label>
+                    <input type="text" class="form-control" id="tituloCustomizado" name="titulo" required>
+                </div>
 
-    <!-- Modal de Confirmação -->
-    <div class="modal fade" id="modalConfirmacao">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Confirmar Exclusão</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                <div class="mb-3">
+                    <label for="statusCustomizado" class="form-label">Status</label>
+                    <select class="form-select" id="statusCustomizado" name="status">
+                        <option value="To Do">To Do</option>
+                        <option value="In Progress">In Progress</option>
+                        <option value="Done">Done</option>
+                    </select>
                 </div>
-                <div class="modal-body">
-                    <p>Tem certeza que deseja excluir este caso de teste?</p>
-                    <p class="text-muted" id="confirmacaoTexto"></p>
+
+                <div class="mb-3">
+                    <label for="tipoExecucaoCustomizado" class="form-label">Tipo de Execução</label>
+                    <select class="form-select" id="tipoExecucaoCustomizado" name="tipoExecucao">
+                        <option value="Automatizado">Automatizado</option>
+                        <option value="Manual">Manual</option>
+                        <option value="Semi-automatizado">Semi-automatizado</option>
+                    </select>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="button" class="btn btn-danger" onclick="confirmarExclusao()">
-                        <i class="fas fa-trash me-1"></i>
-                        Excluir
-                    </button>
+
+                <div class="mb-3">
+                    <label for="tipoTesteCustomizado" class="form-label">Tipo de Teste</label>
+                    <select class="form-select" id="tipoTesteCustomizado" name="tipoTeste">
+                        <option value="Funcional">Funcional</option>
+                        <option value="Não Funcional">Não Funcional</option>
+                        <option value="Integração">Integração</option>
+                        <option value="Regressão">Regressão</option>
+                    </select>
                 </div>
+
+                <div class="mb-3">
+                    <label for="componentesCustomizado" class="form-label">Componentes</label>
+                    <select class="form-select" id="componentesCustomizado" name="componentes">
+                        <option value="API">API</option>
+                        <option value="Frontend">Frontend</option>
+                        <option value="Backend">Backend</option>
+                        <option value="Mobile">Mobile</option>
+                        <option value="Web">Web</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label for="objetivoCustomizado" class="form-label">Objetivo</label>
+                    <textarea class="form-control" id="objetivoCustomizado" name="objetivo" rows="3" placeholder="Descreva o objetivo do teste"></textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label for="preCondicoesCustomizado" class="form-label">Pré-condições</label>
+                    <textarea class="form-control" id="preCondicoesCustomizado" name="preCondicoes" rows="3" placeholder="Descreva as pré-condições necessárias"></textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label for="descricaoCustomizado" class="form-label">Descrição/Cenário *</label>
+                    <textarea class="form-control" id="descricaoCustomizado" name="descricao" rows="6" placeholder="Descreva o cenário de teste em formato Gherkin (Given/When/Then)" required></textarea>
+                </div>
+            </form>
+        </div>
+        <div class="modal-customizado-footer">
+            <button type="button" class="btn btn-secondary" onclick="fecharModalCustomizado()">Cancelar</button>
+            <button type="button" class="btn btn-primary" onclick="salvarCasoTesteCustomizado()">
+                <i class="fas fa-save me-1"></i>
+                Salvar
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Confirmação -->
+<div class="modal fade" id="modalConfirmacao">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirmar Exclusão</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+            </div>
+            <div class="modal-body">
+                <p>Tem certeza que deseja excluir este caso de teste?</p>
+                <p class="text-muted" id="confirmacaoTexto"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-danger" onclick="confirmarExclusao()">
+                    <i class="fas fa-trash me-1"></i>
+                    Excluir
+                </button>
             </div>
         </div>
     </div>
-
-
-
-    <!-- Toast para notificações -->
-    <div class="toast-container position-fixed bottom-0 end-0 p-3">
-        <div id="toast" class="toast" role="alert">
-            <div class="toast-header">
-                <i id="toastIcon" class="fas fa-info-circle me-2"></i>
-                <strong id="toastTitle" class="me-auto">Notificação</strong>
-                <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
-            </div>
-            <div id="toastBody" class="toast-body"></div>
-        </div>
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
-</body>
-</html>
+</div>
+{% endblock %}
