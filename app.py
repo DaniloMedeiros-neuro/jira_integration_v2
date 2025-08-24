@@ -8,6 +8,8 @@ import pandas as pd
 import io
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+import re
+from urllib.parse import urlparse, parse_qs
 
 load_dotenv()
 
@@ -25,7 +27,6 @@ def after_request(response):
 JIRA_BASE_URL = os.getenv("JIRA_URL")
 JIRA_EMAIL = os.getenv("JIRA_EMAIL")
 JIRA_API_TOKEN = os.getenv("JIRA_API_TOKEN")
-PROJECT_KEY = os.getenv("PROJECT_KEY", "TEST")
 
 HEADERS = {
     "Authorization": f"Basic {os.getenv('JIRA_AUTH')}",
@@ -61,6 +62,46 @@ def obter_informacoes_issue(issue_key):
     except Exception as e:
         print(f"Erro ao obter informações da issue {issue_key}: {e}")
         return None, None
+
+def buscar_issues_similares(issue_key):
+    """Busca issues similares para sugerir correção de digitação"""
+    try:
+        # Extrair prefixo e número da issue
+        if '-' in issue_key:
+            prefixo, numero = issue_key.split('-', 1)
+        else:
+            return []
+        
+        # Buscar issues com o mesmo prefixo
+        jql = f'project = {prefixo} AND issuekey LIKE "{prefixo}-%" ORDER BY created DESC'
+        url = f"{JIRA_BASE_URL}/rest/api/3/search"
+        
+        payload = {
+            "jql": jql,
+            "maxResults": 10,
+            "fields": ["key", "summary"]
+        }
+        
+        response = requests.post(url, headers=HEADERS, json=payload, auth=(JIRA_EMAIL, JIRA_API_TOKEN))
+        
+        if response.status_code == 200:
+            data = response.json()
+            issues = data.get('issues', [])
+            
+            # Filtrar issues mais similares (mesmo número ou próximo)
+            sugestoes = []
+            for issue in issues:
+                issue_key_found = issue['key']
+                if issue_key_found != issue_key:  # Não sugerir a mesma issue
+                    sugestoes.append(issue_key_found)
+            
+            return sugestoes[:5]  # Retornar até 5 sugestões
+        
+        return []
+        
+    except Exception as e:
+        print(f"Erro ao buscar issues similares: {e}")
+        return []
 
 def obter_tipos_issue_disponiveis(project_key):
     """Obtém todos os tipos de issue disponíveis no projeto"""
@@ -376,7 +417,6 @@ def criar_caso_teste():
         
         print("Verificando configurações...")
         print("JIRA_BASE_URL:", JIRA_BASE_URL)
-        print("PROJECT_KEY:", PROJECT_KEY)
         print("JIRA_EMAIL:", JIRA_EMAIL)
         print("JIRA_API_TOKEN:", "***" if JIRA_API_TOKEN else "NÃO CONFIGURADO")
         
@@ -387,8 +427,15 @@ def criar_caso_teste():
         # Obter informações da issue pai
         project_key, issue_type_pai = obter_informacoes_issue(issue_pai)
         if not project_key:
-            print("Erro: Não foi possível obter informações da issue pai")
-            return jsonify({"erro": "Issue pai não encontrada ou inválida"}), 400
+            # Tentar encontrar issues similares para sugerir correção
+            sugestoes = buscar_issues_similares(issue_pai)
+            if sugestoes:
+                erro_msg = f"Issue pai não encontrada ou inválida. Sugestões: {', '.join(sugestoes)}"
+            else:
+                erro_msg = "Issue pai não encontrada ou inválida"
+            
+            print(f"Erro: {erro_msg}")
+            return jsonify({"erro": erro_msg}), 400
         
         # Verificar tipos de issue disponíveis
         todos_tipos, subtarefas, issues_normais = obter_tipos_issue_disponiveis(project_key)
@@ -773,5 +820,108 @@ def extrair_texto_campo(campo):
     
     return texto.strip()
 
+
+
+@app.route('/planilha-manual')
+def planilha_manual():
+    """Página da planilha manual editável"""
+    return render_template('planilha_manual.html')
+
+
+
+
+
+
+
+
+
+@app.route('/api/exportar-planilha-manual', methods=['POST'])
+def exportar_planilha_manual():
+    """API para exportar dados da planilha manual para o Jira"""
+    try:
+        data = request.get_json()
+        issue_pai = data.get('issue_pai')
+        casos = data.get('casos', [])
+        
+        if not issue_pai:
+            return jsonify({
+                'sucesso': False,
+                'erro': 'Issue pai é obrigatória'
+            }), 400
+        
+        if not casos:
+            return jsonify({
+                'sucesso': False,
+                'erro': 'Nenhum caso de teste fornecido'
+            }), 400
+        
+        print(f"📤 Exportando {len(casos)} casos para issue pai: {issue_pai}")
+        
+        resultados = []
+        sucessos = 0
+        erros = 0
+        
+        for caso in casos:
+            try:
+                # Criar caso de teste no Jira
+                resultado = criar_caso_teste_planilha_manual(caso, issue_pai)
+                
+                if resultado.get('sucesso'):
+                    sucessos += 1
+                    resultados.append({
+                        'titulo': caso.get('titulo'),
+                        'jira_id': resultado.get('jira_id'),
+                        'created_at': resultado.get('created_at'),
+                        'updated_at': resultado.get('updated_at')
+                    })
+                else:
+                    erros += 1
+                    resultados.append({
+                        'titulo': caso.get('titulo'),
+                        'erro': resultado.get('erro', 'Erro desconhecido')
+                    })
+                    
+            except Exception as e:
+                erros += 1
+                print(f"❌ Erro ao criar caso '{caso.get('titulo')}': {e}")
+                resultados.append({
+                    'titulo': caso.get('titulo'),
+                    'erro': str(e)
+                })
+        
+        return jsonify({
+            'sucesso': True,
+            'mensagem': f'Exportação concluída: {sucessos} sucessos, {erros} erros',
+            'sucessos': sucessos,
+            'erros': erros,
+            'total': len(casos),
+            'resultados': resultados
+        })
+        
+    except Exception as e:
+        print(f"❌ Erro na API exportar planilha manual: {e}")
+        return jsonify({
+            'sucesso': False,
+            'erro': f'Erro interno: {str(e)}'
+        }), 500
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=8080)
+    app.run(debug=True, host='0.0.0.0', port=8081)
