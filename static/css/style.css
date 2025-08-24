@@ -59,7 +59,7 @@ body {
 }
 
 #topNavbar .navbar-logo {
-    height: 32px;
+    height: 40px;
     width: auto;
     filter: brightness(0) invert(1);
     transition: all 0.3s ease;
