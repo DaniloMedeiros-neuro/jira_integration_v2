@@ -254,18 +254,7 @@ function criarHTMLCasoTesteLista(caso) {
                         ${componentes}
                     </span>
                 </div>
-                ${caso.objetivo ? `
-                    <div class="case-list-description">
-                        <strong><i class="fas fa-bullseye"></i> Objetivo:</strong><br>
-                        <div class="case-description-texto">${caso.objetivo.replace(/\n/g, '<br>')}</div>
-                    </div>
-                ` : ''}
-                ${caso.pre_condicoes ? `
-                    <div class="case-list-description">
-                        <strong><i class="fas fa-list-check"></i> Pré-condições:</strong><br>
-                        <div class="case-description-texto">${caso.pre_condicoes.replace(/\n/g, '<br>')}</div>
-                    </div>
-                ` : ''}
+
                 ${caso.descricao ? `
                     <div class="case-list-description">
                         <strong><i class="fas fa-file-text"></i> Descrição:</strong><br>
@@ -320,18 +309,7 @@ function criarHTMLCasoTesteCard(caso) {
                 </div>
             </div>
             
-            ${caso.objetivo ? `
-                <div class="case-description">
-                    <strong><i class="fas fa-bullseye"></i> Objetivo:</strong><br>
-                    <div class="case-description-texto">${caso.objetivo.replace(/\n/g, '<br>')}</div>
-                </div>
-            ` : ''}
-            ${caso.pre_condicoes ? `
-                <div class="case-description">
-                    <strong><i class="fas fa-list-check"></i> Pré-condições:</strong><br>
-                    <div class="case-description-texto">${caso.pre_condicoes.replace(/\n/g, '<br>')}</div>
-                </div>
-            ` : ''}
+
             ${caso.descricao ? `
                 <div class="case-description">
                     <strong><i class="fas fa-file-text"></i> Descrição:</strong><br>
@@ -383,8 +361,7 @@ function criarHTMLCasoTeste(caso) {
                 <span><i class="fas fa-puzzle-piece"></i> Componentes: ${componentes}</span>
             </div>
             
-            ${caso.objetivo ? `<div><strong>Objetivo:</strong> ${caso.objetivo}</div>` : ''}
-            ${caso.pre_condicoes ? `<div><strong>Pré-condições:</strong> ${caso.pre_condicoes}</div>` : ''}
+
             
             ${caso.descricao ? `
                 <div class="caso-teste-descricao">
