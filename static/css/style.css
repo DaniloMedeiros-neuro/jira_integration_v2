@@ -58,6 +58,17 @@ body {
     color: var(--neurotech-accent);
 }
 
+#topNavbar .navbar-logo {
+    height: 32px;
+    width: auto;
+    filter: brightness(0) invert(1);
+    transition: all 0.3s ease;
+}
+
+#topNavbar .navbar-brand:hover .navbar-logo {
+    filter: brightness(0) invert(1) drop-shadow(0 0 8px rgba(255, 255, 255, 0.3));
+}
+
 #topNavbar .nav-link {
     color: rgba(255, 255, 255, 0.8) !important;
     font-weight: 500;
