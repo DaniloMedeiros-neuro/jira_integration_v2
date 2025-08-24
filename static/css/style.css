@@ -596,14 +596,14 @@ body {
 /* Seção de Busca */
 .search-section {
     background: linear-gradient(135deg, var(--neurotech-primary) 0%, var(--neurotech-secondary) 100%);
-    padding: var(--spacing-xl) 0;
-    margin-bottom: var(--spacing-xl);
+    padding: var(--spacing-lg) 0;
+    margin-bottom: var(--spacing-lg);
     border-radius: 0 0 var(--radius-xl) var(--radius-xl);
     box-shadow: var(--neurotech-shadow-xl);
 }
 
 .search-container {
-    max-width: 400px;
+    max-width: 300px;
     margin: 0 auto;
     padding: 0 var(--spacing-lg);
 }
@@ -624,8 +624,8 @@ body {
 .search-input {
     display: flex;
     align-items: center;
-    padding: var(--spacing-md);
-    gap: var(--spacing-md);
+    padding: var(--spacing-sm);
+    gap: var(--spacing-sm);
 }
 
 .search-input i {
@@ -1353,7 +1353,7 @@ body {
 
 .search-container {
     text-align: center;
-    max-width: 400px;
+    max-width: 300px;
     margin: 0 auto;
 }
 
