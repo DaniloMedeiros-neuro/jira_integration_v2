@@ -2705,6 +2705,21 @@ body.edicao-ativa {
     margin-top: var(--spacing-sm);
 }
 
+.requisito-descricao-texto {
+    white-space: pre-line;
+    line-height: 1.6;
+    color: var(--neurotech-secondary);
+    font-size: 0.9rem;
+}
+
+.case-description-texto {
+    white-space: pre-line;
+    line-height: 1.6;
+    color: var(--neurotech-secondary);
+    font-size: 0.875rem;
+    margin-top: var(--spacing-xs);
+}
+
 /* Responsividade para informações do requisito */
 @media (max-width: 768px) {
     .requisito-info {

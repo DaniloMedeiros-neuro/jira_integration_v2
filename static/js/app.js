@@ -167,7 +167,7 @@ function exibirCasosTeste(data) {
                 ${requisitoInfo.descricao ? `
                     <div class="requisito-descricao">
                         <strong><i class="fas fa-align-left me-1"></i>Descrição:</strong><br>
-                        ${requisitoInfo.descricao}
+                        <div class="requisito-descricao-texto">${requisitoInfo.descricao.replace(/\n/g, '<br>')}</div>
                     </div>
                 ` : ''}
             </div>
@@ -257,19 +257,19 @@ function criarHTMLCasoTesteLista(caso) {
                 ${caso.objetivo ? `
                     <div class="case-list-description">
                         <strong><i class="fas fa-bullseye"></i> Objetivo:</strong><br>
-                        ${caso.objetivo}
+                        <div class="case-description-texto">${caso.objetivo.replace(/\n/g, '<br>')}</div>
                     </div>
                 ` : ''}
                 ${caso.pre_condicoes ? `
                     <div class="case-list-description">
                         <strong><i class="fas fa-list-check"></i> Pré-condições:</strong><br>
-                        ${caso.pre_condicoes}
+                        <div class="case-description-texto">${caso.pre_condicoes.replace(/\n/g, '<br>')}</div>
                     </div>
                 ` : ''}
                 ${caso.descricao ? `
                     <div class="case-list-description">
                         <strong><i class="fas fa-file-text"></i> Descrição:</strong><br>
-                        ${caso.descricao}
+                        <div class="case-description-texto">${caso.descricao.replace(/\n/g, '<br>')}</div>
                     </div>
                 ` : ''}
             </div>
@@ -323,19 +323,19 @@ function criarHTMLCasoTesteCard(caso) {
             ${caso.objetivo ? `
                 <div class="case-description">
                     <strong><i class="fas fa-bullseye"></i> Objetivo:</strong><br>
-                    <p>${caso.objetivo}</p>
+                    <div class="case-description-texto">${caso.objetivo.replace(/\n/g, '<br>')}</div>
                 </div>
             ` : ''}
             ${caso.pre_condicoes ? `
                 <div class="case-description">
                     <strong><i class="fas fa-list-check"></i> Pré-condições:</strong><br>
-                    <p>${caso.pre_condicoes}</p>
+                    <div class="case-description-texto">${caso.pre_condicoes.replace(/\n/g, '<br>')}</div>
                 </div>
             ` : ''}
             ${caso.descricao ? `
                 <div class="case-description">
                     <strong><i class="fas fa-file-text"></i> Descrição:</strong><br>
-                    <p>${caso.descricao}</p>
+                    <div class="case-description-texto">${caso.descricao.replace(/\n/g, '<br>')}</div>
                 </div>
             ` : ''}
             

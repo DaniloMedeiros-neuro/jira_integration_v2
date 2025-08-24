@@ -907,32 +907,38 @@ def atribuir_responsavel(issue_key, account_id):
         return False
 
 def extrair_texto_descricao(descricao):
-    """Extrai texto simples da descrição em formato Atlassian Document Format"""
+    """Extrai texto simples da descrição em formato Atlassian Document Format preservando quebras de linha"""
     if not descricao or not descricao.get("content"):
         return ""
     
     texto = ""
     for content in descricao.get("content", []):
         if content.get("type") == "paragraph":
+            paragrafo_texto = ""
             for item in content.get("content", []):
                 if item.get("type") == "text":
-                    texto += item.get("text", "")
+                    paragrafo_texto += item.get("text", "")
+            if paragrafo_texto:
+                texto += paragrafo_texto + "\n"
         elif content.get("type") == "codeBlock":
             texto += f"\n```\n{content.get('content', [{}])[0].get('text', '')}\n```\n"
     
     return texto.strip()
 
 def extrair_texto_campo(campo):
-    """Extrai texto simples de campos customizados"""
+    """Extrai texto simples de campos customizados preservando quebras de linha"""
     if not campo or not campo.get("content"):
         return ""
     
     texto = ""
     for content in campo.get("content", []):
         if content.get("type") == "paragraph":
+            paragrafo_texto = ""
             for item in content.get("content", []):
                 if item.get("type") == "text":
-                    texto += item.get("text", "")
+                    paragrafo_texto += item.get("text", "")
+            if paragrafo_texto:
+                texto += paragrafo_texto + "\n"
     
     return texto.strip()
 
