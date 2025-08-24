@@ -1050,9 +1050,6 @@ def exportar_planilha_manual():
 
 
 
-if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=8081)
-
 @app.route('/api/metricas-epico/<epic_key>')
 def obter_metricas_epico(epic_key):
     """Obtém métricas administrativas e globais de um épico"""
@@ -1106,62 +1103,77 @@ def obter_metricas_epico(epic_key):
         
     except Exception as e:
         print(f"Erro ao obter métricas do épico: {str(e)}")
+        import traceback
+        print("Traceback completo:")
+        traceback.print_exc()
         return jsonify({"erro": str(e)}), 500
 
 def calcular_metricas_epico(epic_fields, issues):
     """Calcula métricas administrativas do épico"""
     
-    # Métricas básicas
-    total_issues = len(issues)
-    issues_concluidas = sum(1 for issue in issues if issue['fields']['status']['name'] in ['Done', 'Resolved', 'Closed'])
-    percentual_conclusao = (issues_concluidas / total_issues * 100) if total_issues > 0 else 0
-    
-    # Métricas de tempo
-    cycle_times = []
-    lead_times = []
-    tempo_estimado_vs_real = []
-    
-    for issue in issues:
-        # Cycle Time (In Progress até Done)
-        if issue['fields']['status']['name'] in ['Done', 'Resolved', 'Closed']:
-            created = datetime.fromisoformat(issue['fields']['created'].replace('Z', '+00:00'))
-            resolved = datetime.fromisoformat(issue['fields']['resolutiondate'].replace('Z', '+00:00'))
-            lead_time = (resolved - created).days
-            lead_times.append(lead_time)
+    try:
+        print(f"Processando {len(issues)} issues")
         
-        # Tempo estimado vs real
-        time_estimate = issue['fields'].get('timeestimate', 0) or 0
-        time_spent = issue['fields'].get('timespent', 0) or 0
-        if time_estimate > 0:
-            diferenca = ((time_spent - time_estimate) / time_estimate) * 100
-            tempo_estimado_vs_real.append(diferenca)
+        # Métricas básicas
+        total_issues = len(issues)
+        issues_concluidas = sum(1 for issue in issues if issue['fields'].get('status', {}).get('name') in ['Done', 'Resolved', 'Closed'])
+        percentual_conclusao = (issues_concluidas / total_issues * 100) if total_issues > 0 else 0
+        
+        # Métricas de tempo
+        cycle_times = []
+        lead_times = []
+        tempo_estimado_vs_real = []
     
-    # Métricas de esforço
-    story_points_total = sum(issue['fields'].get('storypoints', 0) or 0 for issue in issues)
-    story_points_concluidos = sum(
-        issue['fields'].get('storypoints', 0) or 0 
-        for issue in issues 
-        if issue['fields']['status']['name'] in ['Done', 'Resolved', 'Closed']
-    )
-    
-    # Distribuição por status
-    status_distribution = {}
-    for issue in issues:
-        status = issue['fields']['status']['name']
-        status_distribution[status] = status_distribution.get(status, 0) + 1
-    
-    # Distribuição por responsável
-    assignee_distribution = {}
-    for issue in issues:
-        assignee = issue['fields'].get('assignee', {})
-        assignee_name = assignee.get('displayName', 'Não atribuído') if assignee else 'Não atribuído'
-        assignee_distribution[assignee_name] = assignee_distribution.get(assignee_name, 0) + 1
-    
-    # Métricas de qualidade
-    bugs_count = sum(1 for issue in issues if issue['fields']['issuetype']['name'] == 'Bug')
-    dependencias_count = sum(1 for issue in issues if 'blocks' in str(issue['fields']))
-    
-    return {
+        for issue in issues:
+            # Cycle Time (In Progress até Done)
+            if issue['fields'].get('status', {}).get('name') in ['Done', 'Resolved', 'Closed']:
+                try:
+                    created = datetime.fromisoformat(issue['fields'].get('created', '').replace('Z', '+00:00'))
+                    resolution_date = issue['fields'].get('resolutiondate')
+                    if resolution_date:
+                        resolved = datetime.fromisoformat(resolution_date.replace('Z', '+00:00'))
+                        lead_time = (resolved - created).days
+                        lead_times.append(lead_time)
+                except (ValueError, TypeError) as e:
+                    print(f"Erro ao processar datas da issue {issue.get('key', 'unknown')}: {e}")
+                    continue
+            
+            # Tempo estimado vs real
+            time_estimate = issue['fields'].get('timeestimate', 0) or 0
+            time_spent = issue['fields'].get('timespent', 0) or 0
+            if time_estimate > 0:
+                diferenca = ((time_spent - time_estimate) / time_estimate) * 100
+                tempo_estimado_vs_real.append(diferenca)
+        
+        # Métricas de esforço
+        story_points_total = sum(issue['fields'].get('storypoints', 0) or 0 for issue in issues)
+        story_points_concluidos = sum(
+            issue['fields'].get('storypoints', 0) or 0 
+            for issue in issues 
+            if issue['fields'].get('status', {}).get('name') in ['Done', 'Resolved', 'Closed']
+        )
+        
+        # Distribuição por status
+        status_distribution = {}
+        for issue in issues:
+            status = issue['fields'].get('status', {}).get('name')
+            status_distribution[status] = status_distribution.get(status, 0) + 1
+        
+        # Distribuição por responsável
+        assignee_distribution = {}
+        for issue in issues:
+            assignee = issue['fields'].get('assignee')
+            if assignee and isinstance(assignee, dict):
+                assignee_name = assignee.get('displayName', 'Não atribuído')
+            else:
+                assignee_name = 'Não atribuído'
+            assignee_distribution[assignee_name] = assignee_distribution.get(assignee_name, 0) + 1
+        
+        # Métricas de qualidade
+        bugs_count = sum(1 for issue in issues if issue['fields'].get('issuetype', {}).get('name') == 'Bug')
+        dependencias_count = sum(1 for issue in issues if 'blocks' in str(issue['fields']))
+        
+        return {
         "epic_info": {
             "key": epic_fields.get('key'),
             "summary": epic_fields.get('summary'),
@@ -1195,18 +1207,23 @@ def calcular_metricas_epico(epic_fields, issues):
         "detalhes_issues": [
             {
                 "key": issue['key'],
-                "summary": issue['fields']['summary'],
-                "status": issue['fields']['status']['name'],
-                "assignee": issue['fields'].get('assignee', {}).get('displayName', 'Não atribuído'),
+                "summary": issue['fields'].get('summary', ''),
+                "status": issue['fields'].get('status', {}).get('name'),
+                "assignee": issue['fields'].get('assignee', {}).get('displayName', 'Não atribuído') if issue['fields'].get('assignee') else 'Não atribuído',
                 "story_points": issue['fields'].get('storypoints', 0) or 0,
                 "time_spent": issue['fields'].get('timespent', 0) or 0,
                 "time_estimate": issue['fields'].get('timeestimate', 0) or 0,
-                "created": issue['fields']['created'],
-                "updated": issue['fields']['updated']
+                "created": issue['fields'].get('created', ''),
+                "updated": issue['fields'].get('updated', '')
             }
             for issue in issues
         ]
     }
+    except Exception as e:
+        print(f"Erro ao calcular métricas: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        raise e
 
 @app.route('/api/metricas-sprint/<sprint_id>')
 def obter_metricas_sprint(sprint_id):
@@ -1253,14 +1270,14 @@ def calcular_metricas_sprint(sprint_data, issues):
     """Calcula métricas de uma sprint"""
     
     total_issues = len(issues)
-    issues_concluidas = sum(1 for issue in issues if issue['fields']['status']['name'] in ['Done', 'Resolved', 'Closed'])
+    issues_concluidas = sum(1 for issue in issues if issue['fields'].get('status', {}).get('name') in ['Done', 'Resolved', 'Closed'])
     
     # Story points
     story_points_total = sum(issue['fields'].get('storypoints', 0) or 0 for issue in issues)
     story_points_concluidos = sum(
         issue['fields'].get('storypoints', 0) or 0 
         for issue in issues 
-        if issue['fields']['status']['name'] in ['Done', 'Resolved', 'Closed']
+        if issue['fields'].get('status', {}).get('name') in ['Done', 'Resolved', 'Closed']
     )
     
     # Velocidade
@@ -1269,7 +1286,7 @@ def calcular_metricas_sprint(sprint_data, issues):
     # Burndown data
     burndown_data = []
     for issue in issues:
-        if issue['fields']['status']['name'] in ['Done', 'Resolved', 'Closed']:
+        if issue['fields'].get('status', {}).get('name') in ['Done', 'Resolved', 'Closed']:
             resolved_date = issue['fields'].get('resolutiondate')
             if resolved_date:
                 burndown_data.append({
@@ -1297,3 +1314,6 @@ def calcular_metricas_sprint(sprint_data, issues):
         },
         "burndown_data": burndown_data
     }
+
+if __name__ == '__main__':
+    app.run(debug=True, host='0.0.0.0', port=8081)

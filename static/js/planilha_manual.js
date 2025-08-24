@@ -8,6 +8,12 @@ document.addEventListener('DOMContentLoaded', function() {
     // Inicializar modal
     exportModal = new bootstrap.Modal(document.getElementById('exportModal'));
     
+    // Adicionar evento para garantir que o campo issuePai esteja habilitado quando o modal for exibido
+    document.getElementById('exportModal').addEventListener('shown.bs.modal', function() {
+        habilitarCampoIssuePai();
+        monitorarCampoIssuePai();
+    });
+    
     // Event listeners para planilha manual
     document.getElementById('btnAddRow').addEventListener('click', addRow);
     document.getElementById('btnExportJira').addEventListener('click', showExportModal);
@@ -18,9 +24,562 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('btnLimparDados').addEventListener('click', limparDadosImportacao);
     document.getElementById('btnPreencherPlanilha').addEventListener('click', preencherPlanilhaComDados);
     
+    // Preencher issuePai automaticamente se disponível (versão silenciosa)
+    preencherIssuePaiAutomaticamente(true);
+    
+    // Iniciar monitoramento do campo issuePai
+    setTimeout(() => {
+        monitorarCampoIssuePai();
+        verificarInterferenciasJavaScript();
+    }, 1000);
+    
+    // Adicionar debug para o campo issuePai
+    const issuePaiField = document.getElementById('issuePai');
+    if (issuePaiField) {
+        // Garantir que o campo esteja sempre habilitado
+        issuePaiField.disabled = false;
+        issuePaiField.readOnly = false;
+        issuePaiField.style.pointerEvents = 'auto';
+        issuePaiField.style.opacity = '1';
+        issuePaiField.style.backgroundColor = 'white';
+        issuePaiField.style.color = 'var(--neurotech-secondary)';
+        
+        // Interceptar e prevenir bloqueios de teclado
+        issuePaiField.addEventListener('keydown', function(e) {
+            console.log('Campo issuePai recebeu keydown:', e.key);
+            // Garantir que o campo esteja habilitado
+            e.target.disabled = false;
+            e.target.readOnly = false;
+            // Não bloquear nenhuma tecla
+            e.stopPropagation();
+        });
+        
+        issuePaiField.addEventListener('keypress', function(e) {
+            console.log('Campo issuePai recebeu keypress:', e.key);
+            // Garantir que o campo esteja habilitado
+            e.target.disabled = false;
+            e.target.readOnly = false;
+            // Não bloquear nenhuma tecla
+            e.stopPropagation();
+        });
+        
+        issuePaiField.addEventListener('keyup', function(e) {
+            console.log('Campo issuePai recebeu keyup:', e.key);
+            // Garantir que o campo esteja habilitado
+            e.target.disabled = false;
+            e.target.readOnly = false;
+            // Não bloquear nenhuma tecla
+            e.stopPropagation();
+        });
+        
+        issuePaiField.addEventListener('input', function(e) {
+            console.log('Campo issuePai recebeu input:', e.target.value);
+            // Garantir que o campo esteja habilitado
+            e.target.disabled = false;
+            e.target.readOnly = false;
+        });
+        
+        issuePaiField.addEventListener('focus', function(e) {
+            console.log('Campo issuePai recebeu foco');
+            // Garantir que o campo esteja habilitado quando receber foco
+            e.target.disabled = false;
+            e.target.readOnly = false;
+        });
+        
+        // Adicionar evento para garantir que o campo esteja sempre habilitado
+        issuePaiField.addEventListener('click', function(e) {
+            e.target.disabled = false;
+            e.target.readOnly = false;
+            e.target.focus();
+        });
+        
+        // Interceptar tentativas de desabilitação
+        const originalSetAttribute = issuePaiField.setAttribute;
+        issuePaiField.setAttribute = function(name, value) {
+            if (name === 'disabled' || name === 'readonly') {
+                console.log('🚫 Tentativa de desabilitar campo issuePai bloqueada');
+                return;
+            }
+            return originalSetAttribute.call(this, name, value);
+        };
+    }
+    
     // Adicionar primeira linha
     addRow();
 });
+
+// Função para preencher automaticamente o campo issuePai (versão silenciosa para carregamento inicial)
+function preencherIssuePaiAutomaticamente(silencioso = false) {
+    const issuePaiField = document.getElementById('issuePai');
+    if (!issuePaiField) return;
+    
+    // Se o campo já tem valor, não sobrescrever
+    if (issuePaiField.value.trim()) {
+        if (!silencioso) {
+            mostrarNotificacao('Campo já possui valor. Limpe o campo primeiro se deseja preencher automaticamente.', 'info');
+        }
+        return;
+    }
+    
+    // Verificar se há issuePai na URL (parâmetro)
+    const urlParams = new URLSearchParams(window.location.search);
+    const issuePaiFromUrl = urlParams.get('issuePai');
+    
+    // Verificar se há issuePai no localStorage (da página principal)
+    const issuePaiFromStorage = localStorage.getItem('issuePaiAtual');
+    
+    // Verificar se há issuePai na variável global (se estiver na mesma sessão)
+    const issuePaiFromGlobal = typeof issuePaiAtual !== 'undefined' ? issuePaiAtual : null;
+    
+    // Prioridade: URL > localStorage > global
+    const issuePai = issuePaiFromUrl || issuePaiFromStorage || issuePaiFromGlobal;
+    
+    if (issuePai) {
+        issuePaiField.value = issuePai;
+        console.log('✅ Issue Pai preenchido automaticamente:', issuePai);
+        if (!silencioso) {
+            mostrarNotificacao(`Issue Pai preenchido: ${issuePai}`, 'success');
+        }
+    } else if (!silencioso) {
+        mostrarNotificacao('Nenhum Issue Pai encontrado automaticamente. Preencha manualmente.', 'warning');
+    }
+}
+
+// Função para limpar o campo issuePai
+function limparCampoIssuePai() {
+    const issuePaiField = document.getElementById('issuePai');
+    if (issuePaiField) {
+        issuePaiField.value = '';
+        issuePaiField.focus();
+        mostrarNotificacao('Campo Issue Pai limpo. Você pode preenchê-lo manualmente.', 'info');
+    }
+}
+
+// Função para forçar habilitação do campo issuePai
+function forcarHabilitacaoIssuePai() {
+    const issuePaiField = document.getElementById('issuePai');
+    if (issuePaiField) {
+        // Salvar o valor atual
+        const valorAtual = issuePaiField.value;
+        
+        // Encontrar o container do input-group
+        const inputGroup = issuePaiField.closest('.input-group');
+        if (inputGroup) {
+            // Criar um novo container simples
+            const novoContainer = document.createElement('div');
+            novoContainer.className = 'mb-3';
+            
+            // Criar um novo campo completamente limpo
+            const novoCampo = document.createElement('input');
+            novoCampo.type = 'text';
+            novoCampo.id = 'issuePai';
+            novoCampo.className = 'form-control';
+            novoCampo.placeholder = 'Ex: CREDT-1161';
+            novoCampo.required = true;
+            novoCampo.value = valorAtual;
+            novoCampo.style.backgroundColor = 'white';
+            novoCampo.style.color = 'var(--neurotech-secondary)';
+            novoCampo.style.cursor = 'text';
+            novoCampo.style.pointerEvents = 'auto';
+            novoCampo.style.opacity = '1';
+            novoCampo.style.border = '1px solid var(--neurotech-border)';
+            novoCampo.style.padding = 'var(--spacing-sm) var(--spacing-md)';
+            novoCampo.style.fontSize = '14px';
+            novoCampo.style.lineHeight = '1.5';
+            novoCampo.style.borderRadius = 'var(--radius-sm)';
+            novoCampo.style.transition = 'all var(--transition-normal)';
+            novoCampo.style.boxShadow = 'none';
+            novoCampo.style.outline = 'none';
+            novoCampo.style.position = 'relative';
+            novoCampo.style.zIndex = '10';
+            novoCampo.style.width = '100%';
+            novoCampo.style.marginBottom = 'var(--spacing-sm)';
+            
+            // Adicionar o campo ao novo container
+            novoContainer.appendChild(novoCampo);
+            
+            // Substituir todo o input-group pelo novo container
+            inputGroup.parentNode.replaceChild(novoContainer, inputGroup);
+            
+            // Focar no novo campo
+            novoCampo.focus();
+            
+            // Adicionar eventos ao novo campo
+            novoCampo.addEventListener('input', function(e) {
+                console.log('Campo issuePai recebeu input:', e.target.value);
+            });
+            
+            novoCampo.addEventListener('focus', function(e) {
+                console.log('Campo issuePai recebeu foco');
+            });
+            
+            mostrarNotificacao('Campo Issue Pai recriado fora do input-group!', 'success');
+            
+                    console.log('🔧 Campo issuePai recriado fora do input-group');
+        
+        // Testar se o novo campo está funcionando
+        setTimeout(() => {
+            const novoCampo = document.getElementById('issuePai');
+            if (novoCampo) {
+                novoCampo.focus();
+                novoCampo.value = 'TESTE-' + Date.now();
+                console.log('✅ Campo recriado está funcionando!');
+                mostrarNotificacao('Campo testado e funcionando!', 'success');
+            }
+        }, 100);
+    }
+}
+}
+
+// Função para verificar se há JavaScript interferindo
+function verificarInterferenciasJavaScript() {
+    const issuePaiField = document.getElementById('issuePai');
+    if (issuePaiField) {
+        console.log('🔍 Verificando interferências no campo issuePai...');
+        
+        // Verificar propriedades do campo
+        console.log('Propriedades do campo:', {
+            disabled: issuePaiField.disabled,
+            readOnly: issuePaiField.readOnly,
+            type: issuePaiField.type,
+            className: issuePaiField.className,
+            value: issuePaiField.value,
+            style: {
+                pointerEvents: issuePaiField.style.pointerEvents,
+                opacity: issuePaiField.style.opacity,
+                backgroundColor: issuePaiField.style.backgroundColor,
+                color: issuePaiField.style.color,
+                cursor: issuePaiField.style.cursor
+            }
+        });
+        
+        // Verificar se há CSS aplicado
+        const computedStyle = window.getComputedStyle(issuePaiField);
+        console.log('CSS Computado:', {
+            pointerEvents: computedStyle.pointerEvents,
+            opacity: computedStyle.opacity,
+            backgroundColor: computedStyle.backgroundColor,
+            color: computedStyle.color,
+            cursor: computedStyle.cursor,
+            userSelect: computedStyle.userSelect,
+            webkitUserSelect: computedStyle.webkitUserSelect
+        });
+        
+        // Verificar se há atributos HTML
+        console.log('Atributos HTML:', {
+            disabled: issuePaiField.hasAttribute('disabled'),
+            readonly: issuePaiField.hasAttribute('readonly'),
+            'aria-disabled': issuePaiField.hasAttribute('aria-disabled'),
+            required: issuePaiField.hasAttribute('required')
+        });
+        
+        // Testar se o campo responde a eventos
+        console.log('Testando interatividade...');
+        try {
+            issuePaiField.focus();
+            console.log('✅ Campo aceitou foco');
+        } catch (e) {
+            console.log('❌ Campo não aceitou foco:', e);
+        }
+        
+        // Verificar se o campo está visível
+        const rect = issuePaiField.getBoundingClientRect();
+        console.log('Posição e visibilidade:', {
+            width: rect.width,
+            height: rect.height,
+            top: rect.top,
+            left: rect.left,
+            visible: rect.width > 0 && rect.height > 0
+        });
+    } else {
+        console.log('❌ Campo issuePai não encontrado no DOM');
+    }
+}
+
+// Função para testar digitação no campo
+function testarDigitação() {
+    const issuePaiField = document.getElementById('issuePai');
+    if (issuePaiField) {
+        console.log('⌨️ Testando digitação no campo issuePai...');
+        
+        // Verificar se há event listeners bloqueando
+        console.log('Verificando event listeners...');
+        
+        // Tentar focar no campo
+        issuePaiField.focus();
+        
+        // Tentar simular digitação
+        const testValue = 'TESTE-' + Date.now();
+        issuePaiField.value = testValue;
+        
+        // Disparar eventos de input
+        const inputEvent = new Event('input', { bubbles: true });
+        issuePaiField.dispatchEvent(inputEvent);
+        
+        const changeEvent = new Event('change', { bubbles: true });
+        issuePaiField.dispatchEvent(changeEvent);
+        
+        console.log('✅ Valor testado:', testValue);
+        console.log('Valor atual do campo:', issuePaiField.value);
+        
+        if (issuePaiField.value === testValue) {
+            mostrarNotificacao('✅ Campo aceita digitação!', 'success');
+        } else {
+            mostrarNotificacao('❌ Campo não aceita digitação!', 'error');
+        }
+    } else {
+        console.log('❌ Campo issuePai não encontrado');
+        mostrarNotificacao('❌ Campo não encontrado!', 'error');
+    }
+}
+
+// Função para remover event listeners que podem estar bloqueando
+function removerEventListenersBloqueadores() {
+    const issuePaiField = document.getElementById('issuePai');
+    if (issuePaiField) {
+        console.log('🔧 Removendo event listeners bloqueadores...');
+        
+        // Clonar o elemento para remover todos os event listeners
+        const novoCampo = issuePaiField.cloneNode(true);
+        
+        // Preservar o valor atual
+        novoCampo.value = issuePaiField.value;
+        
+        // Substituir o campo
+        issuePaiField.parentNode.replaceChild(novoCampo, issuePaiField);
+        
+        // Adicionar apenas os event listeners necessários
+        novoCampo.addEventListener('input', function(e) {
+            console.log('Campo issuePai recebeu input:', e.target.value);
+        });
+        
+        novoCampo.addEventListener('focus', function(e) {
+            console.log('Campo issuePai recebeu foco');
+        });
+        
+        // Garantir que o campo esteja habilitado
+        novoCampo.disabled = false;
+        novoCampo.readOnly = false;
+        novoCampo.style.pointerEvents = 'auto';
+        novoCampo.style.opacity = '1';
+        novoCampo.style.backgroundColor = 'white';
+        novoCampo.style.color = 'var(--neurotech-secondary)';
+        novoCampo.style.cursor = 'text';
+        
+        // Focar no novo campo
+        novoCampo.focus();
+        
+        console.log('✅ Event listeners removidos e campo recriado');
+        mostrarNotificacao('Event listeners removidos!', 'success');
+    }
+}
+
+// Função para remover bloqueadores de teclado
+function removerBloqueadoresTeclado() {
+    const issuePaiField = document.getElementById('issuePai');
+    if (issuePaiField) {
+        console.log('🔧 Removendo bloqueadores de teclado...');
+        
+        // Remover event listeners que possam estar bloqueando
+        const novoCampo = issuePaiField.cloneNode(true);
+        issuePaiField.parentNode.replaceChild(novoCampo, issuePaiField);
+        
+        // Configurar o novo campo
+        novoCampo.id = 'issuePai';
+        novoCampo.className = 'form-control';
+        novoCampo.placeholder = 'Ex: CREDT-1161';
+        novoCampo.required = true;
+        novoCampo.style.backgroundColor = 'white';
+        novoCampo.style.color = 'var(--neurotech-secondary)';
+        novoCampo.style.cursor = 'text';
+        novoCampo.style.pointerEvents = 'auto';
+        novoCampo.style.opacity = '1';
+        novoCampo.style.border = '1px solid var(--neurotech-border)';
+        novoCampo.style.padding = 'var(--spacing-sm) var(--spacing-md)';
+        novoCampo.style.fontSize = '14px';
+        novoCampo.style.lineHeight = '1.5';
+        novoCampo.style.borderRadius = 'var(--radius-sm)';
+        novoCampo.style.transition = 'all var(--transition-normal)';
+        novoCampo.style.boxShadow = 'none';
+        novoCampo.style.outline = 'none';
+        novoCampo.style.position = 'relative';
+        novoCampo.style.zIndex = '10';
+        novoCampo.style.width = '100%';
+        
+        // Garantir que não há atributos bloqueadores
+        novoCampo.removeAttribute('disabled');
+        novoCampo.removeAttribute('readonly');
+        novoCampo.removeAttribute('aria-disabled');
+        novoCampo.removeAttribute('tabindex');
+        
+        // Focar no novo campo
+        novoCampo.focus();
+        
+        // Adicionar eventos básicos
+        novoCampo.addEventListener('input', function(e) {
+            console.log('Campo issuePai recebeu input:', e.target.value);
+        });
+        
+        novoCampo.addEventListener('keydown', function(e) {
+            console.log('Campo issuePai recebeu keydown:', e.key);
+            // Não bloquear nenhuma tecla
+            e.stopPropagation();
+        });
+        
+        novoCampo.addEventListener('keypress', function(e) {
+            console.log('Campo issuePai recebeu keypress:', e.key);
+            // Não bloquear nenhuma tecla
+            e.stopPropagation();
+        });
+        
+        novoCampo.addEventListener('keyup', function(e) {
+            console.log('Campo issuePai recebeu keyup:', e.key);
+            // Não bloquear nenhuma tecla
+            e.stopPropagation();
+        });
+        
+        mostrarNotificacao('Bloqueadores de teclado removidos!', 'success');
+        console.log('✅ Bloqueadores de teclado removidos');
+    }
+}
+
+// Função para forçar habilitação completa do campo
+function forcarHabilitacaoCompleta() {
+    const issuePaiField = document.getElementById('issuePai');
+    if (issuePaiField) {
+        console.log('🔧 Forçando habilitação completa...');
+        
+        // Criar um campo completamente novo
+        const novoCampo = document.createElement('input');
+        novoCampo.type = 'text';
+        novoCampo.id = 'issuePai';
+        novoCampo.className = 'form-control';
+        novoCampo.placeholder = 'Ex: CREDT-1161';
+        novoCampo.required = true;
+        novoCampo.value = issuePaiField.value;
+        
+        // Aplicar estilos inline para garantir funcionamento
+        Object.assign(novoCampo.style, {
+            backgroundColor: 'white',
+            color: 'var(--neurotech-secondary)',
+            cursor: 'text',
+            pointerEvents: 'auto',
+            opacity: '1',
+            border: '1px solid var(--neurotech-border)',
+            padding: 'var(--spacing-sm) var(--spacing-md)',
+            fontSize: '14px',
+            lineHeight: '1.5',
+            borderRadius: 'var(--radius-sm)',
+            transition: 'all var(--transition-normal)',
+            boxShadow: 'none',
+            outline: 'none',
+            position: 'relative',
+            zIndex: '10',
+            width: '100%'
+        });
+        
+        // Substituir o campo
+        issuePaiField.parentNode.replaceChild(novoCampo, issuePaiField);
+        
+        // Focar e testar
+        novoCampo.focus();
+        
+        // Adicionar event listeners que permitem digitação
+        novoCampo.addEventListener('input', function(e) {
+            console.log('Campo issuePai recebeu input:', e.target.value);
+        });
+        
+        novoCampo.addEventListener('keydown', function(e) {
+            console.log('Campo issuePai recebeu keydown:', e.key);
+            // Permitir todas as teclas
+            e.stopPropagation();
+            return true;
+        });
+        
+        novoCampo.addEventListener('keypress', function(e) {
+            console.log('Campo issuePai recebeu keypress:', e.key);
+            // Permitir todas as teclas
+            e.stopPropagation();
+            return true;
+        });
+        
+        novoCampo.addEventListener('keyup', function(e) {
+            console.log('Campo issuePai recebeu keyup:', e.key);
+            // Permitir todas as teclas
+            e.stopPropagation();
+            return true;
+        });
+        
+        // Permitir colar
+        novoCampo.addEventListener('paste', function(e) {
+            console.log('Campo issuePai recebeu paste');
+            e.stopPropagation();
+            return true;
+        });
+        
+        // Permitir copiar
+        novoCampo.addEventListener('copy', function(e) {
+            console.log('Campo issuePai recebeu copy');
+            e.stopPropagation();
+            return true;
+        });
+        
+        console.log('✅ Campo completamente recriado e habilitado');
+        mostrarNotificacao('Campo completamente recriado!', 'success');
+        
+        // Testar digitação automaticamente
+        setTimeout(() => {
+            novoCampo.value = 'TESTE-' + Date.now();
+            console.log('✅ Teste automático de digitação realizado');
+        }, 100);
+    }
+}
+
+// Função para mostrar ajuda sobre como encontrar o Issue Pai
+function mostrarAjudaIssuePai() {
+    const ajudaHTML = `
+        <div class="alert alert-info">
+            <h6><i class="fas fa-question-circle me-2"></i>Como encontrar o Issue Pai?</h6>
+            <ol class="mb-0">
+                <li><strong>No Jira:</strong> Abra o requisito/epic no Jira e copie o ID (ex: CREDT-1161)</li>
+                <li><strong>Na página principal:</strong> Busque o requisito primeiro e depois clique em "Planilha"</li>
+                <li><strong>Formato:</strong> Deve seguir o padrão PROJETO-NÚMERO (ex: CREDT-1161, BC-129)</li>
+                <li><strong>Dica:</strong> O Issue Pai é o requisito/epic que contém os casos de teste</li>
+            </ol>
+        </div>
+    `;
+    
+    // Criar modal de ajuda
+    const modal = document.createElement('div');
+    modal.className = 'modal fade';
+    modal.innerHTML = `
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-question-circle me-2"></i>Ajuda - Issue Pai
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    ${ajudaHTML}
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Entendi</button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    const bootstrapModal = new bootstrap.Modal(modal);
+    bootstrapModal.show();
+    
+    // Remover modal do DOM após fechar
+    modal.addEventListener('hidden.bs.modal', function() {
+        document.body.removeChild(modal);
+    });
+}
 
 // ========================================
 // FUNÇÕES DE IMPORTAÇÃO EM MASSA
@@ -497,7 +1056,72 @@ function showExportModal() {
     }
     
     document.getElementById('totalCasos').textContent = validRows.length;
+    
+    // Garantir que o campo issuePai esteja habilitado quando o modal abrir
+    setTimeout(() => {
+        habilitarCampoIssuePai();
+    }, 100);
+    
     exportModal.show();
+}
+
+// Função para garantir que o campo issuePai esteja sempre habilitado
+function habilitarCampoIssuePai() {
+    const issuePaiField = document.getElementById('issuePai');
+    if (issuePaiField) {
+        // Força habilitação de todas as formas possíveis
+        issuePaiField.disabled = false;
+        issuePaiField.readOnly = false;
+        issuePaiField.style.pointerEvents = 'auto';
+        issuePaiField.style.opacity = '1';
+        issuePaiField.style.backgroundColor = 'white';
+        issuePaiField.style.color = 'var(--neurotech-secondary)';
+        issuePaiField.style.cursor = 'text';
+        issuePaiField.style.userSelect = 'auto';
+        issuePaiField.style.webkitUserSelect = 'auto';
+        issuePaiField.style.mozUserSelect = 'auto';
+        issuePaiField.style.msUserSelect = 'auto';
+        
+        // Remove todos os atributos que podem desabilitar
+        issuePaiField.removeAttribute('disabled');
+        issuePaiField.removeAttribute('readonly');
+        issuePaiField.removeAttribute('aria-disabled');
+        
+        // Força o foco e seleção
+        issuePaiField.focus();
+        issuePaiField.select();
+        
+        console.log('✅ Campo issuePai habilitado - Status:', {
+            disabled: issuePaiField.disabled,
+            readOnly: issuePaiField.readOnly,
+            pointerEvents: issuePaiField.style.pointerEvents,
+            opacity: issuePaiField.style.opacity
+        });
+    }
+}
+
+// Função para monitorar e forçar habilitação continuamente
+function monitorarCampoIssuePai() {
+    const issuePaiField = document.getElementById('issuePai');
+    if (issuePaiField) {
+        // Verifica a cada 500ms se o campo está habilitado
+        setInterval(() => {
+            if (issuePaiField.disabled || issuePaiField.readOnly) {
+                console.log('⚠️ Campo issuePai foi desabilitado, reabilitando...');
+                habilitarCampoIssuePai();
+            }
+        }, 500);
+        
+        // Adiciona evento para interceptar tentativas de desabilitação
+        const originalSetAttribute = issuePaiField.setAttribute;
+        issuePaiField.setAttribute = function(name, value) {
+            if (name === 'disabled' || name === 'readonly') {
+                console.log('🚫 Tentativa de desabilitar campo issuePai bloqueada');
+                return;
+            }
+            return originalSetAttribute.call(this, name, value);
+        };
+    }
 }
 
 // Função para obter linhas válidas

@@ -847,6 +847,266 @@ body {
     border-bottom: 1px solid var(--neurotech-border);
 }
 
+/* Results section spacing reduction */
+.results-section .mb-4 {
+    margin-bottom: var(--spacing-sm) !important; /* Reduced from default mb-4 */
+}
+
+/* ========================================
+   PLANILHA MANUAL - ESTILOS ESPECÍFICOS
+   ======================================== */
+
+/* Seção de importação em massa */
+.importacao-massa {
+    background: var(--neurotech-light);
+    border: 2px dashed var(--neurotech-border);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-xl);
+    margin-bottom: var(--spacing-lg);
+    transition: all var(--transition-normal);
+}
+
+.importacao-massa:hover {
+    border-color: var(--neurotech-accent);
+    background: #f0f8ff;
+}
+
+.importacao-massa.drag-over {
+    border-color: var(--neurotech-success);
+    background: #f0fff4;
+}
+
+/* Header da importação */
+.importacao-header {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-lg);
+    margin-bottom: var(--spacing-xl);
+    padding-bottom: var(--spacing-lg);
+    border-bottom: 1px solid var(--neurotech-border);
+}
+
+.importacao-icon {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, var(--neurotech-primary) 0%, var(--neurotech-accent) 100%);
+    border-radius: var(--radius-lg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.5rem;
+    box-shadow: var(--neurotech-shadow-lg);
+}
+
+.importacao-info {
+    flex: 1;
+}
+
+.importacao-title {
+    color: var(--neurotech-primary);
+    font-weight: 600;
+    margin-bottom: var(--spacing-xs);
+    font-size: 1.25rem;
+}
+
+.importacao-description {
+    color: var(--neurotech-gray);
+    margin: 0;
+    line-height: 1.5;
+}
+
+/* Conteúdo da importação */
+.importacao-content {
+    margin-bottom: var(--spacing-lg);
+}
+
+.importacao-textarea {
+    border: 2px solid var(--neurotech-border);
+    border-radius: var(--radius-md);
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: 13px;
+    line-height: 1.4;
+    transition: all var(--transition-normal);
+}
+
+.importacao-textarea:focus {
+    border-color: var(--neurotech-accent);
+    box-shadow: 0 0 0 0.2rem rgba(49, 130, 206, 0.25);
+}
+
+/* Painel de ações */
+.importacao-actions {
+    background: white;
+    border: 1px solid var(--neurotech-border);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-lg);
+    box-shadow: var(--neurotech-shadow);
+}
+
+.importacao-actions-title {
+    color: var(--neurotech-primary);
+    font-weight: 600;
+    margin-bottom: var(--spacing-md);
+    font-size: 1rem;
+}
+
+.importacao-actions .btn {
+    font-weight: 500;
+    transition: all var(--transition-normal);
+}
+
+.importacao-actions .btn-lg {
+    padding: var(--spacing-md) var(--spacing-lg);
+    font-size: 0.95rem;
+}
+
+.importacao-actions .btn:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--neurotech-shadow-lg);
+}
+
+/* Formato esperado */
+.importacao-format {
+    margin-top: var(--spacing-lg);
+    padding-top: var(--spacing-lg);
+    border-top: 1px solid var(--neurotech-border);
+}
+
+.importacao-format-title {
+    color: var(--neurotech-secondary);
+    font-weight: 600;
+    margin-bottom: var(--spacing-sm);
+    font-size: 0.9rem;
+}
+
+.importacao-format-content {
+    background: var(--neurotech-light);
+    border: 1px solid var(--neurotech-border);
+    border-radius: var(--radius-sm);
+    padding: var(--spacing-sm);
+}
+
+.importacao-format-content code {
+    color: var(--neurotech-primary);
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+/* Preview da importação */
+.importacao-preview {
+    background: white;
+    border: 1px solid var(--neurotech-border);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-lg);
+    margin-top: var(--spacing-lg);
+    box-shadow: var(--neurotech-shadow);
+}
+
+.importacao-preview-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-md);
+    padding-bottom: var(--spacing-sm);
+    border-bottom: 1px solid var(--neurotech-border);
+}
+
+.importacao-preview-title {
+    color: var(--neurotech-primary);
+    font-weight: 600;
+    margin: 0;
+    font-size: 1rem;
+}
+
+.importacao-preview-count {
+    background: var(--neurotech-accent);
+    color: white;
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--radius-sm);
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+/* Preview table */
+.preview-table {
+    max-height: 300px;
+    overflow-y: auto;
+    border: 1px solid var(--neurotech-border);
+    border-radius: var(--radius-md);
+    margin-top: var(--spacing-md);
+}
+
+.preview-table table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.preview-table th,
+.preview-table td {
+    padding: var(--spacing-sm);
+    border: 1px solid var(--neurotech-border);
+    font-size: 12px;
+}
+
+.preview-table th {
+    background: var(--neurotech-light);
+    font-weight: 600;
+}
+
+.preview-table tr:nth-child(even) {
+    background: var(--neurotech-light);
+}
+
+/* Planilha table styles */
+#planilhaTable input, 
+#planilhaTable textarea, 
+#planilhaTable select {
+    width: 100%;
+    border: none;
+    background: transparent;
+    padding: var(--spacing-xs);
+    font-size: 14px;
+}
+
+#planilhaTable input:focus, 
+#planilhaTable textarea:focus, 
+#planilhaTable select:focus {
+    outline: 2px solid var(--neurotech-accent);
+    background: var(--neurotech-light);
+}
+
+.readonly-field {
+    background: var(--neurotech-light) !important;
+    color: var(--neurotech-gray);
+}
+
+/* Status badges para planilha */
+.status-badge {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.status-todo { 
+    background: #ffeaa7; 
+    color: #d63031; 
+}
+
+.status-in-progress { 
+    background: #74b9ff; 
+    color: #0984e3; 
+}
+
+.status-done { 
+    background: #55a3ff; 
+    color: #00b894; 
+}
+
+/* Garantir que o campo issuePai esteja sempre habilitado */
+
+
 .case-list-meta-item {
     display: flex;
     align-items: center;

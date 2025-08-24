@@ -16,24 +16,35 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Permitir busca com Enter
-    document.getElementById('requisitoPai').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            buscarRequisito();
-        }
-    });
+    const requisitoPaiElement = document.getElementById('requisitoPai');
+    if (requisitoPaiElement) {
+        requisitoPaiElement.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                buscarRequisito();
+            }
+        });
+    }
     
     // Verificar se há um requisito na URL ao carregar a página
-    verificarRequisitoNaURL();
+    if (typeof verificarRequisitoNaURL === 'function') {
+        verificarRequisitoNaURL();
+    }
     
     // Carregar preferência de visualização
-    carregarPreferenciaVisualizacao();
+    if (typeof carregarPreferenciaVisualizacao === 'function') {
+        carregarPreferenciaVisualizacao();
+    }
     
     // Inicializar editor BDD
-    initBDDEditorTela();
+    if (typeof initBDDEditorTela === 'function') {
+        initBDDEditorTela();
+    }
     
     // Listener para mudanças na URL (navegação com botões voltar/avançar)
     window.addEventListener('popstate', function(event) {
-        verificarRequisitoNaURL();
+        if (typeof verificarRequisitoNaURL === 'function') {
+            verificarRequisitoNaURL();
+        }
     });
     
     // Listener para fechar edição em tela com Escape
@@ -51,7 +62,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Função para buscar requisitos e seus casos de teste
 async function buscarRequisito() {
-    const requisitoPai = document.getElementById('requisitoPai').value.trim();
+    const requisitoPaiElement = document.getElementById('requisitoPai');
+    if (!requisitoPaiElement) {
+        console.log('Elemento requisitoPai não encontrado');
+        return;
+    }
+    
+    const requisitoPai = requisitoPaiElement.value.trim();
     
     if (!requisitoPai) {
         mostrarNotificacao('Por favor, digite o ID do requisito', 'warning');
@@ -70,13 +87,23 @@ async function buscarRequisito() {
 async function carregarCasosTeste(requisitoPai) {
     issuePaiAtual = requisitoPai;
     
+    // Salvar issuePai no localStorage para uso na planilha manual
+    localStorage.setItem('issuePaiAtual', requisitoPai);
+    
     // Atualizar campo de busca
-    document.getElementById('requisitoPai').value = requisitoPai;
+    const requisitoPaiElement = document.getElementById('requisitoPai');
+    if (requisitoPaiElement) {
+        requisitoPaiElement.value = requisitoPai;
+    }
     
     // Mostrar loading
-    document.getElementById('loading').style.display = 'block';
-    document.getElementById('listaCasos').innerHTML = '';
-    document.getElementById('resultados').style.display = 'block';
+    const loadingElement = document.getElementById('loading');
+    const listaCasosElement = document.getElementById('listaCasos');
+    const resultadosElement = document.getElementById('resultados');
+    
+    if (loadingElement) loadingElement.style.display = 'block';
+    if (listaCasosElement) listaCasosElement.innerHTML = '';
+    if (resultadosElement) resultadosElement.style.display = 'block';
     
     try {
         console.log('📡 Buscando requisito:', requisitoPai);
@@ -95,16 +122,21 @@ async function carregarCasosTeste(requisitoPai) {
         } else {
             console.error('❌ Erro na resposta:', data);
             mostrarNotificacao(data.erro || 'Requisito não encontrado', 'error');
-            document.getElementById('resultados').style.display = 'none';
-            document.getElementById('btnNovoCaso').style.display = 'none';
+            const resultadosElement = document.getElementById('resultados');
+            const btnNovoCasoElement = document.getElementById('btnNovoCaso');
+            if (resultadosElement) resultadosElement.style.display = 'none';
+            if (btnNovoCasoElement) btnNovoCasoElement.style.display = 'none';
         }
     } catch (error) {
         console.error('❌ Erro capturado:', error);
         mostrarNotificacao(`Erro de conexão: ${error.message}`, 'error');
-        document.getElementById('resultados').style.display = 'none';
-        document.getElementById('btnNovoCaso').style.display = 'none';
+        const resultadosElement = document.getElementById('resultados');
+        const btnNovoCasoElement = document.getElementById('btnNovoCaso');
+        if (resultadosElement) resultadosElement.style.display = 'none';
+        if (btnNovoCasoElement) btnNovoCasoElement.style.display = 'none';
     } finally {
-        document.getElementById('loading').style.display = 'none';
+        const loadingElement = document.getElementById('loading');
+        if (loadingElement) loadingElement.style.display = 'none';
     }
 }
 
@@ -121,8 +153,12 @@ function verificarRequisitoNaURL() {
         carregarCasosTeste(requisitoPai);
     } else if (pathname === '/') {
         // Se estiver na home, limpar resultados
-        document.getElementById('resultados').style.display = 'none';
-        document.getElementById('requisitoPai').value = '';
+        const resultadosElement = document.getElementById('resultados');
+        if (resultadosElement) resultadosElement.style.display = 'none';
+        const requisitoPaiElement = document.getElementById('requisitoPai');
+        if (requisitoPaiElement) {
+            requisitoPaiElement.value = '';
+        }
         issuePaiAtual = '';
     }
 }
@@ -133,6 +169,12 @@ function exibirCasosTeste(data) {
     const cardsCasos = document.getElementById('cardsCasos');
     const totalCasos = document.getElementById('totalCasos');
     const btnPlanilha = document.getElementById('btnPlanilha');
+    
+    // Verificar se os elementos existem
+    if (!listaCasos || !totalCasos) {
+        console.log('Elementos necessários não encontrados para exibir casos de teste');
+        return;
+    }
     
     // Exibir informações do requisito pai
     if (data.requisito) {
@@ -186,14 +228,17 @@ function exibirCasosTeste(data) {
         }
         
         // Inserir no início da seção de resultados
-        resultadosDiv.insertBefore(requisitoContainer, resultadosDiv.firstChild);
+        if (resultadosDiv) {
+            resultadosDiv.insertBefore(requisitoContainer, resultadosDiv.firstChild);
+        }
     }
     
     totalCasos.textContent = `${data.total_casos} caso(s) de teste`;
     
     if (data.casos_teste.length === 0) {
-        btnPlanilha.style.display = 'none';
-        document.getElementById('btnNovoCaso').style.display = 'inline-block'; // Mostrar botão para criar primeiro caso
+        if (btnPlanilha) btnPlanilha.style.display = 'none';
+        const btnNovoCasoElement = document.getElementById('btnNovoCaso');
+        if (btnNovoCasoElement) btnNovoCasoElement.style.display = 'inline-block'; // Mostrar botão para criar primeiro caso
         const emptyStateHTML = `
             <div class="empty-state">
                 <i class="fas fa-inbox"></i>
@@ -211,14 +256,14 @@ function exibirCasosTeste(data) {
     }
     
     // Mostrar botões quando há casos de teste
-    btnPlanilha.style.display = 'inline-block';
+    if (btnPlanilha) btnPlanilha.style.display = 'inline-block';
     
     // Renderizar em ambos os formatos
     const casosListaHTML = data.casos_teste.map(caso => criarHTMLCasoTesteLista(caso)).join('');
     const casosCardsHTML = data.casos_teste.map(caso => criarHTMLCasoTesteCard(caso)).join('');
     
-    listaCasos.innerHTML = casosListaHTML;
-    cardsCasos.innerHTML = casosCardsHTML;
+    if (listaCasos) listaCasos.innerHTML = casosListaHTML;
+    if (cardsCasos) cardsCasos.innerHTML = casosCardsHTML;
 }
 
 // Função para criar HTML de um caso de teste em formato de lista
@@ -910,8 +955,11 @@ function visualizarPlanilha() {
         return;
     }
     
-    // Navegar para a página de visualização em planilha
-    window.open(`http://127.0.0.1:8081/planilha/${issuePaiAtual}`, '_blank');
+    // Salvar issuePai no localStorage para a planilha manual
+    localStorage.setItem('issuePaiAtual', issuePaiAtual);
+    
+    // Navegar para a página de planilha manual com parâmetro
+    window.open(`http://127.0.0.1:8081/planilha-manual?issuePai=${issuePaiAtual}`, '_blank');
 }
 
 
