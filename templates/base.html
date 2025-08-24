@@ -17,65 +17,14 @@
     {% block extra_css %}{% endblock %}
 </head>
 <body class="neurotech-theme">
-    <!-- Top Navigation Bar -->
-    <nav class="navbar navbar-expand-lg navbar-dark fixed-top" id="topNavbar">
-        <div class="container-fluid">
-            <!-- Logo -->
-            <a class="navbar-brand d-flex align-items-center" href="/">
-                <img src="{{ url_for('static', filename='images/neuro-logo.svg') }}" alt="Neurotech" class="navbar-logo">
-            </a>
-            
-            <!-- Mobile Toggle Button -->
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#topNavbarContent">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            
-            <!-- Navigation Items -->
-            <div class="collapse navbar-collapse" id="topNavbarContent">
-                <ul class="navbar-nav me-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="/">
-                            <i class="fas fa-home me-1"></i>
-                            Início
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/planilha-manual">
-                            <i class="fas fa-table me-1"></i>
-                            Planilha Manual
-                        </a>
-                    </li>
-                </ul>
-                
-                <!-- Right Side Actions -->
-                <ul class="navbar-nav">
-                    <li class="nav-item">
-                        <a class="nav-link" href="https://neurotech.atlassian.net" target="_blank">
-                            <i class="fab fa-jira me-1"></i>
-                            Jira
-                        </a>
-                    </li>
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                            <i class="fas fa-user me-1"></i>
-                            Usuário
-                        </a>
-                        <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="#"><i class="fas fa-cog me-2"></i>Configurações</a></li>
-                            <li><a class="dropdown-item" href="#"><i class="fas fa-question-circle me-2"></i>Ajuda</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="#"><i class="fas fa-sign-out-alt me-2"></i>Sair</a></li>
-                        </ul>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
+
 
     <!-- Sidebar -->
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
-            <h5><i class="fas fa-tasks me-2"></i>Menu</h5>
+            <div class="sidebar-logo-container">
+                <img src="{{ url_for('static', filename='images/neuro-logo.svg') }}" alt="Neurotech" class="sidebar-logo">
+            </div>
             <button class="btn btn-sm btn-outline-light" id="sidebarToggle">
                 <i class="fas fa-bars"></i>
             </button>
