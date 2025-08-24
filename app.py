@@ -196,6 +196,20 @@ def buscar_casos_teste(issue_pai):
         
         print(f"✅ Issue pai {issue_pai} encontrada")
         
+        # Extrair informações da issue pai
+        issue_pai_data = response_pai.json()
+        issue_pai_fields = issue_pai_data.get("fields", {})
+        requisito_info = {
+            "id": issue_pai,
+            "titulo": issue_pai_fields.get("summary", ""),
+            "descricao": extrair_texto_descricao(issue_pai_fields.get("description")),
+            "status": issue_pai_fields.get("status", {}).get("name", ""),
+            "tipo": issue_pai_fields.get("issuetype", {}).get("name", ""),
+            "projeto": issue_pai_fields.get("project", {}).get("key", ""),
+            "criado_em": issue_pai_fields.get("created", ""),
+            "atualizado_em": issue_pai_fields.get("updated", "")
+        }
+        
         # Busca os casos de teste filhos (subtarefas E issues vinculadas por links)
         jql = f'(parent = "{issue_pai}" OR issue in linkedIssues("{issue_pai}")) ORDER BY key DESC'
         print(f"🔍 JQL Query: {jql}")
@@ -288,6 +302,7 @@ def buscar_casos_teste(issue_pai):
         
         return jsonify({
             "issue_pai": issue_pai,
+            "requisito": requisito_info,
             "total_casos": len(casos_teste),
             "casos_teste": casos_teste
         })

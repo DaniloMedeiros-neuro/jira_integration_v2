@@ -2591,3 +2591,143 @@ body.edicao-ativa {
         gap: var(--spacing-md);
     }
 }
+
+/* ========================================
+   SEÇÃO DE INFORMAÇÕES DO REQUISITO
+   ======================================== */
+
+.requisito-info {
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    border: 1px solid var(--neurotech-border);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-xl);
+    margin-bottom: var(--spacing-xl);
+    box-shadow: var(--neurotech-shadow);
+    position: relative;
+    overflow: hidden;
+}
+
+.requisito-info::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--neurotech-accent) 0%, var(--neurotech-primary) 100%);
+}
+
+.requisito-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: var(--spacing-lg);
+    flex-wrap: wrap;
+    gap: var(--spacing-md);
+}
+
+.requisito-titulo {
+    color: var(--neurotech-primary);
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0;
+    line-height: 1.3;
+    flex: 1;
+    min-width: 0;
+}
+
+.requisito-titulo i {
+    color: var(--neurotech-accent);
+}
+
+.requisito-id {
+    background: var(--neurotech-primary);
+    color: white;
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--radius-sm);
+    font-size: 0.875rem;
+    font-weight: 600;
+    white-space: nowrap;
+    box-shadow: var(--neurotech-shadow);
+}
+
+.requisito-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-lg);
+    padding: var(--spacing-md);
+    background: rgba(255, 255, 255, 0.7);
+    border-radius: var(--radius-md);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.requisito-meta-item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    color: var(--neurotech-secondary);
+    font-size: 0.875rem;
+    font-weight: 500;
+    padding: var(--spacing-xs) var(--spacing-sm);
+    background: white;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--neurotech-border);
+    box-shadow: var(--neurotech-shadow);
+}
+
+.requisito-meta-item i {
+    color: var(--neurotech-accent);
+    font-size: 0.875rem;
+}
+
+.requisito-descricao {
+    background: white;
+    padding: var(--spacing-lg);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--neurotech-border);
+    box-shadow: var(--neurotech-shadow);
+}
+
+.requisito-descricao strong {
+    color: var(--neurotech-primary);
+    font-weight: 600;
+    display: block;
+    margin-bottom: var(--spacing-sm);
+    font-size: 0.95rem;
+}
+
+.requisito-descricao strong i {
+    color: var(--neurotech-accent);
+}
+
+.requisito-descricao br + * {
+    margin-top: var(--spacing-sm);
+}
+
+/* Responsividade para informações do requisito */
+@media (max-width: 768px) {
+    .requisito-info {
+        padding: var(--spacing-lg);
+        margin-bottom: var(--spacing-lg);
+    }
+    
+    .requisito-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .requisito-titulo {
+        font-size: 1.25rem;
+    }
+    
+    .requisito-meta {
+        flex-direction: column;
+        gap: var(--spacing-sm);
+    }
+    
+    .requisito-meta-item {
+        width: 100%;
+        justify-content: flex-start;
+    }
+}

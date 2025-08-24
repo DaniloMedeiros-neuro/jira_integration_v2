@@ -134,6 +134,61 @@ function exibirCasosTeste(data) {
     const totalCasos = document.getElementById('totalCasos');
     const btnPlanilha = document.getElementById('btnPlanilha');
     
+    // Exibir informações do requisito pai
+    if (data.requisito) {
+        const requisitoInfo = data.requisito;
+        const requisitoHTML = `
+            <div class="requisito-info">
+                <div class="requisito-header">
+                    <h4 class="requisito-titulo">
+                        <i class="fas fa-file-alt me-2"></i>
+                        ${requisitoInfo.titulo}
+                    </h4>
+                    <span class="requisito-id">${requisitoInfo.id}</span>
+                </div>
+                <div class="requisito-meta">
+                    <span class="requisito-meta-item">
+                        <i class="fas fa-tag"></i>
+                        ${requisitoInfo.tipo}
+                    </span>
+                    <span class="requisito-meta-item">
+                        <i class="fas fa-project-diagram"></i>
+                        ${requisitoInfo.projeto}
+                    </span>
+                    <span class="requisito-meta-item">
+                        <i class="fas fa-info-circle"></i>
+                        ${requisitoInfo.status}
+                    </span>
+                    <span class="requisito-meta-item">
+                        <i class="fas fa-calendar-plus"></i>
+                        ${formatarData(requisitoInfo.criado_em)}
+                    </span>
+                </div>
+                ${requisitoInfo.descricao ? `
+                    <div class="requisito-descricao">
+                        <strong><i class="fas fa-align-left me-1"></i>Descrição:</strong><br>
+                        ${requisitoInfo.descricao}
+                    </div>
+                ` : ''}
+            </div>
+        `;
+        
+        // Inserir informações do requisito antes da lista de casos
+        const resultadosDiv = document.getElementById('resultados');
+        const requisitoContainer = document.createElement('div');
+        requisitoContainer.innerHTML = requisitoHTML;
+        requisitoContainer.className = 'mb-4';
+        
+        // Remover informações do requisito anteriores se existirem
+        const requisitoAnterior = resultadosDiv.querySelector('.requisito-info');
+        if (requisitoAnterior) {
+            requisitoAnterior.remove();
+        }
+        
+        // Inserir no início da seção de resultados
+        resultadosDiv.insertBefore(requisitoContainer, resultadosDiv.firstChild);
+    }
+    
     totalCasos.textContent = `${data.total_casos} caso(s) de teste`;
     
     if (data.casos_teste.length === 0) {
