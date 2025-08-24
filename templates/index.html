@@ -30,7 +30,17 @@
             <span id="totalCasos" class="results-count"></span>
         </div>
         <div class="results-actions">
-            <button id="btnNovoCaso" class="btn btn-primary" onclick="abrirModalCriar()" style="display: none;">
+            <div class="view-toggle">
+                <button id="btnListView" class="btn btn-ghost btn-sm view-toggle-btn active" onclick="toggleView('list')">
+                    <i class="fas fa-list"></i>
+                    Lista
+                </button>
+                <button id="btnCardView" class="btn btn-ghost btn-sm view-toggle-btn" onclick="toggleView('card')">
+                    <i class="fas fa-th-large"></i>
+                    Cards
+                </button>
+            </div>
+            <button id="btnNovoCaso" class="btn btn-primary" onclick="abrirEdicaoTela()" style="display: none;">
                 <i class="fas fa-plus"></i>
                 Novo Caso de Teste
             </button>
@@ -47,61 +57,77 @@
             <p>Carregando...</p>
         </div>
         
-        <div id="listaCasos" class="cases-grid"></div>
+        <div id="listaCasos" class="cases-list active"></div>
+        <div id="cardsCasos" class="cases-grid"></div>
     </div>
 </div>
 
-<!-- Modal Customizado - SEM BOOTSTRAP -->
-<div id="modalCustomizado" class="modal-customizado" style="display: none;">
-    <div class="modal-customizado-content">
-        <div class="modal-customizado-header">
-            <h5 id="modalTitleCustomizado">
+<!-- Seção de Edição em Tela -->
+<div id="edicaoTela" class="edicao-tela" style="display: none;">
+    <div class="edicao-tela-header">
+        <div class="edicao-tela-title">
+            <h3 id="edicaoTelaTitle">
                 <i class="fas fa-plus me-2"></i>
                 Novo Caso de Teste
-            </h5>
-            <button type="button" class="btn-close-customizado" onclick="fecharModalCustomizado()">&times;</button>
+            </h3>
+            <span class="edicao-tela-subtitle">Edite os dados do caso de teste</span>
         </div>
-        <div class="modal-customizado-body">
-            <form id="formCasoTesteCustomizado">
-                <input type="hidden" id="issueKeyCustomizado" name="issueKey">
-                <input type="hidden" id="issuePaiFormCustomizado" name="issuePai">
-                
-                <div class="mb-3">
-                    <label for="tituloCustomizado" class="form-label">Título *</label>
-                    <input type="text" class="form-control" id="tituloCustomizado" name="titulo" required>
+        <div class="edicao-tela-actions">
+            <button type="button" class="btn btn-outline-secondary" onclick="fecharEdicaoTela()">
+                <i class="fas fa-times me-1"></i>
+                Cancelar
+            </button>
+            <button type="button" class="btn btn-primary" onclick="salvarCasoTesteTela()">
+                <i class="fas fa-save me-1"></i>
+                Salvar
+            </button>
+        </div>
+    </div>
+    
+    <div class="edicao-tela-content">
+        <form id="formCasoTesteTela">
+            <input type="hidden" id="issueKeyTela" name="issueKey">
+            <input type="hidden" id="issuePaiFormTela" name="issuePai">
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="tituloTela" class="form-label">Título *</label>
+                    <input type="text" class="form-control" id="tituloTela" name="titulo" required>
                 </div>
-
-                <div class="mb-3">
-                    <label for="statusCustomizado" class="form-label">Status</label>
-                    <select class="form-select" id="statusCustomizado" name="status">
+                
+                <div class="form-group">
+                    <label for="statusTela" class="form-label">Status</label>
+                    <select class="form-select" id="statusTela" name="status">
                         <option value="To Do">To Do</option>
                         <option value="In Progress">In Progress</option>
                         <option value="Done">Done</option>
                     </select>
                 </div>
+            </div>
 
-                <div class="mb-3">
-                    <label for="tipoExecucaoCustomizado" class="form-label">Tipo de Execução</label>
-                    <select class="form-select" id="tipoExecucaoCustomizado" name="tipoExecucao">
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="tipoExecucaoTela" class="form-label">Tipo de Execução</label>
+                    <select class="form-select" id="tipoExecucaoTela" name="tipoExecucao">
                         <option value="Automatizado">Automatizado</option>
                         <option value="Manual">Manual</option>
                         <option value="Semi-automatizado">Semi-automatizado</option>
                     </select>
                 </div>
 
-                <div class="mb-3">
-                    <label for="tipoTesteCustomizado" class="form-label">Tipo de Teste</label>
-                    <select class="form-select" id="tipoTesteCustomizado" name="tipoTeste">
+                <div class="form-group">
+                    <label for="tipoTesteTela" class="form-label">Tipo de Teste</label>
+                    <select class="form-select" id="tipoTesteTela" name="tipoTeste">
                         <option value="Funcional">Funcional</option>
                         <option value="Não Funcional">Não Funcional</option>
                         <option value="Integração">Integração</option>
                         <option value="Regressão">Regressão</option>
                     </select>
                 </div>
-
-                <div class="mb-3">
-                    <label for="componentesCustomizado" class="form-label">Componentes</label>
-                    <select class="form-select" id="componentesCustomizado" name="componentes">
+                
+                <div class="form-group">
+                    <label for="componentesTela" class="form-label">Componentes</label>
+                    <select class="form-select" id="componentesTela" name="componentes">
                         <option value="API">API</option>
                         <option value="Frontend">Frontend</option>
                         <option value="Backend">Backend</option>
@@ -109,30 +135,49 @@
                         <option value="Web">Web</option>
                     </select>
                 </div>
+            </div>
 
-                <div class="mb-3">
-                    <label for="objetivoCustomizado" class="form-label">Objetivo</label>
-                    <textarea class="form-control" id="objetivoCustomizado" name="objetivo" rows="3" placeholder="Descreva o objetivo do teste"></textarea>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="objetivoTela" class="form-label">Objetivo</label>
+                    <textarea class="form-control" id="objetivoTela" name="objetivo" rows="3" placeholder="Descreva o objetivo do teste"></textarea>
                 </div>
+            </div>
 
-                <div class="mb-3">
-                    <label for="preCondicoesCustomizado" class="form-label">Pré-condições</label>
-                    <textarea class="form-control" id="preCondicoesCustomizado" name="preCondicoes" rows="3" placeholder="Descreva as pré-condições necessárias"></textarea>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="preCondicoesTela" class="form-label">Pré-condições</label>
+                    <textarea class="form-control" id="preCondicoesTela" name="preCondicoes" rows="3" placeholder="Descreva as pré-condições necessárias"></textarea>
                 </div>
+            </div>
 
-                <div class="mb-3">
-                    <label for="descricaoCustomizado" class="form-label">Descrição/Cenário *</label>
-                    <textarea class="form-control" id="descricaoCustomizado" name="descricao" rows="6" placeholder="Descreva o cenário de teste em formato Gherkin (Given/When/Then)" required></textarea>
+            <div class="form-row">
+                <div class="form-group full-width">
+                    <label for="descricaoTela" class="form-label">Descrição/Cenário BDD *</label>
+                    <div class="bdd-editor">
+                        <div class="bdd-toolbar">
+                            <button type="button" class="btn btn-sm btn-outline-primary" onclick="insertBDDKeywordTela('Given')">
+                                <i class="fas fa-plus"></i> Given
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-primary" onclick="insertBDDKeywordTela('When')">
+                                <i class="fas fa-play"></i> When
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-primary" onclick="insertBDDKeywordTela('Then')">
+                                <i class="fas fa-check"></i> Then
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-primary" onclick="insertBDDKeywordTela('And')">
+                                <i class="fas fa-plus"></i> And
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="formatBDDTela()">
+                                <i class="fas fa-magic"></i> Formatar
+                            </button>
+                        </div>
+                        <textarea class="form-control bdd-textarea" id="descricaoTela" name="descricao" rows="8" placeholder="Descreva o cenário de teste em formato BDD (Given/When/Then)&#10;&#10;Exemplo:&#10;Given que o usuário está logado no sistema&#10;When ele acessa a página de perfil&#10;Then deve visualizar suas informações pessoais" required></textarea>
+                        <div class="bdd-preview" id="bddPreviewTela"></div>
+                    </div>
                 </div>
-            </form>
-        </div>
-        <div class="modal-customizado-footer">
-            <button type="button" class="btn btn-secondary" onclick="fecharModalCustomizado()">Cancelar</button>
-            <button type="button" class="btn btn-primary" onclick="salvarCasoTesteCustomizado()">
-                <i class="fas fa-save me-1"></i>
-                Salvar
-            </button>
-        </div>
+            </div>
+        </form>
     </div>
 </div>
 

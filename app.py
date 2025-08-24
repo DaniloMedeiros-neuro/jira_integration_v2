@@ -10,6 +10,7 @@ from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 import re
 from urllib.parse import urlparse, parse_qs
+import base64
 
 load_dotenv()
 
@@ -399,6 +400,106 @@ def exportar_casos_teste_excel(issue_pai):
 def visualizar_planilha(issue_pai):
     """Página para visualizar casos de teste em formato de planilha"""
     return render_template('planilha.html', issue_pai=issue_pai)
+
+@app.route('/api/caso-teste/<issue_key>', methods=['GET'])
+def obter_caso_teste(issue_key):
+    """Obtém um caso de teste específico"""
+    try:
+        print(f"=== OBTENDO CASO DE TESTE: {issue_key} ===")
+        
+        if not all([JIRA_BASE_URL, JIRA_EMAIL, JIRA_API_TOKEN]):
+            print("Erro: Configurações do Jira incompletas")
+            return jsonify({"erro": "Configurações do Jira incompletas"}), 500
+        
+        # Buscar a issue no Jira
+        url = f"{JIRA_BASE_URL}/rest/api/3/issue/{issue_key}"
+        headers = {
+            "Accept": "application/json",
+            "Authorization": f"Basic {base64.b64encode(f'{JIRA_EMAIL}:{JIRA_API_TOKEN}'.encode()).decode()}"
+        }
+        
+        response = requests.get(url, headers=headers)
+        print(f"Status da resposta: {response.status_code}")
+        
+        if response.status_code == 404:
+            return jsonify({"erro": "Caso de teste não encontrado"}), 404
+        
+        if response.status_code != 200:
+            print(f"Erro na API do Jira: {response.text}")
+            return jsonify({"erro": "Erro ao buscar caso de teste no Jira"}), 500
+        
+        issue_data = response.json()
+        print("Dados da issue obtidos com sucesso")
+        
+        # Extrair dados da issue
+        fields = issue_data.get('fields', {})
+        
+        # Extrair descrição (pode estar em formato Atlassian Document Format)
+        descricao = ""
+        if 'description' in fields and fields['description']:
+            descricao_content = fields['description'].get('content', [])
+            for content in descricao_content:
+                if content.get('type') == 'codeBlock':
+                    for code_content in content.get('content', []):
+                        if code_content.get('type') == 'text':
+                            descricao += code_content.get('text', '')
+        
+        # Extrair objetivo e pré-condições da descrição
+        objetivo = ""
+        pre_condicoes = ""
+        if 'description' in fields and fields['description']:
+            descricao_content = fields['description'].get('content', [])
+            current_section = None
+            
+            for content in descricao_content:
+                if content.get('type') == 'paragraph':
+                    paragraph_text = ""
+                    for para_content in content.get('content', []):
+                        if para_content.get('type') == 'text':
+                            paragraph_text += para_content.get('text', '')
+                    
+                    # Verificar se é um cabeçalho de seção
+                    if 'Objetivo:' in paragraph_text:
+                        current_section = 'objetivo'
+                    elif 'Pré Condição:' in paragraph_text:
+                        current_section = 'pre_condicoes'
+                    elif paragraph_text.strip() and current_section:
+                        # Se não for cabeçalho e temos uma seção ativa, é o conteúdo
+                        if current_section == 'objetivo':
+                            objetivo = paragraph_text.strip()
+                        elif current_section == 'pre_condicoes':
+                            pre_condicoes = paragraph_text.strip()
+                        current_section = None
+        
+        # Extrair campos customizados
+        tipo_execucao = fields.get('customfield_10062', {}).get('value', 'Manual')
+        tipo_teste = fields.get('customfield_10063', {}).get('value', 'Funcional')
+        
+        # Extrair componentes
+        componentes = []
+        if 'components' in fields:
+            componentes = [comp.get('name', '') for comp in fields['components']]
+        
+        caso_teste = {
+            "id": issue_data.get('key'),
+            "titulo": fields.get('summary', ''),
+            "status": fields.get('status', {}).get('name', 'To Do'),
+            "descricao": descricao,
+            "objetivo": objetivo,
+            "pre_condicoes": pre_condicoes,
+            "tipo_execucao": tipo_execucao,
+            "tipo_teste": tipo_teste,
+            "componentes": componentes,
+            "criado_em": fields.get('created', ''),
+            "atualizado_em": fields.get('updated', '')
+        }
+        
+        print("Caso de teste processado com sucesso")
+        return jsonify(caso_teste)
+        
+    except Exception as e:
+        print(f"Erro ao obter caso de teste: {str(e)}")
+        return jsonify({"erro": f"Erro interno: {str(e)}"}), 500
 
 @app.route('/api/caso-teste', methods=['POST'])
 def criar_caso_teste():
