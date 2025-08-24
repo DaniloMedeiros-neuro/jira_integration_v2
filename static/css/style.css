@@ -59,8 +59,8 @@ body {
 }
 
 #topNavbar .navbar-logo {
-    height: 40px;
-    width: 180px;
+    height: 50px;
+    width: 220px;
     filter: brightness(0) invert(1);
     transition: all 0.3s ease;
     object-fit: contain;
@@ -73,15 +73,15 @@ body {
 /* Responsividade da logo */
 @media (max-width: 768px) {
     #topNavbar .navbar-logo {
-        width: 140px;
-        height: 35px;
+        width: 180px;
+        height: 45px;
     }
 }
 
 @media (max-width: 576px) {
     #topNavbar .navbar-logo {
-        width: 120px;
-        height: 30px;
+        width: 150px;
+        height: 38px;
     }
 }
 
