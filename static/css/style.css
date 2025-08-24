@@ -603,7 +603,7 @@ body {
 }
 
 .search-container {
-    max-width: 300px;
+    max-width: 500px;
     margin: 0 auto;
     padding: 0 var(--spacing-lg);
 }
@@ -624,8 +624,8 @@ body {
 .search-input {
     display: flex;
     align-items: center;
-    padding: var(--spacing-sm);
-    gap: var(--spacing-sm);
+    padding: var(--spacing-md);
+    gap: var(--spacing-md);
 }
 
 .search-input i {
@@ -640,6 +640,8 @@ body {
     font-size: 1rem;
     color: var(--neurotech-secondary);
     background: transparent;
+    padding: var(--spacing-sm) 0;
+    min-width: 200px;
 }
 
 .search-input input::placeholder {
@@ -1353,7 +1355,7 @@ body {
 
 .search-container {
     text-align: center;
-    max-width: 300px;
+    max-width: 500px;
     margin: 0 auto;
 }
 
