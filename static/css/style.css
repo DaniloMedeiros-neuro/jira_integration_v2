@@ -2769,4 +2769,154 @@ body.edicao-ativa {
     }
 }
 
+/* Responsividade para seção de status */
+@media (max-width: 768px) {
+    .edicao-status-info {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .edicao-status-actions {
+        width: 100%;
+        justify-content: flex-start;
+    }
+    
+    .edicao-status-actions .btn {
+        flex: 1;
+        min-width: 0;
+    }
+}
+
+/* ========================================
+   EDIÇÃO INLINE
+   ======================================== */
+
+/* Ícones de edição */
+.edit-icon {
+    opacity: 0;
+    margin-left: var(--spacing-xs);
+    color: var(--neurotech-accent);
+    font-size: 0.75rem;
+    transition: opacity var(--transition-fast);
+}
+
+.edit-icon-small {
+    opacity: 0;
+    margin-left: var(--spacing-xs);
+    color: var(--neurotech-accent);
+    font-size: 0.625rem;
+    transition: opacity var(--transition-fast);
+}
+
+.case-title:hover .edit-icon,
+.case-list-title:hover .edit-icon,
+.case-status:hover .edit-icon-small {
+    opacity: 1;
+}
+
+/* Elementos editáveis */
+.case-title,
+.case-list-title,
+.case-status,
+.case-meta-item,
+.case-list-meta-item {
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.case-title:hover,
+.case-list-title:hover {
+    color: var(--neurotech-accent);
+}
+
+.case-status:hover {
+    background: rgba(49, 130, 206, 0.1) !important;
+    border-color: var(--neurotech-accent) !important;
+}
+
+.case-meta-item:hover,
+.case-list-meta-item:hover {
+    background: rgba(49, 130, 206, 0.05);
+    border-radius: var(--radius-sm);
+}
+
+/* Ações inline */
+.inline-actions {
+    display: flex;
+    gap: var(--spacing-xs);
+    margin-top: var(--spacing-xs);
+}
+
+.inline-actions .btn {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    font-size: 0.75rem;
+    min-width: auto;
+}
+
+/* Cabeçalho da descrição */
+.case-description-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-sm);
+}
+
+.case-description-header strong {
+    margin: 0;
+}
+
+.case-description-header .btn {
+    font-size: 0.75rem;
+    padding: var(--spacing-xs) var(--spacing-sm);
+}
+
+/* Modal BDD compacto */
+#modalBDD .modal-dialog {
+    max-width: 800px;
+}
+
+#modalBDD .bdd-editor {
+    margin-top: var(--spacing-md);
+}
+
+#modalBDD .bdd-toolbar {
+    margin-bottom: var(--spacing-sm);
+}
+
+#modalBDD .bdd-textarea {
+    font-family: 'Courier New', monospace;
+    font-size: 0.875rem;
+    line-height: 1.5;
+}
+
+#modalBDD .bdd-preview {
+    margin-top: var(--spacing-sm);
+    padding: var(--spacing-sm);
+    background: #f8f9fa;
+    border: 1px solid var(--neurotech-border);
+    border-radius: var(--radius-sm);
+    font-family: 'Courier New', monospace;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+/* Responsividade para edição inline */
+@media (max-width: 768px) {
+    .case-description-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--spacing-sm);
+    }
+    
+    .inline-actions {
+        flex-direction: column;
+    }
+    
+    .inline-actions .btn {
+        width: 100%;
+    }
+}
+
 

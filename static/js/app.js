@@ -916,5 +916,664 @@ function visualizarPlanilha() {
 
 
 
+// Função para editar descrição BDD (abre modal compacto)
+function editarDescricaoBDD(caseId) {
+    // Buscar dados do caso
+    fetch(`http://127.0.0.1:8081/api/caso-teste/${caseId}`)
+        .then(response => {
+            if (response.ok) {
+                return response.json();
+            } else {
+                throw new Error('Erro ao carregar dados do caso');
+            }
+        })
+        .then(caso => {
+            // Abrir modal compacto para edição BDD
+            abrirModalBDD(caso);
+        })
+        .catch(error => {
+            console.error('Erro:', error);
+            mostrarNotificacao('Erro ao carregar dados do caso: ' + error.message, 'error');
+        });
+}
+
+// Função para salvar título inline
+async function salvarTituloInline(caseId) {
+    const tituloElement = document.querySelector(`[data-case-id="${caseId}"] .case-title, [data-case-id="${caseId}"] .case-list-title`);
+    const input = tituloElement.querySelector('input');
+    const novoTitulo = input.value.trim();
+    
+    if (!novoTitulo) {
+        mostrarNotificacao('Título não pode estar vazio', 'warning');
+        return;
+    }
+    
+    try {
+        // Buscar dados atuais do caso
+        const response = await fetch(`http://127.0.0.1:8081/api/caso-teste/${caseId}`);
+        const caso = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(caso.erro || 'Erro ao carregar dados do caso');
+        }
+        
+        // Atualizar apenas o título
+        const dados = {
+            issue_pai: issuePaiAtual,
+            titulo: novoTitulo,
+            descricao: caso.descricao,
+            objetivo: caso.objetivo || '',
+            pre_condicoes: caso.pre_condicoes || '',
+            tipo_execucao: caso.tipo_execucao,
+            tipo_teste: caso.tipo_teste,
+            componentes: caso.componentes,
+            status: caso.status
+        };
+        
+        const updateResponse = await fetch(`http://127.0.0.1:8081/api/caso-teste/${caseId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(dados)
+        });
+        
+        const result = await updateResponse.json();
+        
+        if (updateResponse.ok) {
+            mostrarNotificacao('Título atualizado com sucesso', 'success');
+            // Restaurar visualização normal
+            tituloElement.innerHTML = `${novoTitulo}<i class="fas fa-edit edit-icon"></i>`;
+            // Recarregar lista
+            carregarCasosTeste(issuePaiAtual);
+        } else {
+            throw new Error(result.erro || 'Erro ao atualizar título');
+        }
+    } catch (error) {
+        console.error('Erro:', error);
+        mostrarNotificacao('Erro ao atualizar título: ' + error.message, 'error');
+    }
+}
+
+// Função para salvar status inline
+async function salvarStatusInline(caseId) {
+    const statusElement = document.querySelector(`[data-case-id="${caseId}"] .case-status`);
+    const select = statusElement.querySelector('select');
+    const novoStatus = select.value;
+    
+    try {
+        // Buscar dados atuais do caso
+        const response = await fetch(`http://127.0.0.1:8081/api/caso-teste/${caseId}`);
+        const caso = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(caso.erro || 'Erro ao carregar dados do caso');
+        }
+        
+        // Atualizar apenas o status
+        const dados = {
+            issue_pai: issuePaiAtual,
+            titulo: caso.titulo,
+            descricao: caso.descricao,
+            objetivo: caso.objetivo || '',
+            pre_condicoes: caso.pre_condicoes || '',
+            tipo_execucao: caso.tipo_execucao,
+            tipo_teste: caso.tipo_teste,
+            componentes: caso.componentes,
+            status: novoStatus
+        };
+        
+        const updateResponse = await fetch(`http://127.0.0.1:8081/api/caso-teste/${caseId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(dados)
+        });
+        
+        const result = await updateResponse.json();
+        
+        if (updateResponse.ok) {
+            mostrarNotificacao('Status atualizado com sucesso', 'success');
+            // Recarregar lista para atualizar visualização
+            carregarCasosTeste(issuePaiAtual);
+        } else {
+            throw new Error(result.erro || 'Erro ao atualizar status');
+        }
+    } catch (error) {
+        console.error('Erro:', error);
+        mostrarNotificacao('Erro ao atualizar status: ' + error.message, 'error');
+    }
+}
+
+// Função para salvar tipo de execução inline
+async function salvarTipoExecucaoInline(caseId) {
+    const elemento = document.querySelector(`[data-case-id="${caseId}"] .case-meta-item, [data-case-id="${caseId}"] .case-list-meta-item`);
+    if (!elemento) return;
+
+    const select = elemento.querySelector('select');
+    const novoTipo = select.value;
+
+    try {
+        // Buscar dados atuais do caso
+        const response = await fetch(`http://127.0.0.1:8081/api/caso-teste/${caseId}`);
+        const caso = await response.json();
+
+        if (!response.ok) {
+            throw new Error(caso.erro || 'Erro ao carregar dados do caso');
+        }
+
+        // Atualizar apenas o tipo de execução
+        const dados = {
+            issue_pai: issuePaiAtual,
+            titulo: caso.titulo,
+            descricao: caso.descricao,
+            objetivo: caso.objetivo || '',
+            pre_condicoes: caso.pre_condicoes || '',
+            tipo_execucao: novoTipo,
+            tipo_teste: caso.tipo_teste,
+            componentes: caso.componentes,
+            status: caso.status
+        };
+
+        const updateResponse = await fetch(`http://127.0.0.1:8081/api/caso-teste/${caseId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(dados)
+        });
+
+        const result = await updateResponse.json();
+
+        if (updateResponse.ok) {
+            mostrarNotificacao('Tipo de execução atualizado com sucesso', 'success');
+            // Recarregar lista para atualizar visualização
+            carregarCasosTeste(issuePaiAtual);
+        } else {
+            throw new Error(result.erro || 'Erro ao atualizar tipo de execução');
+        }
+    } catch (error) {
+        console.error('Erro:', error);
+        mostrarNotificacao('Erro ao atualizar tipo de execução: ' + error.message, 'error');
+    }
+}
+
+// Função para salvar tipo de teste inline
+async function salvarTipoTesteInline(caseId) {
+    const elemento = document.querySelector(`[data-case-id="${caseId}"] .case-meta-item, [data-case-id="${caseId}"] .case-list-meta-item`);
+    if (!elemento) return;
+
+    const select = elemento.querySelector('select');
+    const novoTipo = select.value;
+
+    try {
+        // Buscar dados atuais do caso
+        const response = await fetch(`http://127.0.0.1:8081/api/caso-teste/${caseId}`);
+        const caso = await response.json();
+
+        if (!response.ok) {
+            throw new Error(caso.erro || 'Erro ao carregar dados do caso');
+        }
+
+        // Atualizar apenas o tipo de teste
+        const dados = {
+            issue_pai: issuePaiAtual,
+            titulo: caso.titulo,
+            descricao: caso.descricao,
+            objetivo: caso.objetivo || '',
+            pre_condicoes: caso.pre_condicoes || '',
+            tipo_execucao: caso.tipo_execucao,
+            tipo_teste: novoTipo,
+            componentes: caso.componentes,
+            status: caso.status
+        };
+
+        const updateResponse = await fetch(`http://127.0.0.1:8081/api/caso-teste/${caseId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(dados)
+        });
+
+        const result = await updateResponse.json();
+
+        if (updateResponse.ok) {
+            mostrarNotificacao('Tipo de teste atualizado com sucesso', 'success');
+            // Recarregar lista para atualizar visualização
+            carregarCasosTeste(issuePaiAtual);
+        } else {
+            throw new Error(result.erro || 'Erro ao atualizar tipo de teste');
+        }
+    } catch (error) {
+        console.error('Erro:', error);
+        mostrarNotificacao('Erro ao atualizar tipo de teste: ' + error.message, 'error');
+    }
+}
+
+// Função para salvar componentes inline
+async function salvarComponentesInline(caseId) {
+    const elemento = document.querySelector(`[data-case-id="${caseId}"] .case-meta-item, [data-case-id="${caseId}"] .case-list-meta-item`);
+    if (!elemento) return;
+
+    const select = elemento.querySelector('select');
+    const novoComponentes = select.value;
+
+    try {
+        // Buscar dados atuais do caso
+        const response = await fetch(`http://127.0.0.1:8081/api/caso-teste/${caseId}`);
+        const caso = await response.json();
+
+        if (!response.ok) {
+            throw new Error(caso.erro || 'Erro ao carregar dados do caso');
+        }
+
+        // Atualizar apenas os componentes
+        const dados = {
+            issue_pai: issuePaiAtual,
+            titulo: caso.titulo,
+            descricao: caso.descricao,
+            objetivo: caso.objetivo || '',
+            pre_condicoes: caso.pre_condicoes || '',
+            tipo_execucao: caso.tipo_execucao,
+            tipo_teste: caso.tipo_teste,
+            componentes: novoComponentes,
+            status: caso.status
+        };
+
+        const updateResponse = await fetch(`http://127.0.0.1:8081/api/caso-teste/${caseId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(dados)
+        });
+
+        const result = await updateResponse.json();
+
+        if (updateResponse.ok) {
+            mostrarNotificacao('Componentes atualizados com sucesso', 'success');
+            // Recarregar lista para atualizar visualização
+            carregarCasosTeste(issuePaiAtual);
+        } else {
+            throw new Error(result.erro || 'Erro ao atualizar componentes');
+        }
+    } catch (error) {
+        console.error('Erro:', error);
+        mostrarNotificacao('Erro ao atualizar componentes: ' + error.message, 'error');
+    }
+}
+
+// Função para salvar objetivo inline
+async function salvarObjetivoInline(caseId) {
+    const elemento = document.querySelector(`[data-case-id="${caseId}"] .case-description, [data-case-id="${caseId}"] .case-list-description`);
+    if (!elemento) return;
+
+    const textarea = elemento.querySelector('textarea');
+    const novoObjetivo = textarea.value.trim();
+
+    if (!novoObjetivo) {
+        mostrarNotificacao('Objetivo não pode estar vazio', 'warning');
+        return;
+    }
+
+    try {
+        // Buscar dados atuais do caso
+        const response = await fetch(`http://127.0.0.1:8081/api/caso-teste/${caseId}`);
+        const caso = await response.json();
+
+        if (!response.ok) {
+            throw new Error(caso.erro || 'Erro ao carregar dados do caso');
+        }
+
+        // Atualizar apenas o objetivo
+        const dados = {
+            issue_pai: issuePaiAtual,
+            titulo: caso.titulo,
+            descricao: caso.descricao,
+            objetivo: novoObjetivo,
+            pre_condicoes: caso.pre_condicoes || '',
+            tipo_execucao: caso.tipo_execucao,
+            tipo_teste: caso.tipo_teste,
+            componentes: caso.componentes,
+            status: caso.status
+        };
+
+        const updateResponse = await fetch(`http://127.0.0.1:8081/api/caso-teste/${caseId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(dados)
+        });
+
+        const result = await updateResponse.json();
+
+        if (updateResponse.ok) {
+            mostrarNotificacao('Objetivo atualizado com sucesso', 'success');
+            // Restaurar visualização normal
+            elemento.innerHTML = `
+                <div class="case-description-header">
+                    <strong><i class="fas fa-bullseye"></i> Objetivo:</strong>
+                </div>
+                <div class="case-description-texto">${novoObjetivo}</div>
+            `;
+            // Recarregar lista
+            carregarCasosTeste(issuePaiAtual);
+        } else {
+            throw new Error(result.erro || 'Erro ao atualizar objetivo');
+        }
+    } catch (error) {
+        console.error('Erro:', error);
+        mostrarNotificacao('Erro ao atualizar objetivo: ' + error.message, 'error');
+    }
+}
+
+// Função para salvar pré-condições inline
+async function salvarPreCondicoesInline(caseId) {
+    const elemento = document.querySelector(`[data-case-id="${caseId}"] .case-description, [data-case-id="${caseId}"] .case-list-description`);
+    if (!elemento) return;
+
+    const textarea = elemento.querySelector('textarea');
+    const novasPreCondicoes = textarea.value.trim();
+
+    if (!novasPreCondicoes) {
+        mostrarNotificacao('Pré-condições não podem estar vazias', 'warning');
+        return;
+    }
+
+    try {
+        // Buscar dados atuais do caso
+        const response = await fetch(`http://127.0.0.1:8081/api/caso-teste/${caseId}`);
+        const caso = await response.json();
+
+        if (!response.ok) {
+            throw new Error(caso.erro || 'Erro ao carregar dados do caso');
+        }
+
+        // Atualizar apenas as pré-condições
+        const dados = {
+            issue_pai: issuePaiAtual,
+            titulo: caso.titulo,
+            descricao: caso.descricao,
+            objetivo: caso.objetivo || '',
+            pre_condicoes: novasPreCondicoes,
+            tipo_execucao: caso.tipo_execucao,
+            tipo_teste: caso.tipo_teste,
+            componentes: caso.componentes,
+            status: caso.status
+        };
+
+        const updateResponse = await fetch(`http://127.0.0.1:8081/api/caso-teste/${caseId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(dados)
+        });
+
+        const result = await updateResponse.json();
+
+        if (updateResponse.ok) {
+            mostrarNotificacao('Pré-condições atualizadas com sucesso', 'success');
+            // Restaurar visualização normal
+            elemento.innerHTML = `
+                <div class="case-description-header">
+                    <strong><i class="fas fa-list-check"></i> Pré-condições:</strong>
+                </div>
+                <div class="case-description-texto">${novasPreCondicoes}</div>
+            `;
+            // Recarregar lista
+            carregarCasosTeste(issuePaiAtual);
+        } else {
+            throw new Error(result.erro || 'Erro ao atualizar pré-condições');
+        }
+    } catch (error) {
+        console.error('Erro:', error);
+        mostrarNotificacao('Erro ao atualizar pré-condições: ' + error.message, 'error');
+    }
+}
+
+// Função para cancelar edição inline
+function cancelarEdicaoInline(caseId, tipo, conteudoOriginal) {
+    let elemento;
+    
+    if (tipo === 'titulo') {
+        elemento = document.querySelector(`[data-case-id="${caseId}"] .case-title, [data-case-id="${caseId}"] .case-list-title`);
+    } else if (tipo === 'status') {
+        elemento = document.querySelector(`[data-case-id="${caseId}"] .case-status`);
+    } else if (tipo === 'objetivo' || tipo === 'preCondicoes') {
+        elemento = document.querySelector(`[data-case-id="${caseId}"] .case-description, [data-case-id="${caseId}"] .case-list-description`);
+    } else {
+        // Para outros campos (tipoExecucao, tipoTeste, componentes)
+        elemento = document.querySelector(`[data-case-id="${caseId}"] .case-meta-item, [data-case-id="${caseId}"] .case-list-meta-item`);
+    }
+    
+    if (elemento) {
+        elemento.innerHTML = conteudoOriginal;
+    }
+}
+
+// Função para abrir modal BDD compacto
+function abrirModalBDD(caso) {
+    // Criar modal dinamicamente
+    const modalHTML = `
+        <div class="modal fade" id="modalBDD" tabindex="-1">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Editar Descrição BDD - ${caso.titulo}</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="bdd-editor">
+                            <div class="bdd-toolbar">
+                                <button type="button" class="btn btn-sm btn-outline-primary" onclick="insertBDDKeywordModal('Given')">
+                                    <i class="fas fa-plus"></i> Given
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-primary" onclick="insertBDDKeywordModal('When')">
+                                    <i class="fas fa-play"></i> When
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-primary" onclick="insertBDDKeywordModal('Then')">
+                                    <i class="fas fa-check"></i> Then
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-primary" onclick="insertBDDKeywordModal('And')">
+                                    <i class="fas fa-plus"></i> And
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="formatBDDModal()">
+                                    <i class="fas fa-magic"></i> Formatar
+                                </button>
+                            </div>
+                            <textarea class="form-control bdd-textarea" id="descricaoBDDModal" rows="10">${caso.descricao || ''}</textarea>
+                            <div class="bdd-preview" id="bddPreviewModal"></div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="button" class="btn btn-primary" onclick="salvarDescricaoBDD('${caso.id}')">
+                            <i class="fas fa-save"></i> Salvar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Remover modal anterior se existir
+    const modalAnterior = document.getElementById('modalBDD');
+    if (modalAnterior) {
+        modalAnterior.remove();
+    }
+    
+    // Adicionar novo modal
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    
+    // Mostrar modal
+    const modal = new bootstrap.Modal(document.getElementById('modalBDD'));
+    modal.show();
+    
+    // Inicializar editor BDD
+    initBDDEditorModal();
+    updateBDDPreviewModal();
+}
+
+// Funções auxiliares para o modal BDD
+function insertBDDKeywordModal(keyword) {
+    const textarea = document.getElementById('descricaoBDDModal');
+    const cursorPos = textarea.selectionStart;
+    const textBefore = textarea.value.substring(0, cursorPos);
+    const textAfter = textarea.value.substring(cursorPos);
+    
+    const needsNewLine = textBefore.length > 0 && !textBefore.endsWith('\n');
+    const insertion = (needsNewLine ? '\n' : '') + keyword + ' ';
+    
+    textarea.value = textBefore + insertion + textAfter;
+    const newCursorPos = cursorPos + insertion.length;
+    textarea.setSelectionRange(newCursorPos, newCursorPos);
+    textarea.focus();
+    
+    updateBDDPreviewModal();
+}
+
+function formatBDDModal() {
+    const textarea = document.getElementById('descricaoBDDModal');
+    let text = textarea.value;
+    
+    const lines = text.split('\n');
+    const formattedLines = [];
+    
+    lines.forEach(line => {
+        const trimmedLine = line.trim();
+        if (trimmedLine) {
+            const bddKeywords = ['Given', 'When', 'Then', 'And', 'But'];
+            const startsWithKeyword = bddKeywords.some(keyword => 
+                trimmedLine.toLowerCase().startsWith(keyword.toLowerCase())
+            );
+            
+            if (startsWithKeyword) {
+                const words = trimmedLine.split(' ');
+                if (bddKeywords.includes(words[0])) {
+                    words[0] = words[0].charAt(0).toUpperCase() + words[0].slice(1).toLowerCase();
+                }
+                formattedLines.push(words.join(' '));
+            } else {
+                if (formattedLines.length === 0) {
+                    formattedLines.push('Given ' + trimmedLine);
+                } else {
+                    formattedLines.push(trimmedLine);
+                }
+            }
+        }
+    });
+    
+    textarea.value = formattedLines.join('\n');
+    updateBDDPreviewModal();
+}
+
+function updateBDDPreviewModal() {
+    const textarea = document.getElementById('descricaoBDDModal');
+    const preview = document.getElementById('bddPreviewModal');
+    const text = textarea.value;
+    
+    if (!text.trim()) {
+        preview.classList.remove('show');
+        return;
+    }
+    
+    const lines = text.split('\n');
+    const formattedLines = lines.map(line => {
+        const trimmedLine = line.trim();
+        if (!trimmedLine) return '';
+        
+        const lowerLine = trimmedLine.toLowerCase();
+        if (lowerLine.startsWith('given')) {
+            return `<span class="given">${trimmedLine}</span>`;
+        } else if (lowerLine.startsWith('when')) {
+            return `<span class="when">${trimmedLine}</span>`;
+        } else if (lowerLine.startsWith('then')) {
+            return `<span class="then">${trimmedLine}</span>`;
+        } else if (lowerLine.startsWith('and') || lowerLine.startsWith('but')) {
+            return `<span class="and">${trimmedLine}</span>`;
+        } else {
+            return trimmedLine;
+        }
+    });
+    
+    preview.innerHTML = formattedLines.join('<br>');
+    preview.classList.add('show');
+}
+
+function initBDDEditorModal() {
+    const textarea = document.getElementById('descricaoBDDModal');
+    if (textarea) {
+        textarea.addEventListener('input', updateBDDPreviewModal);
+        textarea.addEventListener('keydown', function(e) {
+            if (e.key === 'Tab') {
+                e.preventDefault();
+                const cursorPos = this.selectionStart;
+                const textBefore = this.value.substring(0, cursorPos);
+                const textAfter = this.value.substring(cursorPos);
+                
+                const lineStart = textBefore.lastIndexOf('\n') + 1;
+                const currentLine = textBefore.substring(lineStart);
+                
+                if (currentLine.trim() === '') {
+                    this.value = textBefore + 'Given ' + textAfter;
+                    this.setSelectionRange(cursorPos + 6, cursorPos + 6);
+                } else {
+                    this.value = textBefore + '    ' + textAfter;
+                    this.setSelectionRange(cursorPos + 4, cursorPos + 4);
+                }
+                updateBDDPreviewModal();
+            }
+        });
+    }
+}
+
+// Função para salvar descrição BDD
+async function salvarDescricaoBDD(caseId) {
+    const textarea = document.getElementById('descricaoBDDModal');
+    const novaDescricao = textarea.value.trim();
+    
+    if (!novaDescricao) {
+        mostrarNotificacao('Descrição não pode estar vazia', 'warning');
+        return;
+    }
+    
+    try {
+        // Buscar dados atuais do caso
+        const response = await fetch(`http://127.0.0.1:8081/api/caso-teste/${caseId}`);
+        const caso = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(caso.erro || 'Erro ao carregar dados do caso');
+        }
+        
+        // Atualizar apenas a descrição
+        const dados = {
+            issue_pai: issuePaiAtual,
+            titulo: caso.titulo,
+            descricao: novaDescricao,
+            objetivo: caso.objetivo || '',
+            pre_condicoes: caso.pre_condicoes || '',
+            tipo_execucao: caso.tipo_execucao,
+            tipo_teste: caso.tipo_teste,
+            componentes: caso.componentes,
+            status: caso.status
+        };
+        
+        const updateResponse = await fetch(`http://127.0.0.1:8081/api/caso-teste/${caseId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(dados)
+        });
+        
+        const result = await updateResponse.json();
+        
+        if (updateResponse.ok) {
+            mostrarNotificacao('Descrição atualizada com sucesso', 'success');
+            // Fechar modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('modalBDD'));
+            modal.hide();
+            // Recarregar lista
+            carregarCasosTeste(issuePaiAtual);
+        } else {
+            throw new Error(result.erro || 'Erro ao atualizar descrição');
+        }
+    } catch (error) {
+        console.error('Erro:', error);
+        mostrarNotificacao('Erro ao atualizar descrição: ' + error.message, 'error');
+    }
+}
+
+
+
 
 
