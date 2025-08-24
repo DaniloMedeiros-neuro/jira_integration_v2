@@ -416,6 +416,11 @@ def visualizar_planilha(issue_pai):
     """Página para visualizar casos de teste em formato de planilha"""
     return render_template('planilha.html', issue_pai=issue_pai)
 
+@app.route('/metricas')
+def visualizar_metricas():
+    """Página para visualizar métricas administrativas"""
+    return render_template('metricas.html')
+
 @app.route('/api/caso-teste/<issue_key>', methods=['GET'])
 def obter_caso_teste(issue_key):
     """Obtém um caso de teste específico"""
@@ -1047,3 +1052,248 @@ def exportar_planilha_manual():
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=8081)
+
+@app.route('/api/metricas-epico/<epic_key>')
+def obter_metricas_epico(epic_key):
+    """Obtém métricas administrativas e globais de um épico"""
+    try:
+        print(f"=== OBTENDO MÉTRICAS DO ÉPICO: {epic_key} ===")
+        
+        if not all([JIRA_BASE_URL, JIRA_EMAIL, JIRA_API_TOKEN]):
+            return jsonify({"erro": "Configurações do Jira incompletas"}), 500
+        
+        # Buscar o épico
+        epic_url = f"{JIRA_BASE_URL}/rest/api/3/issue/{epic_key}"
+        headers = {
+            "Accept": "application/json",
+            "Authorization": f"Basic {base64.b64encode(f'{JIRA_EMAIL}:{JIRA_API_TOKEN}'.encode()).decode()}"
+        }
+        
+        epic_response = requests.get(epic_url, headers=headers)
+        if epic_response.status_code != 200:
+            return jsonify({"erro": f"Épico {epic_key} não encontrado"}), 404
+        
+        epic_data = epic_response.json()
+        epic_fields = epic_data.get('fields', {})
+        
+        # Buscar todas as issues do épico
+        jql = f'"Epic Link" = {epic_key} OR parent = {epic_key}'
+        search_url = f"{JIRA_BASE_URL}/rest/api/3/search"
+        
+        search_payload = {
+            "jql": jql,
+            "maxResults": 1000,
+            "fields": [
+                "key", "summary", "status", "assignee", "reporter", 
+                "created", "updated", "resolutiondate", "timespent", 
+                "timeestimate", "timeoriginalestimate", "storypoints",
+                "issuetype", "priority", "components", "labels",
+                "worklog", "comment"
+            ]
+        }
+        
+        search_response = requests.post(search_url, headers=headers, json=search_payload)
+        if search_response.status_code != 200:
+            return jsonify({"erro": "Erro ao buscar issues do épico"}), 500
+        
+        issues_data = search_response.json()
+        issues = issues_data.get('issues', [])
+        
+        # Calcular métricas
+        metricas = calcular_metricas_epico(epic_fields, issues)
+        
+        return jsonify(metricas)
+        
+    except Exception as e:
+        print(f"Erro ao obter métricas do épico: {str(e)}")
+        return jsonify({"erro": str(e)}), 500
+
+def calcular_metricas_epico(epic_fields, issues):
+    """Calcula métricas administrativas do épico"""
+    
+    # Métricas básicas
+    total_issues = len(issues)
+    issues_concluidas = sum(1 for issue in issues if issue['fields']['status']['name'] in ['Done', 'Resolved', 'Closed'])
+    percentual_conclusao = (issues_concluidas / total_issues * 100) if total_issues > 0 else 0
+    
+    # Métricas de tempo
+    cycle_times = []
+    lead_times = []
+    tempo_estimado_vs_real = []
+    
+    for issue in issues:
+        # Cycle Time (In Progress até Done)
+        if issue['fields']['status']['name'] in ['Done', 'Resolved', 'Closed']:
+            created = datetime.fromisoformat(issue['fields']['created'].replace('Z', '+00:00'))
+            resolved = datetime.fromisoformat(issue['fields']['resolutiondate'].replace('Z', '+00:00'))
+            lead_time = (resolved - created).days
+            lead_times.append(lead_time)
+        
+        # Tempo estimado vs real
+        time_estimate = issue['fields'].get('timeestimate', 0) or 0
+        time_spent = issue['fields'].get('timespent', 0) or 0
+        if time_estimate > 0:
+            diferenca = ((time_spent - time_estimate) / time_estimate) * 100
+            tempo_estimado_vs_real.append(diferenca)
+    
+    # Métricas de esforço
+    story_points_total = sum(issue['fields'].get('storypoints', 0) or 0 for issue in issues)
+    story_points_concluidos = sum(
+        issue['fields'].get('storypoints', 0) or 0 
+        for issue in issues 
+        if issue['fields']['status']['name'] in ['Done', 'Resolved', 'Closed']
+    )
+    
+    # Distribuição por status
+    status_distribution = {}
+    for issue in issues:
+        status = issue['fields']['status']['name']
+        status_distribution[status] = status_distribution.get(status, 0) + 1
+    
+    # Distribuição por responsável
+    assignee_distribution = {}
+    for issue in issues:
+        assignee = issue['fields'].get('assignee', {})
+        assignee_name = assignee.get('displayName', 'Não atribuído') if assignee else 'Não atribuído'
+        assignee_distribution[assignee_name] = assignee_distribution.get(assignee_name, 0) + 1
+    
+    # Métricas de qualidade
+    bugs_count = sum(1 for issue in issues if issue['fields']['issuetype']['name'] == 'Bug')
+    dependencias_count = sum(1 for issue in issues if 'blocks' in str(issue['fields']))
+    
+    return {
+        "epic_info": {
+            "key": epic_fields.get('key'),
+            "summary": epic_fields.get('summary'),
+            "status": epic_fields.get('status', {}).get('name'),
+            "created": epic_fields.get('created'),
+            "updated": epic_fields.get('updated')
+        },
+        "metricas_progresso": {
+            "total_issues": total_issues,
+            "issues_concluidas": issues_concluidas,
+            "issues_pendentes": total_issues - issues_concluidas,
+            "percentual_conclusao": round(percentual_conclusao, 2),
+            "story_points_total": story_points_total,
+            "story_points_concluidos": story_points_concluidos,
+            "story_points_pendentes": story_points_total - story_points_concluidos
+        },
+        "metricas_tempo": {
+            "cycle_time_medio": round(sum(cycle_times) / len(cycle_times), 2) if cycle_times else 0,
+            "lead_time_medio": round(sum(lead_times) / len(lead_times), 2) if lead_times else 0,
+            "tempo_estimado_vs_real_medio": round(sum(tempo_estimado_vs_real) / len(tempo_estimado_vs_real), 2) if tempo_estimado_vs_real else 0
+        },
+        "metricas_qualidade": {
+            "bugs_count": bugs_count,
+            "dependencias_count": dependencias_count,
+            "percentual_bugs": round((bugs_count / total_issues * 100), 2) if total_issues > 0 else 0
+        },
+        "distribuicoes": {
+            "por_status": status_distribution,
+            "por_responsavel": assignee_distribution
+        },
+        "detalhes_issues": [
+            {
+                "key": issue['key'],
+                "summary": issue['fields']['summary'],
+                "status": issue['fields']['status']['name'],
+                "assignee": issue['fields'].get('assignee', {}).get('displayName', 'Não atribuído'),
+                "story_points": issue['fields'].get('storypoints', 0) or 0,
+                "time_spent": issue['fields'].get('timespent', 0) or 0,
+                "time_estimate": issue['fields'].get('timeestimate', 0) or 0,
+                "created": issue['fields']['created'],
+                "updated": issue['fields']['updated']
+            }
+            for issue in issues
+        ]
+    }
+
+@app.route('/api/metricas-sprint/<sprint_id>')
+def obter_metricas_sprint(sprint_id):
+    """Obtém métricas de uma sprint específica"""
+    try:
+        print(f"=== OBTENDO MÉTRICAS DA SPRINT: {sprint_id} ===")
+        
+        if not all([JIRA_BASE_URL, JIRA_EMAIL, JIRA_API_TOKEN]):
+            return jsonify({"erro": "Configurações do Jira incompletas"}), 500
+        
+        # Buscar informações da sprint
+        sprint_url = f"{JIRA_BASE_URL}/rest/agile/1.0/sprint/{sprint_id}"
+        headers = {
+            "Accept": "application/json",
+            "Authorization": f"Basic {base64.b64encode(f'{JIRA_EMAIL}:{JIRA_API_TOKEN}'.encode()).decode()}"
+        }
+        
+        sprint_response = requests.get(sprint_url, headers=headers)
+        if sprint_response.status_code != 200:
+            return jsonify({"erro": f"Sprint {sprint_id} não encontrada"}), 404
+        
+        sprint_data = sprint_response.json()
+        
+        # Buscar issues da sprint
+        issues_url = f"{JIRA_BASE_URL}/rest/agile/1.0/sprint/{sprint_id}/issue"
+        issues_response = requests.get(issues_url, headers=headers)
+        
+        if issues_response.status_code != 200:
+            return jsonify({"erro": "Erro ao buscar issues da sprint"}), 500
+        
+        issues_data = issues_response.json()
+        issues = issues_data.get('issues', [])
+        
+        # Calcular métricas da sprint
+        metricas = calcular_metricas_sprint(sprint_data, issues)
+        
+        return jsonify(metricas)
+        
+    except Exception as e:
+        print(f"Erro ao obter métricas da sprint: {str(e)}")
+        return jsonify({"erro": str(e)}), 500
+
+def calcular_metricas_sprint(sprint_data, issues):
+    """Calcula métricas de uma sprint"""
+    
+    total_issues = len(issues)
+    issues_concluidas = sum(1 for issue in issues if issue['fields']['status']['name'] in ['Done', 'Resolved', 'Closed'])
+    
+    # Story points
+    story_points_total = sum(issue['fields'].get('storypoints', 0) or 0 for issue in issues)
+    story_points_concluidos = sum(
+        issue['fields'].get('storypoints', 0) or 0 
+        for issue in issues 
+        if issue['fields']['status']['name'] in ['Done', 'Resolved', 'Closed']
+    )
+    
+    # Velocidade
+    velocity = story_points_concluidos
+    
+    # Burndown data
+    burndown_data = []
+    for issue in issues:
+        if issue['fields']['status']['name'] in ['Done', 'Resolved', 'Closed']:
+            resolved_date = issue['fields'].get('resolutiondate')
+            if resolved_date:
+                burndown_data.append({
+                    'date': resolved_date,
+                    'story_points': issue['fields'].get('storypoints', 0) or 0
+                })
+    
+    return {
+        "sprint_info": {
+            "id": sprint_data.get('id'),
+            "name": sprint_data.get('name'),
+            "state": sprint_data.get('state'),
+            "startDate": sprint_data.get('startDate'),
+            "endDate": sprint_data.get('endDate'),
+            "goal": sprint_data.get('goal')
+        },
+        "metricas": {
+            "total_issues": total_issues,
+            "issues_concluidas": issues_concluidas,
+            "issues_pendentes": total_issues - issues_concluidas,
+            "story_points_total": story_points_total,
+            "story_points_concluidos": story_points_concluidos,
+            "velocity": velocity,
+            "percentual_conclusao": round((issues_concluidas / total_issues * 100), 2) if total_issues > 0 else 0
+        },
+        "burndown_data": burndown_data
+    }

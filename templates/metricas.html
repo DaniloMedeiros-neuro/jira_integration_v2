@@ -1,0 +1,551 @@
+{% extends "base.html" %}
+
+{% block title %}Neurotech - Métricas Administrativas{% endblock %}
+
+{% block page_title %}Métricas Administrativas{% endblock %}
+
+{% block page_subtitle %}Análise de progresso, tempo e esforço{% endblock %}
+
+{% block content %}
+<div class="metrics-container">
+    <!-- Seção de Busca -->
+    <div class="search-section">
+        <div class="search-container">
+            <div class="search-box">
+                <div class="search-input">
+                    <i class="fas fa-chart-line"></i>
+                    <input type="text" id="epicKey" placeholder="Digite o ID do Épico (ex: EPIC-123)">
+                    <button class="search-btn" onclick="buscarMetricasEpico()">
+                        Buscar Métricas
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Métricas do Épico -->
+    <div id="metricasEpico" class="metrics-section" style="display: none;">
+        <div class="metrics-header">
+            <h3 id="epicTitle">Métricas do Épico</h3>
+            <div class="metrics-actions">
+                <button class="btn btn-outline-primary" onclick="exportarMetricas()">
+                    <i class="fas fa-download me-1"></i>Exportar
+                </button>
+            </div>
+        </div>
+
+        <!-- Cards de Métricas -->
+        <div class="metrics-grid">
+            <!-- Progresso -->
+            <div class="metric-card">
+                <div class="metric-header">
+                    <i class="fas fa-tasks"></i>
+                    <h4>Progresso</h4>
+                </div>
+                <div class="metric-content">
+                    <div class="metric-item">
+                        <span class="metric-label">Total de Issues:</span>
+                        <span class="metric-value" id="totalIssues">-</span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Concluídas:</span>
+                        <span class="metric-value" id="issuesConcluidas">-</span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Percentual:</span>
+                        <span class="metric-value" id="percentualConclusao">-</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressBar"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Story Points -->
+            <div class="metric-card">
+                <div class="metric-header">
+                    <i class="fas fa-chart-pie"></i>
+                    <h4>Story Points</h4>
+                </div>
+                <div class="metric-content">
+                    <div class="metric-item">
+                        <span class="metric-label">Total:</span>
+                        <span class="metric-value" id="storyPointsTotal">-</span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Concluídos:</span>
+                        <span class="metric-value" id="storyPointsConcluidos">-</span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Pendentes:</span>
+                        <span class="metric-value" id="storyPointsPendentes">-</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tempo -->
+            <div class="metric-card">
+                <div class="metric-header">
+                    <i class="fas fa-clock"></i>
+                    <h4>Tempo</h4>
+                </div>
+                <div class="metric-content">
+                    <div class="metric-item">
+                        <span class="metric-label">Cycle Time Médio:</span>
+                        <span class="metric-value" id="cycleTimeMedio">-</span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Lead Time Médio:</span>
+                        <span class="metric-value" id="leadTimeMedio">-</span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Estimado vs Real:</span>
+                        <span class="metric-value" id="tempoEstimadoVsReal">-</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Qualidade -->
+            <div class="metric-card">
+                <div class="metric-header">
+                    <i class="fas fa-bug"></i>
+                    <h4>Qualidade</h4>
+                </div>
+                <div class="metric-content">
+                    <div class="metric-item">
+                        <span class="metric-label">Bugs:</span>
+                        <span class="metric-value" id="bugsCount">-</span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Dependências:</span>
+                        <span class="metric-value" id="dependenciasCount">-</span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">% Bugs:</span>
+                        <span class="metric-value" id="percentualBugs">-</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gráficos -->
+        <div class="charts-section">
+            <div class="chart-container">
+                <h4>Distribuição por Status</h4>
+                <canvas id="statusChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h4>Distribuição por Responsável</h4>
+                <canvas id="assigneeChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Tabela de Issues -->
+        <div class="table-section">
+            <h4>Detalhes das Issues</h4>
+            <div class="table-container">
+                <table class="metrics-table">
+                    <thead>
+                        <tr>
+                            <th>Key</th>
+                            <th>Summary</th>
+                            <th>Status</th>
+                            <th>Assignee</th>
+                            <th>Story Points</th>
+                            <th>Time Spent</th>
+                            <th>Time Estimate</th>
+                        </tr>
+                    </thead>
+                    <tbody id="issuesTableBody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading -->
+    <div id="loading" class="loading-container" style="display: none;">
+        <div class="loading-spinner"></div>
+        <p>Carregando métricas...</p>
+    </div>
+
+    <!-- Error -->
+    <div id="error" class="error-container" style="display: none;">
+        <i class="fas fa-exclamation-triangle"></i>
+        <p id="errorMessage">Erro ao carregar métricas</p>
+    </div>
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+let statusChart = null;
+let assigneeChart = null;
+
+async function buscarMetricasEpico() {
+    const epicKey = document.getElementById('epicKey').value.trim();
+    
+    if (!epicKey) {
+        alert('Por favor, digite o ID do épico');
+        return;
+    }
+
+    // Mostrar loading
+    document.getElementById('loading').style.display = 'flex';
+    document.getElementById('metricasEpico').style.display = 'none';
+    document.getElementById('error').style.display = 'none';
+
+    try {
+        const response = await fetch(`/api/metricas-epico/${epicKey}`);
+        const data = await response.json();
+
+        if (response.ok) {
+            exibirMetricas(data);
+        } else {
+            throw new Error(data.erro || 'Erro ao buscar métricas');
+        }
+    } catch (error) {
+        console.error('Erro:', error);
+        document.getElementById('errorMessage').textContent = error.message;
+        document.getElementById('error').style.display = 'flex';
+    } finally {
+        document.getElementById('loading').style.display = 'none';
+    }
+}
+
+function exibirMetricas(data) {
+    // Informações do épico
+    document.getElementById('epicTitle').textContent = `Métricas do Épico: ${data.epic_info.key}`;
+
+    // Métricas de progresso
+    document.getElementById('totalIssues').textContent = data.metricas_progresso.total_issues;
+    document.getElementById('issuesConcluidas').textContent = data.metricas_progresso.issues_concluidas;
+    document.getElementById('percentualConclusao').textContent = `${data.metricas_progresso.percentual_conclusao}%`;
+    
+    // Progress bar
+    const progressBar = document.getElementById('progressBar');
+    progressBar.style.width = `${data.metricas_progresso.percentual_conclusao}%`;
+
+    // Story points
+    document.getElementById('storyPointsTotal').textContent = data.metricas_progresso.story_points_total;
+    document.getElementById('storyPointsConcluidos').textContent = data.metricas_progresso.story_points_concluidos;
+    document.getElementById('storyPointsPendentes').textContent = data.metricas_progresso.story_points_pendentes;
+
+    // Tempo
+    document.getElementById('cycleTimeMedio').textContent = `${data.metricas_tempo.cycle_time_medio} dias`;
+    document.getElementById('leadTimeMedio').textContent = `${data.metricas_tempo.lead_time_medio} dias`;
+    document.getElementById('tempoEstimadoVsReal').textContent = `${data.metricas_tempo.tempo_estimado_vs_real_medio}%`;
+
+    // Qualidade
+    document.getElementById('bugsCount').textContent = data.metricas_qualidade.bugs_count;
+    document.getElementById('dependenciasCount').textContent = data.metricas_qualidade.dependencias_count;
+    document.getElementById('percentualBugs').textContent = `${data.metricas_qualidade.percentual_bugs}%`;
+
+    // Gráficos
+    criarGraficoStatus(data.distribuicoes.por_status);
+    criarGraficoAssignee(data.distribuicoes.por_responsavel);
+
+    // Tabela de issues
+    preencherTabelaIssues(data.detalhes_issues);
+
+    // Mostrar seção
+    document.getElementById('metricasEpico').style.display = 'block';
+}
+
+function criarGraficoStatus(statusData) {
+    const ctx = document.getElementById('statusChart').getContext('2d');
+    
+    if (statusChart) {
+        statusChart.destroy();
+    }
+
+    const colors = ['#28a745', '#ffc107', '#dc3545', '#17a2b8', '#6c757d'];
+    
+    statusChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: Object.keys(statusData),
+            datasets: [{
+                data: Object.values(statusData),
+                backgroundColor: colors.slice(0, Object.keys(statusData).length),
+                borderWidth: 2,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+}
+
+function criarGraficoAssignee(assigneeData) {
+    const ctx = document.getElementById('assigneeChart').getContext('2d');
+    
+    if (assigneeChart) {
+        assigneeChart.destroy();
+    }
+
+    const colors = ['#007bff', '#6610f2', '#6f42c1', '#e83e8c', '#fd7e14'];
+    
+    assigneeChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: Object.keys(assigneeData),
+            datasets: [{
+                label: 'Issues por Responsável',
+                data: Object.values(assigneeData),
+                backgroundColor: colors.slice(0, Object.keys(assigneeData).length),
+                borderWidth: 1,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                }
+            }
+        }
+    });
+}
+
+function preencherTabelaIssues(issues) {
+    const tbody = document.getElementById('issuesTableBody');
+    tbody.innerHTML = '';
+
+    issues.forEach(issue => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td><a href="https://neurotech.atlassian.net/browse/${issue.key}" target="_blank">${issue.key}</a></td>
+            <td>${issue.summary}</td>
+            <td><span class="status-badge status-${issue.status.toLowerCase().replace(' ', '-')}">${issue.status}</span></td>
+            <td>${issue.assignee}</td>
+            <td>${issue.story_points}</td>
+            <td>${formatTime(issue.time_spent)}</td>
+            <td>${formatTime(issue.time_estimate)}</td>
+        `;
+        tbody.appendChild(row);
+    });
+}
+
+function formatTime(seconds) {
+    if (!seconds) return '-';
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    return `${hours}h ${minutes}m`;
+}
+
+function exportarMetricas() {
+    // Implementar exportação para Excel
+    alert('Funcionalidade de exportação será implementada em breve!');
+}
+</script>
+
+<style>
+.metrics-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.metrics-section {
+    margin-top: 30px;
+}
+
+.metrics-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    margin-bottom: 40px;
+}
+
+.metric-card {
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    border: 1px solid #e9ecef;
+}
+
+.metric-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.metric-header i {
+    font-size: 24px;
+    margin-right: 10px;
+    color: #007bff;
+}
+
+.metric-header h4 {
+    margin: 0;
+    color: #333;
+}
+
+.metric-item {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.metric-label {
+    color: #666;
+    font-weight: 500;
+}
+
+.metric-value {
+    font-weight: bold;
+    color: #333;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 8px;
+    background: #e9ecef;
+    border-radius: 4px;
+    margin-top: 10px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #28a745, #20c997);
+    transition: width 0.3s ease;
+}
+
+.charts-section {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 30px;
+    margin-bottom: 40px;
+}
+
+.chart-container {
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.chart-container h4 {
+    margin-bottom: 20px;
+    color: #333;
+    text-align: center;
+}
+
+.table-section {
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.table-section h4 {
+    margin-bottom: 20px;
+    color: #333;
+}
+
+.metrics-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.metrics-table th,
+.metrics-table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.metrics-table th {
+    background: #f8f9fa;
+    font-weight: 600;
+    color: #333;
+}
+
+.status-badge {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.status-done { background: #d4edda; color: #155724; }
+.status-in-progress { background: #fff3cd; color: #856404; }
+.status-to-do { background: #f8d7da; color: #721c24; }
+.status-resolved { background: #d1ecf1; color: #0c5460; }
+
+.loading-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px;
+}
+
+.loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #007bff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 20px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.error-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px;
+    color: #dc3545;
+}
+
+.error-container i {
+    font-size: 48px;
+    margin-bottom: 20px;
+}
+
+@media (max-width: 768px) {
+    .metrics-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .charts-section {
+        grid-template-columns: 1fr;
+    }
+    
+    .metrics-header {
+        flex-direction: column;
+        gap: 15px;
+    }
+}
+</style>
+{% endblock %}
