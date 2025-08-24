@@ -253,6 +253,15 @@ function criarHTMLCasoTesteLista(caso) {
                         <i class="fas fa-puzzle-piece"></i>
                         ${componentes}
                     </span>
+                    <span class="case-list-meta-item case-status ${statusClass}">
+                        <i class="fas fa-info-circle"></i>
+                        ${caso.status}
+                    </span>
+                    <span class="case-list-meta-item case-action">
+                        <button class="btn btn-sm btn-outline-danger" onclick="event.stopPropagation(); excluirCasoTeste('${caso.id}', '${caso.titulo}')" title="Excluir">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </span>
                 </div>
 
                 ${caso.descricao ? `
@@ -306,6 +315,15 @@ function criarHTMLCasoTesteCard(caso) {
                 <div class="case-meta-item">
                     <i class="fas fa-puzzle-piece"></i>
                     <span>${componentes}</span>
+                </div>
+                <div class="case-meta-item case-status ${statusClass}">
+                    <i class="fas fa-info-circle"></i>
+                    <span>${caso.status}</span>
+                </div>
+                <div class="case-meta-item case-action">
+                    <button class="btn btn-sm btn-outline-danger" onclick="event.stopPropagation(); excluirCasoTeste('${caso.id}', '${caso.titulo}')" title="Excluir">
+                        <i class="fas fa-trash"></i>
+                    </button>
                 </div>
             </div>
             
@@ -427,11 +445,7 @@ function abrirEdicaoTela() {
     document.getElementById('issuePaiFormTela').value = issuePaiAtual;
     document.getElementById('issueKeyTela').value = '';
     
-    // Ocultar seção de status e ações para novos casos
-    const edicaoStatusSection = document.getElementById('edicaoStatusSection');
-    if (edicaoStatusSection) {
-        edicaoStatusSection.style.display = 'none';
-    }
+
     
     // Mostrar edição em tela
     const edicaoTela = document.getElementById('edicaoTela');
@@ -563,13 +577,7 @@ async function editarCasoTeste(issueKey) {
         
         console.log('Formulário preenchido com sucesso');
         
-        // Mostrar seção de status e ações
-        const edicaoStatusSection = document.getElementById('edicaoStatusSection');
-        if (edicaoStatusSection) {
-            edicaoStatusSection.style.display = 'block';
-            document.getElementById('statusAtualCaso').textContent = caso.status || 'N/A';
-            document.getElementById('statusAtualCaso').className = `status-badge ${getStatusClass(caso.status)}`;
-        }
+
         
         // Mostrar edição em tela
         const edicaoTela = document.getElementById('edicaoTela');
@@ -916,68 +924,7 @@ function visualizarPlanilha() {
     window.open(`http://127.0.0.1:8081/planilha/${issuePaiAtual}`, '_blank');
 }
 
-// Função para alterar status para "Para Ajustar"
-async function alterarStatusParaAjustar() {
-    if (!casoTesteEditando) {
-        mostrarNotificacao('Nenhum caso de teste selecionado para edição', 'warning');
-        return;
-    }
-    
-    try {
-        const response = await fetch(`http://127.0.0.1:8081/api/caso-teste/${casoTesteEditando}`);
-        const caso = await response.json();
-        
-        if (!response.ok) {
-            throw new Error(caso.erro || 'Erro ao carregar dados do caso de teste');
-        }
-        
-        const dados = {
-            issue_pai: issuePaiAtual,
-            titulo: caso.titulo,
-            descricao: caso.descricao,
-            objetivo: caso.objetivo || '',
-            pre_condicoes: caso.pre_condicoes || '',
-            tipo_execucao: caso.tipo_execucao,
-            tipo_teste: caso.tipo_teste,
-            componentes: caso.componentes,
-            status: 'Para Ajustar'
-        };
-        
-        const updateResponse = await fetch(`http://127.0.0.1:8081/api/caso-teste/${casoTesteEditando}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(dados)
-        });
-        
-        const result = await updateResponse.json();
-        
-        if (updateResponse.ok) {
-            mostrarNotificacao('Status alterado para "Para Ajustar" com sucesso', 'success');
-            document.getElementById('statusTela').value = 'Para Ajustar';
-            document.getElementById('statusAtualCaso').textContent = 'Para Ajustar';
-            carregarCasosTeste(issuePaiAtual);
-        } else {
-            mostrarNotificacao(result.erro || 'Erro ao alterar status', 'error');
-        }
-    } catch (error) {
-        console.error('Erro:', error);
-        mostrarNotificacao('Erro ao alterar status: ' + error.message, 'error');
-    }
-}
 
-// Função para excluir caso atual
-function excluirCasoAtual() {
-    if (!casoTesteEditando) {
-        mostrarNotificacao('Nenhum caso de teste selecionado para exclusão', 'warning');
-        return;
-    }
-    
-    const titulo = document.getElementById('tituloTela').value || 'Caso de teste';
-    document.getElementById('confirmacaoTexto').textContent = `${casoTesteEditando} - ${titulo}`;
-    
-    const modal = new bootstrap.Modal(document.getElementById('modalConfirmacao'));
-    modal.show();
-}
 
 
 

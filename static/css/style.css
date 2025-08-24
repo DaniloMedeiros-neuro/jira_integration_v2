@@ -2547,6 +2547,43 @@ body.edicao-ativa {
     font-size: 0.875rem;
 }
 
+/* Estilos para status e ação dentro dos metadados */
+.case-meta-item.case-status {
+    background: rgba(255, 255, 255, 0.8);
+    border: 1px solid var(--neurotech-border);
+    border-radius: var(--radius-sm);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    font-weight: 500;
+}
+
+.case-meta-item.case-status.status-todo {
+    background: rgba(254, 215, 215, 0.8);
+    border-color: #feb2b2;
+    color: #c53030;
+}
+
+.case-meta-item.case-status.status-progress {
+    background: rgba(254, 243, 199, 0.8);
+    border-color: #f6e05e;
+    color: #d69e2e;
+}
+
+.case-meta-item.case-status.status-done {
+    background: rgba(198, 246, 213, 0.8);
+    border-color: #68d391;
+    color: #38a169;
+}
+
+.case-meta-item.case-action {
+    margin-left: auto;
+}
+
+.case-meta-item.case-action .btn {
+    padding: var(--spacing-xs);
+    font-size: 0.75rem;
+    min-width: auto;
+}
+
 .case-description {
     margin-bottom: var(--spacing-md);
 }
@@ -2747,76 +2784,4 @@ body.edicao-ativa {
     }
 }
 
-/* ========================================
-   SEÇÃO DE STATUS E AÇÕES NA EDIÇÃO
-   ======================================== */
 
-.edicao-status-section {
-    background: linear-gradient(135deg, #fff5f5 0%, #fed7d7 100%);
-    border: 1px solid #feb2b2;
-    border-radius: var(--radius-md);
-    padding: var(--spacing-lg);
-    margin-bottom: var(--spacing-lg);
-    box-shadow: var(--neurotech-shadow);
-}
-
-.edicao-status-info {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: var(--spacing-md);
-}
-
-.edicao-status-current {
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-sm);
-}
-
-.edicao-status-current .form-label {
-    margin: 0;
-    font-weight: 600;
-    color: var(--neurotech-primary);
-    font-size: 0.9rem;
-}
-
-.status-badge {
-    background: var(--neurotech-primary);
-    color: white;
-    padding: var(--spacing-xs) var(--spacing-sm);
-    border-radius: var(--radius-sm);
-    font-size: 0.875rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.edicao-status-actions {
-    display: flex;
-    gap: var(--spacing-sm);
-    flex-wrap: wrap;
-}
-
-.edicao-status-actions .btn {
-    font-size: 0.875rem;
-    padding: var(--spacing-xs) var(--spacing-sm);
-}
-
-/* Responsividade para seção de status */
-@media (max-width: 768px) {
-    .edicao-status-info {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-    
-    .edicao-status-actions {
-        width: 100%;
-        justify-content: flex-start;
-    }
-    
-    .edicao-status-actions .btn {
-        flex: 1;
-        min-width: 0;
-    }
-}
