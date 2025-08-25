@@ -1315,5 +1315,122 @@ def calcular_metricas_sprint(sprint_data, issues):
         "burndown_data": burndown_data
     }
 
+# ========================================
+# ROTAS PARA SISTEMA DE EVIDÊNCIAS
+# ========================================
+
+@app.route('/api/evidencias/upload', methods=['POST'])
+def upload_evidencias():
+    """Upload de arquivo log.html para processamento de evidências"""
+    try:
+        if 'log_file' not in request.files:
+            return jsonify({"erro": "Nenhum arquivo enviado"}), 400
+        
+        file = request.files['log_file']
+        if file.filename == '':
+            return jsonify({"erro": "Nenhum arquivo selecionado"}), 400
+        
+        if not file.filename.endswith('.html'):
+            return jsonify({"erro": "Apenas arquivos HTML são aceitos"}), 400
+        
+        # Salvar arquivo temporariamente
+        log_path = os.path.join(os.getcwd(), 'log.html')
+        file.save(log_path)
+        
+        # Executar script de extração de prints
+        import subprocess
+        import sys
+        
+        try:
+            result = subprocess.run([sys.executable, 'extrair_prints.py'], 
+                                  capture_output=True, text=True, cwd=os.getcwd())
+            
+            if result.returncode == 0:
+                # Contar arquivos gerados
+                falhas_dir = os.path.join('prints_tests', 'falhas')
+                sucessos_dir = os.path.join('prints_tests', 'sucessos')
+                
+                falhas_count = len([f for f in os.listdir(falhas_dir) if f.endswith('.png')]) if os.path.exists(falhas_dir) else 0
+                sucessos_count = len([f for f in os.listdir(sucessos_dir) if f.endswith('.png')]) if os.path.exists(sucessos_dir) else 0
+                
+                return jsonify({
+                    "sucesso": True,
+                    "mensagem": "Evidências processadas com sucesso",
+                    "estatisticas": {
+                        "falhas": falhas_count,
+                        "sucessos": sucessos_count,
+                        "total": falhas_count + sucessos_count
+                    }
+                })
+            else:
+                return jsonify({"erro": f"Erro no processamento: {result.stderr}"}), 500
+                
+        except Exception as e:
+            return jsonify({"erro": f"Erro ao executar script: {str(e)}"}), 500
+            
+    except Exception as e:
+        print(f"Erro no upload de evidências: {str(e)}")
+        return jsonify({"erro": str(e)}), 500
+
+@app.route('/api/evidencias/enviar', methods=['POST'])
+def enviar_evidencias_jira():
+    """Envia evidências processadas para o Jira"""
+    try:
+        # Executar script de envio de evidências
+        import subprocess
+        import sys
+        
+        try:
+            result = subprocess.run([sys.executable, 'adicionar_evidencias.py'], 
+                                  capture_output=True, text=True, cwd=os.getcwd())
+            
+            if result.returncode == 0:
+                # Contar arquivos enviados (simulação)
+                falhas_dir = os.path.join('prints_tests', 'falhas')
+                sucessos_dir = os.path.join('prints_tests', 'sucessos')
+                
+                falhas_count = len([f for f in os.listdir(falhas_dir) if f.endswith('.png')]) if os.path.exists(falhas_dir) else 0
+                sucessos_count = len([f for f in os.listdir(sucessos_dir) if f.endswith('.png')]) if os.path.exists(sucessos_dir) else 0
+                
+                return jsonify({
+                    "sucesso": True,
+                    "mensagem": "Evidências enviadas com sucesso",
+                    "enviados": falhas_count + sucessos_count,
+                    "estatisticas": {
+                        "falhas": falhas_count,
+                        "sucessos": sucessos_count
+                    }
+                })
+            else:
+                return jsonify({"erro": f"Erro no envio: {result.stderr}"}), 500
+                
+        except Exception as e:
+            return jsonify({"erro": f"Erro ao executar script: {str(e)}"}), 500
+            
+    except Exception as e:
+        print(f"Erro no envio de evidências: {str(e)}")
+        return jsonify({"erro": str(e)}), 500
+
+@app.route('/api/evidencias/status')
+def status_evidencias():
+    """Retorna status das evidências processadas"""
+    try:
+        falhas_dir = os.path.join('prints_tests', 'falhas')
+        sucessos_dir = os.path.join('prints_tests', 'sucessos')
+        
+        falhas_count = len([f for f in os.listdir(falhas_dir) if f.endswith('.png')]) if os.path.exists(falhas_dir) else 0
+        sucessos_count = len([f for f in os.listdir(sucessos_dir) if f.endswith('.png')]) if os.path.exists(sucessos_dir) else 0
+        
+        return jsonify({
+            "falhas": falhas_count,
+            "sucessos": sucessos_count,
+            "total": falhas_count + sucessos_count,
+            "processado": (falhas_count + sucessos_count) > 0
+        })
+        
+    except Exception as e:
+        print(f"Erro ao obter status das evidências: {str(e)}")
+        return jsonify({"erro": str(e)}), 500
+
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=8081)

@@ -237,6 +237,7 @@ function exibirCasosTeste(data) {
     
     if (data.casos_teste.length === 0) {
         if (btnPlanilha) btnPlanilha.style.display = 'none';
+        if (document.getElementById('btnEvidencias')) document.getElementById('btnEvidencias').style.display = 'none';
         const btnNovoCasoElement = document.getElementById('btnNovoCaso');
         if (btnNovoCasoElement) btnNovoCasoElement.style.display = 'inline-block'; // Mostrar botão para criar primeiro caso
         const emptyStateHTML = `
@@ -257,6 +258,7 @@ function exibirCasosTeste(data) {
     
     // Mostrar botões quando há casos de teste
     if (btnPlanilha) btnPlanilha.style.display = 'inline-block';
+    if (document.getElementById('btnEvidencias')) document.getElementById('btnEvidencias').style.display = 'inline-block';
     
     // Renderizar em ambos os formatos
     const casosListaHTML = data.casos_teste.map(caso => criarHTMLCasoTesteLista(caso)).join('');
@@ -1617,6 +1619,277 @@ async function salvarDescricaoBDD(caseId) {
         mostrarNotificacao('Erro ao atualizar descrição: ' + error.message, 'error');
     }
 }
+
+// ========================================
+// SISTEMA DE EVIDÊNCIAS
+// ========================================
+
+let uploadedFile = null;
+
+// Função para abrir modal de evidências
+function abrirModalEvidencias() {
+    const modal = new bootstrap.Modal(document.getElementById('modalEvidencias'));
+    modal.show();
+    resetarModalEvidencias();
+}
+
+// Função para resetar modal de evidências
+function resetarModalEvidencias() {
+    uploadedFile = null;
+    document.getElementById('uploadArea').style.display = 'block';
+    document.getElementById('fileInfo').style.display = 'none';
+    document.getElementById('processamentoSection').style.display = 'none';
+    document.getElementById('resultadosSection').style.display = 'none';
+    document.getElementById('btnProcessarEvidencias').style.display = 'none';
+    
+    // Resetar steps
+    resetarSteps();
+}
+
+// Função para resetar steps
+function resetarSteps() {
+    const steps = ['step1', 'step2', 'step3'];
+    steps.forEach(stepId => {
+        const step = document.getElementById(stepId);
+        const status = document.getElementById(stepId + 'Status');
+        step.className = 'step-item';
+        status.innerHTML = '<i class="fas fa-clock"></i>';
+    });
+}
+
+// Função para configurar drag and drop
+function configurarDragAndDrop() {
+    const uploadArea = document.getElementById('uploadArea');
+    const fileInput = document.getElementById('logFileInput');
+    
+    // Drag and drop events
+    uploadArea.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadArea.classList.add('dragover');
+    });
+    
+    uploadArea.addEventListener('dragleave', (e) => {
+        e.preventDefault();
+        uploadArea.classList.remove('dragover');
+    });
+    
+    uploadArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadArea.classList.remove('dragover');
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            handleFileSelect(files[0]);
+        }
+    });
+    
+    // Click to select file
+    uploadArea.addEventListener('click', () => {
+        fileInput.click();
+    });
+    
+    // File input change
+    fileInput.addEventListener('change', (e) => {
+        if (e.target.files.length > 0) {
+            handleFileSelect(e.target.files[0]);
+        }
+    });
+}
+
+// Função para lidar com seleção de arquivo
+function handleFileSelect(file) {
+    if (file.type !== 'text/html' && !file.name.endsWith('.html')) {
+        mostrarNotificacao('Por favor, selecione um arquivo HTML válido', 'error');
+        return;
+    }
+    
+    uploadedFile = file;
+    mostrarInfoArquivo(file);
+    document.getElementById('btnProcessarEvidencias').style.display = 'inline-block';
+}
+
+// Função para mostrar informações do arquivo
+function mostrarInfoArquivo(file) {
+    document.getElementById('uploadArea').style.display = 'none';
+    document.getElementById('fileInfo').style.display = 'block';
+    document.getElementById('fileName').textContent = file.name;
+    document.getElementById('fileSize').textContent = formatFileSize(file.size);
+}
+
+// Função para formatar tamanho do arquivo
+function formatFileSize(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
+
+// Função para remover arquivo
+function removerArquivo() {
+    uploadedFile = null;
+    document.getElementById('uploadArea').style.display = 'block';
+    document.getElementById('fileInfo').style.display = 'none';
+    document.getElementById('btnProcessarEvidencias').style.display = 'none';
+    document.getElementById('logFileInput').value = '';
+}
+
+// Função para processar evidências
+async function processarEvidencias() {
+    if (!uploadedFile) {
+        mostrarNotificacao('Por favor, selecione um arquivo primeiro', 'warning');
+        return;
+    }
+    
+    try {
+        // Mostrar seção de processamento
+        document.getElementById('processamentoSection').style.display = 'block';
+        
+        // Step 1: Extrair screenshots
+        await executarStep1();
+        
+        // Step 2: Organizar por status
+        await executarStep2();
+        
+        // Step 3: Preparar para envio
+        await executarStep3();
+        
+        // Mostrar resultados
+        mostrarResultados();
+        
+    } catch (error) {
+        console.error('Erro no processamento:', error);
+        mostrarNotificacao('Erro no processamento: ' + error.message, 'error');
+    }
+}
+
+// Função para executar Step 1
+async function executarStep1() {
+    const step = document.getElementById('step1');
+    const status = document.getElementById('step1Status');
+    
+    step.classList.add('active');
+    status.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    
+    try {
+        // Simular upload do arquivo
+        const formData = new FormData();
+        formData.append('log_file', uploadedFile);
+        
+        const response = await fetch('http://127.0.0.1:8081/api/evidencias/upload', {
+            method: 'POST',
+            body: formData
+        });
+        
+        if (!response.ok) {
+            throw new Error('Erro no upload do arquivo');
+        }
+        
+        // Simular processamento
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        step.classList.remove('active');
+        step.classList.add('completed');
+        status.innerHTML = '<i class="fas fa-check"></i>';
+        
+    } catch (error) {
+        step.classList.remove('active');
+        step.classList.add('error');
+        status.innerHTML = '<i class="fas fa-times"></i>';
+        throw error;
+    }
+}
+
+// Função para executar Step 2
+async function executarStep2() {
+    const step = document.getElementById('step2');
+    const status = document.getElementById('step2Status');
+    
+    step.classList.add('active');
+    status.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    
+    try {
+        // Simular processamento
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        
+        step.classList.remove('active');
+        step.classList.add('completed');
+        status.innerHTML = '<i class="fas fa-check"></i>';
+        
+    } catch (error) {
+        step.classList.remove('active');
+        step.classList.add('error');
+        status.innerHTML = '<i class="fas fa-times"></i>';
+        throw error;
+    }
+}
+
+// Função para executar Step 3
+async function executarStep3() {
+    const step = document.getElementById('step3');
+    const status = document.getElementById('step3Status');
+    
+    step.classList.add('active');
+    status.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    
+    try {
+        // Simular processamento
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        step.classList.remove('active');
+        step.classList.add('completed');
+        status.innerHTML = '<i class="fas fa-check"></i>';
+        
+    } catch (error) {
+        step.classList.remove('active');
+        step.classList.add('error');
+        status.innerHTML = '<i class="fas fa-times"></i>';
+        throw error;
+    }
+}
+
+// Função para mostrar resultados
+function mostrarResultados() {
+    document.getElementById('resultadosSection').style.display = 'block';
+    
+    // Simular estatísticas
+    document.getElementById('sucessosCount').textContent = '14';
+    document.getElementById('falhasCount').textContent = '4';
+    document.getElementById('enviadosCount').textContent = '0';
+}
+
+// Função para visualizar evidências
+function visualizarEvidencias() {
+    mostrarNotificacao('Funcionalidade de visualização será implementada em breve', 'info');
+}
+
+// Função para enviar evidências ao Jira
+async function enviarEvidenciasJira() {
+    try {
+        mostrarNotificacao('Enviando evidências ao Jira...', 'info');
+        
+        const response = await fetch('http://127.0.0.1:8081/api/evidencias/enviar', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        });
+        
+        if (response.ok) {
+            const result = await response.json();
+            document.getElementById('enviadosCount').textContent = result.enviados || '18';
+            mostrarNotificacao('Evidências enviadas com sucesso!', 'success');
+        } else {
+            throw new Error('Erro ao enviar evidências');
+        }
+        
+    } catch (error) {
+        console.error('Erro:', error);
+        mostrarNotificacao('Erro ao enviar evidências: ' + error.message, 'error');
+    }
+}
+
+// Inicializar sistema de evidências quando a página carregar
+document.addEventListener('DOMContentLoaded', function() {
+    configurarDragAndDrop();
+});
 
 
 

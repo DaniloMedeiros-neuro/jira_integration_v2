@@ -3181,4 +3181,301 @@ body.edicao-ativa {
     }
 }
 
+/* ========================================
+   MODAL DE EVIDÊNCIAS
+   ======================================== */
+
+.evidencias-container {
+    max-width: 100%;
+}
+
+.evidencias-section {
+    margin-bottom: var(--spacing-xl);
+}
+
+.evidencias-section:last-child {
+    margin-bottom: 0;
+}
+
+.evidencias-section-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--neurotech-primary);
+    margin-bottom: var(--spacing-md);
+    padding-bottom: var(--spacing-sm);
+    border-bottom: 2px solid var(--neurotech-border);
+}
+
+/* Upload Area */
+.upload-area {
+    border: 2px dashed var(--neurotech-border);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-2xl);
+    text-align: center;
+    background: var(--neurotech-light);
+    transition: all var(--transition-normal);
+    cursor: pointer;
+}
+
+.upload-area:hover {
+    border-color: var(--neurotech-accent);
+    background: rgba(49, 130, 206, 0.05);
+}
+
+.upload-area.dragover {
+    border-color: var(--neurotech-accent);
+    background: rgba(49, 130, 206, 0.1);
+    transform: scale(1.02);
+}
+
+.upload-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-md);
+}
+
+.upload-icon {
+    font-size: 3rem;
+    color: var(--neurotech-gray);
+    margin-bottom: var(--spacing-sm);
+}
+
+.upload-text {
+    font-size: 1rem;
+    color: var(--neurotech-secondary);
+    margin: 0;
+}
+
+/* File Info */
+.file-info {
+    margin-top: var(--spacing-md);
+}
+
+.file-info-content {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    padding: var(--spacing-md);
+    background: var(--neurotech-light);
+    border: 1px solid var(--neurotech-border);
+    border-radius: var(--radius-md);
+}
+
+.file-icon {
+    font-size: 1.5rem;
+    color: var(--neurotech-accent);
+}
+
+.file-details {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+}
+
+.file-name {
+    font-weight: 600;
+    color: var(--neurotech-primary);
+}
+
+.file-size {
+    font-size: 0.875rem;
+    color: var(--neurotech-gray);
+}
+
+/* Processamento Steps */
+.processamento-steps {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+}
+
+.step-item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    padding: var(--spacing-md);
+    background: var(--neurotech-light);
+    border: 1px solid var(--neurotech-border);
+    border-radius: var(--radius-md);
+    transition: all var(--transition-normal);
+}
+
+.step-item.active {
+    border-color: var(--neurotech-accent);
+    background: rgba(49, 130, 206, 0.05);
+}
+
+.step-item.completed {
+    border-color: var(--neurotech-success);
+    background: rgba(56, 161, 105, 0.05);
+}
+
+.step-item.error {
+    border-color: var(--neurotech-danger);
+    background: rgba(229, 62, 62, 0.05);
+}
+
+.step-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--neurotech-accent);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+
+.step-item.completed .step-icon {
+    background: var(--neurotech-success);
+}
+
+.step-item.error .step-icon {
+    background: var(--neurotech-danger);
+}
+
+.step-content {
+    flex: 1;
+}
+
+.step-content h6 {
+    margin: 0 0 var(--spacing-xs) 0;
+    font-weight: 600;
+    color: var(--neurotech-primary);
+}
+
+.step-content p {
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--neurotech-gray);
+}
+
+.step-status {
+    font-size: 1.25rem;
+    color: var(--neurotech-gray);
+}
+
+.step-item.active .step-status {
+    color: var(--neurotech-accent);
+}
+
+.step-item.completed .step-status {
+    color: var(--neurotech-success);
+}
+
+.step-item.error .step-status {
+    color: var(--neurotech-danger);
+}
+
+/* Resultados Stats */
+.resultados-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-lg);
+}
+
+.stat-item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    padding: var(--spacing-md);
+    background: var(--neurotech-light);
+    border: 1px solid var(--neurotech-border);
+    border-radius: var(--radius-md);
+    text-align: center;
+}
+
+.stat-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    flex-shrink: 0;
+}
+
+.stat-icon.success {
+    background: var(--neurotech-success);
+    color: white;
+}
+
+.stat-icon.error {
+    background: var(--neurotech-danger);
+    color: white;
+}
+
+.stat-icon.info {
+    background: var(--neurotech-accent);
+    color: white;
+}
+
+.stat-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+}
+
+.stat-number {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--neurotech-primary);
+}
+
+.stat-label {
+    font-size: 0.875rem;
+    color: var(--neurotech-gray);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Resultados Actions */
+.resultados-actions {
+    display: flex;
+    gap: var(--spacing-md);
+    justify-content: center;
+}
+
+/* Responsividade do Modal de Evidências */
+@media (max-width: 768px) {
+    .upload-area {
+        padding: var(--spacing-lg);
+    }
+    
+    .upload-icon {
+        font-size: 2rem;
+    }
+    
+    .upload-text {
+        font-size: 0.875rem;
+    }
+    
+    .step-item {
+        flex-direction: column;
+        text-align: center;
+        gap: var(--spacing-sm);
+    }
+    
+    .step-icon {
+        width: 50px;
+        height: 50px;
+        font-size: 1.25rem;
+    }
+    
+    .resultados-stats {
+        grid-template-columns: 1fr;
+    }
+    
+    .resultados-actions {
+        flex-direction: column;
+    }
+}
+
 
