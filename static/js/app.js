@@ -955,11 +955,8 @@ function visualizarPlanilha() {
         return;
     }
     
-    // Salvar issuePai no localStorage para a planilha manual
-    localStorage.setItem('issuePaiAtual', issuePaiAtual);
-    
-    // Navegar para a página de planilha manual com parâmetro
-    window.open(`http://127.0.0.1:8081/planilha-manual?issuePai=${issuePaiAtual}`, '_blank');
+    // Navegar para a página de visualização em planilha
+    window.open(`http://127.0.0.1:8081/planilha/${issuePaiAtual}`, '_blank');
 }
 
 
