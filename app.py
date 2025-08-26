@@ -25,7 +25,7 @@ def after_request(response):
     return response
 
 # Configurações do Jira
-JIRA_BASE_URL = os.getenv("JIRA_URL")
+JIRA_BASE_URL = os.getenv("JIRA_BASE_URL")
 JIRA_EMAIL = os.getenv("JIRA_EMAIL")
 JIRA_API_TOKEN = os.getenv("JIRA_API_TOKEN")
 
@@ -1061,12 +1061,20 @@ def obter_metricas_epico(epic_key):
         
         # Buscar o épico
         epic_url = f"{JIRA_BASE_URL}/rest/api/3/issue/{epic_key}"
+        print(f"URL do épico: {epic_url}")
+        print(f"JIRA_BASE_URL: {JIRA_BASE_URL}")
+        print(f"JIRA_EMAIL: {JIRA_EMAIL}")
+        print(f"JIRA_API_TOKEN: {JIRA_API_TOKEN[:20]}...")
+        
         headers = {
             "Accept": "application/json",
             "Authorization": f"Basic {base64.b64encode(f'{JIRA_EMAIL}:{JIRA_API_TOKEN}'.encode()).decode()}"
         }
         
         epic_response = requests.get(epic_url, headers=headers)
+        print(f"Status code da resposta: {epic_response.status_code}")
+        print(f"Resposta: {epic_response.text[:200]}...")
+        
         if epic_response.status_code != 200:
             return jsonify({"erro": f"Épico {epic_key} não encontrado"}), 404
         
@@ -1410,6 +1418,11 @@ def enviar_evidencias_jira():
     except Exception as e:
         print(f"Erro no envio de evidências: {str(e)}")
         return jsonify({"erro": str(e)}), 500
+
+@app.route('/evidencias')
+def evidencias_page():
+    """Página dedicada para extração de evidências"""
+    return render_template('evidencias.html')
 
 @app.route('/api/evidencias/status')
 def status_evidencias():
