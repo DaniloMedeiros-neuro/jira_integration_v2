@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Teste Epic</title>
+</head>
+<body>
+    <h1>Teste Epic</h1>
+    <p>Epic Key: {{ epic_key if epic_key else 'NÃO DEFINIDO' }}</p>
+    <p>Debug HTML: {{ debug_html if debug_html else 'NÃO DEFINIDO' }}</p>
+    
+    {% if epic_key %}
+    <script>
+        window.epicKeyFromURL = "{{ epic_key }}";
+        console.log('Epic Key definido:', window.epicKeyFromURL);
+    </script>
+    {% else %}
+    <script>
+        console.log('Nenhum epic_key fornecido');
+    </script>
+    {% endif %}
+</body>
+</html>

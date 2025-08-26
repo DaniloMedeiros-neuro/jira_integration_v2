@@ -793,6 +793,12 @@ function toggleView(viewType) {
     const listaCasos = document.getElementById('listaCasos');
     const cardsCasos = document.getElementById('cardsCasos');
     
+    // Verificar se os elementos existem antes de tentar acessá-los
+    if (!btnListView || !btnCardView || !listaCasos || !cardsCasos) {
+        console.log('Elementos de visualização não encontrados - página de casos de teste não carregada');
+        return;
+    }
+    
     // Remover classe active de todos os botões
     btnListView.classList.remove('active');
     btnCardView.classList.remove('active');
@@ -817,6 +823,15 @@ function toggleView(viewType) {
 
 // Função para carregar preferência de visualização
 function carregarPreferenciaVisualizacao() {
+    // Verificar se estamos na página de casos de teste
+    const btnListView = document.getElementById('btnListView');
+    const btnCardView = document.getElementById('btnCardView');
+    
+    if (!btnListView || !btnCardView) {
+        console.log('Elementos de visualização não encontrados - preferência não carregada');
+        return;
+    }
+    
     const preferencia = localStorage.getItem('viewPreference') || 'list';
     toggleView(preferencia);
 }
@@ -1661,6 +1676,12 @@ function resetarSteps() {
 function configurarDragAndDrop() {
     const uploadArea = document.getElementById('uploadArea');
     const fileInput = document.getElementById('logFileInput');
+    
+    // Verificar se os elementos existem antes de tentar configurar eventos
+    if (!uploadArea || !fileInput) {
+        console.log('Elementos de upload não encontrados - página de evidências não carregada');
+        return;
+    }
     
     // Drag and drop events
     uploadArea.addEventListener('dragover', (e) => {

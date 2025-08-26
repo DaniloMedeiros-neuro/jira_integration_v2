@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste de Eventos - Análise de Épicos</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .tabs-navigation {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .tab-btn {
+            padding: 10px 20px;
+            border: 1px solid #ddd;
+            background: #f8f9fa;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        .tab-btn.active {
+            background: #007bff;
+            color: white;
+        }
+        .tab-content {
+            display: none;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .sub-tabs-navigation {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .sub-tab-btn {
+            padding: 8px 16px;
+            border: 1px solid #ddd;
+            background: #f8f9fa;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .sub-tab-btn.active {
+            background: #28a745;
+            color: white;
+        }
+        .sub-tab-content {
+            display: none;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .sub-tab-content.active {
+            display: block;
+        }
+        .log {
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin-top: 20px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Teste de Eventos - Análise de Épicos</h1>
+        
+        <div class="test-section">
+            <h3>Teste 1: Navegação por Abas Principais</h3>
+            <div class="tabs-navigation">
+                <button class="tab-btn active" data-tab="tab1">
+                    📊 Aba 1
+                </button>
+                <button class="tab-btn" data-tab="tab2">
+                    📈 Aba 2
+                </button>
+            </div>
+            
+            <div id="tab1" class="tab-content active">
+                <h4>Conteúdo da Aba 1</h4>
+                <p>Esta é a primeira aba. Clique na segunda aba para testar a navegação.</p>
+            </div>
+            
+            <div id="tab2" class="tab-content">
+                <h4>Conteúdo da Aba 2</h4>
+                <p>Esta é a segunda aba. Aqui você pode testar as sub-abas.</p>
+                
+                <div class="sub-tabs-navigation">
+                    <button class="sub-tab-btn active" data-subtab="sub1">
+                        👁️ Sub-aba 1
+                    </button>
+                    <button class="sub-tab-btn" data-subtab="sub2">
+                        📊 Sub-aba 2
+                    </button>
+                    <button class="sub-tab-btn" data-subtab="sub3">
+                        🧪 Sub-aba 3
+                    </button>
+                </div>
+                
+                <div id="sub1" class="sub-tab-content active">
+                    <h5>Sub-aba 1 - Visão Geral</h5>
+                    <p>Conteúdo da primeira sub-aba.</p>
+                </div>
+                
+                <div id="sub2" class="sub-tab-content">
+                    <h5>Sub-aba 2 - Breakdown</h5>
+                    <p>Conteúdo da segunda sub-aba.</p>
+                </div>
+                
+                <div id="sub3" class="sub-tab-content">
+                    <h5>Sub-aba 3 - Testes</h5>
+                    <p>Conteúdo da terceira sub-aba.</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h3>Teste 2: Simulação de Busca</h3>
+            <input type="text" id="epicKeyTest" placeholder="Digite um ID de épico (ex: TLD-100)" style="width: 300px; padding: 8px; margin-right: 10px;">
+            <button onclick="testarBusca()" style="padding: 8px 16px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                🔍 Testar Busca
+            </button>
+        </div>
+        
+        <div class="log" id="log">
+            <strong>Log de Eventos:</strong><br>
+            Aguardando eventos...
+        </div>
+    </div>
+
+    <script>
+        // Função para adicionar logs
+        function addLog(message) {
+            const log = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            log.innerHTML += `<br>[${timestamp}] ${message}`;
+            log.scrollTop = log.scrollHeight;
+        }
+
+        // Funções de navegação por abas
+        function showTab(tabName) {
+            addLog(`showTab chamado com: ${tabName}`);
+            
+            // Esconder todas as abas
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Remover classe active de todos os botões
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Mostrar aba selecionada
+            const targetTab = document.getElementById(tabName);
+            if (targetTab) {
+                targetTab.classList.add('active');
+                addLog(`Aba ativada: ${tabName}`);
+            } else {
+                addLog(`ERRO: Aba não encontrada: ${tabName}`);
+            }
+            
+            // Adicionar classe active ao botão clicado
+            if (event && event.target) {
+                event.target.classList.add('active');
+            }
+        }
+
+        function showSubTab(subTabName) {
+            addLog(`showSubTab chamado com: ${subTabName}`);
+            
+            // Esconder todas as sub-abas
+            document.querySelectorAll('.sub-tab-content').forEach(subTab => {
+                subTab.classList.remove('active');
+            });
+            
+            // Remover classe active de todos os botões
+            document.querySelectorAll('.sub-tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Mostrar sub-aba selecionada
+            const targetSubTab = document.getElementById(subTabName);
+            if (targetSubTab) {
+                targetSubTab.classList.add('active');
+                addLog(`Sub-aba ativada: ${subTabName}`);
+            } else {
+                addLog(`ERRO: Sub-aba não encontrada: ${subTabName}`);
+            }
+            
+            // Adicionar classe active ao botão clicado
+            if (event && event.target) {
+                event.target.classList.add('active');
+            }
+        }
+
+        // Função para testar busca
+        function testarBusca() {
+            const epicKey = document.getElementById('epicKeyTest').value.trim();
+            addLog(`Testando busca para épico: ${epicKey}`);
+            
+            if (!epicKey) {
+                addLog('ERRO: Nenhum ID de épico fornecido');
+                return;
+            }
+            
+            addLog(`Simulando requisição para: /api/analise-epico-detalhada/${epicKey}`);
+            addLog('Busca simulada com sucesso!');
+        }
+
+        // Inicialização quando o DOM carregar
+        document.addEventListener('DOMContentLoaded', function() {
+            addLog('DOM carregado - inicializando eventos');
+            
+            // Adicionar event listeners para as abas principais
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const tabName = this.getAttribute('data-tab');
+                    if (tabName) {
+                        showTab(tabName);
+                    }
+                });
+            });
+            
+            // Adicionar event listeners para as sub-abas
+            document.querySelectorAll('.sub-tab-btn').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const subTabName = this.getAttribute('data-subtab');
+                    if (subTabName) {
+                        showSubTab(subTabName);
+                    }
+                });
+            });
+            
+            addLog('Event listeners adicionados com sucesso');
+            addLog('✅ Teste pronto! Clique nas abas e sub-abas para testar.');
+        });
+    </script>
+</body>
+</html>

@@ -421,6 +421,30 @@ def visualizar_metricas():
     """Página para visualizar métricas administrativas"""
     return render_template('metricas.html')
 
+@app.route('/teste-epic/<epic_key>')
+def teste_epic(epic_key):
+    """Rota de teste para verificar se o parâmetro está sendo passado"""
+    print(f"=== TESTE EPIC: {epic_key} ===")
+    debug_html = f"<!-- DEBUG: epic_key = {epic_key} -->"
+    return render_template('teste_epic.html', epic_key=epic_key, debug_html=debug_html)
+
+@app.route('/metricas/<epic_key>')
+def metricas_epico_direto(epic_key):
+    """Rota para acessar diretamente a análise de um épico via URL"""
+    print(f"=== ACESSANDO MÉTRICAS DO ÉPICO: {epic_key} ===")
+    
+    # Verificar se o formato é válido (ex: TLD-100, BC-8)
+    import re
+    if re.match(r'^[A-Z]+-\d+$', epic_key):
+        print(f"✅ Formato válido, renderizando template com epic_key: {epic_key}")
+        # Adicionar debug no HTML
+        debug_html = f"<!-- DEBUG: epic_key = {epic_key} -->"
+        return render_template('metricas.html', epic_key=epic_key, debug_html=debug_html)
+    else:
+        print(f"❌ Formato inválido: {epic_key}")
+        # Se não for um formato válido, retornar 404
+        return "Épico não encontrado", 404
+
 @app.route('/api/caso-teste/<issue_key>', methods=['GET'])
 def obter_caso_teste(issue_key):
     """Obtém um caso de teste específico"""
@@ -1124,7 +1148,9 @@ def calcular_metricas_epico(epic_fields, issues):
         
         # Métricas básicas
         total_issues = len(issues)
-        issues_concluidas = sum(1 for issue in issues if issue['fields'].get('status', {}).get('name') in ['Done', 'Resolved', 'Closed'])
+        # Status considerados como concluídos (incluindo status em português)
+        status_concluidos = ['Done', 'Resolved', 'Closed', 'CONCLUÍDO', 'Concluído']
+        issues_concluidas = sum(1 for issue in issues if issue['fields'].get('status', {}).get('name') in status_concluidos)
         percentual_conclusao = (issues_concluidas / total_issues * 100) if total_issues > 0 else 0
         
         # Métricas de tempo
@@ -1134,7 +1160,7 @@ def calcular_metricas_epico(epic_fields, issues):
     
         for issue in issues:
             # Cycle Time (In Progress até Done)
-            if issue['fields'].get('status', {}).get('name') in ['Done', 'Resolved', 'Closed']:
+            if issue['fields'].get('status', {}).get('name') in status_concluidos:
                 try:
                     created = datetime.fromisoformat(issue['fields'].get('created', '').replace('Z', '+00:00'))
                     resolution_date = issue['fields'].get('resolutiondate')
@@ -1158,7 +1184,7 @@ def calcular_metricas_epico(epic_fields, issues):
         story_points_concluidos = sum(
             issue['fields'].get('storypoints', 0) or 0 
             for issue in issues 
-            if issue['fields'].get('status', {}).get('name') in ['Done', 'Resolved', 'Closed']
+            if issue['fields'].get('status', {}).get('name') in status_concluidos
         )
         
         # Distribuição por status
@@ -1322,6 +1348,240 @@ def calcular_metricas_sprint(sprint_data, issues):
         },
         "burndown_data": burndown_data
     }
+
+@app.route('/api/analise-epico-detalhada/<epic_key>')
+def obter_analise_epico_detalhada(epic_key):
+    """Obtém análise detalhada de um épico com métricas avançadas"""
+    try:
+        print(f"=== OBTENDO ANÁLISE DETALHADA DO ÉPICO: {epic_key} ===")
+        
+        if not all([JIRA_BASE_URL, JIRA_EMAIL, JIRA_API_TOKEN]):
+            return jsonify({"erro": "Configurações do Jira incompletas"}), 500
+        
+        # Buscar o épico
+        epic_url = f"{JIRA_BASE_URL}/rest/api/3/issue/{epic_key}"
+        headers = {
+            "Accept": "application/json",
+            "Authorization": f"Basic {base64.b64encode(f'{JIRA_EMAIL}:{JIRA_API_TOKEN}'.encode()).decode()}"
+        }
+        
+        epic_response = requests.get(epic_url, headers=headers)
+        if epic_response.status_code != 200:
+            return jsonify({"erro": f"Épico {epic_key} não encontrado"}), 404
+        
+        epic_data = epic_response.json()
+        epic_fields = epic_data.get('fields', {})
+        
+        # Buscar todas as issues do épico (incluindo sub-tarefas)
+        jql = f'"Epic Link" = {epic_key} OR parent = {epic_key}'
+        search_url = f"{JIRA_BASE_URL}/rest/api/3/search"
+        
+        search_payload = {
+            "jql": jql,
+            "maxResults": 1000,
+            "fields": [
+                "key", "summary", "status", "assignee", "reporter", 
+                "created", "updated", "resolutiondate", "timespent", 
+                "timeestimate", "timeoriginalestimate", "storypoints",
+                "issuetype", "priority", "components", "labels",
+                "worklog", "comment", "parent", "subtasks", "issuelinks"
+            ]
+        }
+        
+        search_response = requests.post(search_url, headers=headers, json=search_payload)
+        if search_response.status_code != 200:
+            return jsonify({"erro": "Erro ao buscar issues do épico"}), 500
+        
+        issues_data = search_response.json()
+        issues = issues_data.get('issues', [])
+        
+        # Calcular análise detalhada
+        analise = calcular_analise_epico_detalhada(epic_fields, issues)
+        
+        return jsonify(analise)
+        
+    except Exception as e:
+        print(f"Erro ao obter análise detalhada do épico: {str(e)}")
+        import traceback
+        print("Traceback completo:")
+        traceback.print_exc()
+        return jsonify({"erro": str(e)}), 500
+
+def calcular_analise_epico_detalhada(epic_fields, issues):
+    """Calcula análise detalhada do épico com métricas avançadas"""
+    
+    try:
+        print(f"Processando análise detalhada de {len(issues)} issues")
+        
+        # 1. Resumo geral
+        total_issues = len(issues)
+        stories_count = sum(1 for issue in issues if issue['fields'].get('issuetype', {}).get('name') == 'Story')
+        tasks_count = sum(1 for issue in issues if issue['fields'].get('issuetype', {}).get('name') == 'Task')
+        bugs_count = sum(1 for issue in issues if issue['fields'].get('issuetype', {}).get('name') == 'Bug')
+        
+        # 2. Breakdown por status
+        status_breakdown = {}
+        status_concluidos = ['Done', 'Resolved', 'Closed', 'CONCLUÍDO', 'Concluído']
+        status_em_progresso = ['In Progress', 'Em Progresso', 'In Development']
+        status_impedimento = ['Blocked', 'Impedimento', 'On Hold']
+        
+        for issue in issues:
+            status = issue['fields'].get('status', {}).get('name')
+            story_points = issue['fields'].get('storypoints', 0) or 0
+            
+            if status not in status_breakdown:
+                status_breakdown[status] = {
+                    'count': 0,
+                    'percentual': 0,
+                    'story_points': 0,
+                    'tempo_medio': 0
+                }
+            
+            status_breakdown[status]['count'] += 1
+            status_breakdown[status]['story_points'] += story_points
+        
+        # Calcular percentuais
+        for status in status_breakdown:
+            status_breakdown[status]['percentual'] = round((status_breakdown[status]['count'] / total_issues) * 100, 2)
+        
+        # 3. Progresso geral
+        concluido_count = sum(1 for issue in issues if issue['fields'].get('status', {}).get('name') in status_concluidos)
+        em_progresso_count = sum(1 for issue in issues if issue['fields'].get('status', {}).get('name') in status_em_progresso)
+        impedimento_count = sum(1 for issue in issues if issue['fields'].get('status', {}).get('name') in status_impedimento)
+        
+        progresso = {
+            'concluido': {
+                'count': concluido_count,
+                'percentual': round((concluido_count / total_issues) * 100, 2) if total_issues > 0 else 0
+            },
+            'em_progresso': {
+                'count': em_progresso_count,
+                'percentual': round((em_progresso_count / total_issues) * 100, 2) if total_issues > 0 else 0
+            },
+            'impedimento': {
+                'count': impedimento_count,
+                'percentual': round((impedimento_count / total_issues) * 100, 2) if total_issues > 0 else 0
+            }
+        }
+        
+        # 4. Story Points
+        story_points_total = sum(issue['fields'].get('storypoints', 0) or 0 for issue in issues)
+        story_points_concluido = sum(
+            issue['fields'].get('storypoints', 0) or 0 
+            for issue in issues 
+            if issue['fields'].get('status', {}).get('name') in status_concluidos
+        )
+        story_points_pendente = story_points_total - story_points_concluido
+        percentual_concluido = round((story_points_concluido / story_points_total) * 100, 2) if story_points_total > 0 else 0
+        
+        # 5. Casos de Teste
+        casos_teste = []
+        headers = {
+            "Accept": "application/json",
+            "Authorization": f"Basic {base64.b64encode(f'{JIRA_EMAIL}:{JIRA_API_TOKEN}'.encode()).decode()}"
+        }
+        
+        for issue in issues:
+            # Buscar casos de teste relacionados
+            issue_key = issue['key']
+            test_cases_jql = f'issue in linkedIssues({issue_key}) AND issuetype = "Test"'
+            test_search_url = f"{JIRA_BASE_URL}/rest/api/3/search"
+            
+            test_payload = {
+                "jql": test_cases_jql,
+                "maxResults": 50,
+                "fields": ["key", "summary", "status", "assignee", "customfield_10016"]  # customfield_10016 é o status do teste
+            }
+            
+            try:
+                test_response = requests.post(test_search_url, headers=headers, json=test_payload)
+                if test_response.status_code == 200:
+                    test_data = test_response.json()
+                    for test_case in test_data.get('issues', []):
+                        casos_teste.append({
+                            'key': test_case['key'],
+                            'summary': test_case['fields'].get('summary', ''),
+                            'status': test_case['fields'].get('status', {}).get('name', ''),
+                            'test_status': test_case['fields'].get('customfield_10016', {}).get('value', 'Não Executado'),
+                            'assignee': test_case['fields'].get('assignee', {}).get('displayName', 'Não atribuído') if test_case['fields'].get('assignee') else 'Não atribuído',
+                            'ultima_execucao': 'N/A'  # Seria necessário buscar no histórico
+                        })
+            except Exception as e:
+                print(f"Erro ao buscar casos de teste para {issue_key}: {e}")
+        
+        # 6. Evolução do Escopo (simulado - seria necessário histórico)
+        evolucao_escopo = {
+            'labels': ['Sprint 1', 'Sprint 2', 'Sprint 3', 'Sprint 4'],
+            'adicionados': [5, 3, 2, 1],
+            'removidos': [0, 1, 0, 0]
+        }
+        
+        # 7. Velocidade e Tempo
+        lead_times = []
+        cycle_times = []
+        
+        for issue in issues:
+            if issue['fields'].get('status', {}).get('name') in status_concluidos:
+                try:
+                    created = datetime.fromisoformat(issue['fields'].get('created', '').replace('Z', '+00:00'))
+                    resolution_date = issue['fields'].get('resolutiondate')
+                    if resolution_date:
+                        resolved = datetime.fromisoformat(resolution_date.replace('Z', '+00:00'))
+                        lead_time = (resolved - created).days
+                        lead_times.append(lead_time)
+                except (ValueError, TypeError) as e:
+                    continue
+        
+        lead_time_medio = round(sum(lead_times) / len(lead_times), 2) if lead_times else 0
+        cycle_time_medio = round(sum(cycle_times) / len(cycle_times), 2) if cycle_times else 0
+        
+        # Velocidade simulada
+        evolucao_velocidade = {
+            'labels': ['Sprint 1', 'Sprint 2', 'Sprint 3', 'Sprint 4'],
+            'velocidade': [8, 12, 10, 15],
+            'throughput': [5, 8, 6, 10]
+        }
+        
+        # Distribuição de tempo
+        distribuicao_tempo = {
+            '1-3 dias': 30,
+            '4-7 dias': 45,
+            '8-14 dias': 20,
+            '15+ dias': 5
+        }
+        
+        return {
+            "resumo": {
+                "total_issues": total_issues,
+                "stories_count": stories_count,
+                "tasks_count": tasks_count,
+                "bugs_count": bugs_count
+            },
+            "progresso": progresso,
+            "story_points": {
+                "total": story_points_total,
+                "concluido": story_points_concluido,
+                "pendente": story_points_pendente,
+                "percentual_concluido": percentual_concluido
+            },
+            "breakdown_status": status_breakdown,
+            "casos_teste": casos_teste,
+            "evolucao_escopo": evolucao_escopo,
+            "evolucao_velocidade": evolucao_velocidade,
+            "distribuicao_tempo": distribuicao_tempo,
+            "metricas_tempo": {
+                "lead_time_medio": lead_time_medio,
+                "cycle_time_medio": cycle_time_medio,
+                "velocidade_sprint": round(story_points_concluido / 4, 2),  # Assumindo 4 sprints
+                "throughput_sprint": round(concluido_count / 4, 2)
+            }
+        }
+        
+    except Exception as e:
+        print(f"Erro ao calcular análise detalhada: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        raise e
 
 # ========================================
 # ROTAS PARA SISTEMA DE EVIDÊNCIAS
