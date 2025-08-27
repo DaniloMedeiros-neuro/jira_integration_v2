@@ -6,6 +6,18 @@
 
 {% block page_subtitle %}Visualize e gerencie as configurações de integração com o Jira{% endblock %}
 
+{% block page_actions %}
+<button type="button" class="btn btn-primary" id="btnEditar" onclick="toggleEditMode()">
+    <i class="fas fa-edit"></i> Editar Configurações
+</button>
+<button type="button" class="btn btn-success d-none" id="btnSalvar" onclick="salvarConfiguracoes()">
+    <i class="fas fa-save"></i> Salvar
+</button>
+<button type="button" class="btn btn-secondary d-none" id="btnCancelar" onclick="cancelarEdicao()">
+    <i class="fas fa-times"></i> Cancelar
+</button>
+{% endblock %}
+
 {% block content %}
 <div class="row">
     <div class="col-12">
@@ -18,7 +30,7 @@
             </div>
             <div class="card-body">
                 <div class="row">
-                    <div class="col-md-3">
+                    <div class="col-lg-3 col-md-6 col-sm-12 mb-3">
                         <div class="config-status-item">
                             <div class="status-icon {% if status.url_valida %}status-success{% else %}status-error{% endif %}">
                                 <i class="fas fa-link"></i>
@@ -31,7 +43,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-lg-3 col-md-6 col-sm-12 mb-3">
                         <div class="config-status-item">
                             <div class="status-icon {% if status.email_valido %}status-success{% else %}status-error{% endif %}">
                                 <i class="fas fa-envelope"></i>
@@ -44,7 +56,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-lg-3 col-md-6 col-sm-12 mb-3">
                         <div class="config-status-item">
                             <div class="status-icon {% if status.token_valido %}status-success{% else %}status-error{% endif %}">
                                 <i class="fas fa-key"></i>
@@ -57,7 +69,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-lg-3 col-md-6 col-sm-12 mb-3">
                         <div class="config-status-item">
                             <div class="status-icon {% if status.auth_valida %}status-success{% else %}status-error{% endif %}">
                                 <i class="fas fa-shield-alt"></i>
@@ -74,71 +86,111 @@
             </div>
         </div>
 
-        <!-- Detalhes das Configurações -->
+        <!-- Formulário de Configurações -->
         <div class="card">
             <div class="card-header">
                 <h5 class="mb-0">
-                    <i class="fas fa-info-circle"></i> Detalhes das Configurações
+                    <i class="fas fa-info-circle"></i> Configurações do Jira
                 </h5>
             </div>
             <div class="card-body">
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="config-detail-item">
-                            <label class="config-label">
-                                <i class="fas fa-link"></i> JIRA_BASE_URL
-                            </label>
-                            <div class="config-value">
-                                <code>{{ configuracoes.JIRA_BASE_URL }}</code>
-                                <button class="btn btn-sm btn-outline-secondary ms-2" onclick="copyToClipboard('{{ configuracoes.JIRA_BASE_URL }}')">
-                                    <i class="fas fa-copy"></i>
-                                </button>
+                <form id="configForm">
+                    <div class="row">
+                        <div class="col-lg-6 col-md-12 mb-3">
+                            <div class="config-detail-item">
+                                <label class="config-label" for="jira_url">
+                                    <i class="fas fa-link"></i> JIRA_BASE_URL <span class="text-danger">*</span>
+                                </label>
+                                <div class="config-input-group">
+                                    <input type="url" 
+                                           class="form-control config-input" 
+                                           id="jira_url" 
+                                           name="JIRA_BASE_URL" 
+                                           value="{{ configuracoes.JIRA_BASE_URL }}"
+                                           placeholder="https://sua-empresa.atlassian.net"
+                                           required
+                                           disabled>
+                                    <button type="button" class="btn btn-outline-secondary config-copy-btn" onclick="copyToClipboard('{{ configuracoes.JIRA_BASE_URL }}')">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                </div>
+                                <small class="form-text text-muted">URL base do seu Jira (ex: https://neurotech.atlassian.net)</small>
+                            </div>
+                        </div>
+                        <div class="col-lg-6 col-md-12 mb-3">
+                            <div class="config-detail-item">
+                                <label class="config-label" for="jira_email">
+                                    <i class="fas fa-envelope"></i> JIRA_EMAIL <span class="text-danger">*</span>
+                                </label>
+                                <div class="config-input-group">
+                                    <input type="email" 
+                                           class="form-control config-input" 
+                                           id="jira_email" 
+                                           name="JIRA_EMAIL" 
+                                           value="{{ configuracoes.JIRA_EMAIL }}"
+                                           placeholder="seu-email@empresa.com"
+                                           required
+                                           disabled>
+                                    <button type="button" class="btn btn-outline-secondary config-copy-btn" onclick="copyToClipboard('{{ configuracoes.JIRA_EMAIL }}')">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                </div>
+                                <small class="form-text text-muted">Email da sua conta do Jira</small>
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-6">
-                        <div class="config-detail-item">
-                            <label class="config-label">
-                                <i class="fas fa-envelope"></i> JIRA_EMAIL
-                            </label>
-                            <div class="config-value">
-                                <code>{{ configuracoes.JIRA_EMAIL }}</code>
-                                <button class="btn btn-sm btn-outline-secondary ms-2" onclick="copyToClipboard('{{ configuracoes.JIRA_EMAIL }}')">
-                                    <i class="fas fa-copy"></i>
-                                </button>
+                    <div class="row">
+                        <div class="col-lg-6 col-md-12 mb-3">
+                            <div class="config-detail-item">
+                                <label class="config-label" for="jira_token">
+                                    <i class="fas fa-key"></i> JIRA_API_TOKEN <span class="text-danger">*</span>
+                                </label>
+                                <div class="config-input-group">
+                                    <input type="password" 
+                                           class="form-control config-input" 
+                                           id="jira_token" 
+                                           name="JIRA_API_TOKEN" 
+                                           value="{{ configuracoes.JIRA_API_TOKEN }}"
+                                           placeholder="ATATT3xFfGF0..."
+                                           required
+                                           disabled>
+                                    <button type="button" class="btn btn-outline-secondary config-copy-btn" onclick="copyToClipboard('{{ configuracoes.JIRA_API_TOKEN }}')">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-outline-secondary config-toggle-btn" onclick="togglePasswordVisibility()">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                                <small class="form-text text-muted">
+                                    Token da API do Jira. 
+                                    <a href="https://id.atlassian.com/manage-profile/security/api-tokens" target="_blank" class="text-primary">
+                                        <i class="fas fa-external-link-alt"></i> Gerar token
+                                    </a>
+                                </small>
+                            </div>
+                        </div>
+                        <div class="col-lg-6 col-md-12 mb-3">
+                            <div class="config-detail-item">
+                                <label class="config-label" for="jira_auth">
+                                    <i class="fas fa-shield-alt"></i> JIRA_AUTH
+                                </label>
+                                <div class="config-input-group">
+                                    <input type="text" 
+                                           class="form-control config-input" 
+                                           id="jira_auth" 
+                                           name="JIRA_AUTH" 
+                                           value="{{ configuracoes.JIRA_AUTH }}"
+                                           placeholder="base64(email:token)"
+                                           disabled>
+                                    <button type="button" class="btn btn-outline-secondary config-copy-btn" onclick="copyToClipboard('{{ configuracoes.JIRA_AUTH }}')">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                </div>
+                                <small class="form-text text-muted">Autenticação base64 (opcional, será gerada automaticamente)</small>
                             </div>
                         </div>
                     </div>
-                </div>
-                <div class="row mt-3">
-                    <div class="col-md-6">
-                        <div class="config-detail-item">
-                            <label class="config-label">
-                                <i class="fas fa-key"></i> JIRA_API_TOKEN
-                            </label>
-                            <div class="config-value">
-                                <code>{{ configuracoes.JIRA_API_TOKEN }}</code>
-                                <button class="btn btn-sm btn-outline-secondary ms-2" onclick="copyToClipboard('{{ configuracoes.JIRA_API_TOKEN }}')">
-                                    <i class="fas fa-copy"></i>
-                                </button>
-                            </div>
-                            <small class="text-muted">Token mascarado por segurança</small>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="config-detail-item">
-                            <label class="config-label">
-                                <i class="fas fa-shield-alt"></i> JIRA_AUTH
-                            </label>
-                            <div class="config-value">
-                                <code>{{ configuracoes.JIRA_AUTH }}</code>
-                                <button class="btn btn-sm btn-outline-secondary ms-2" onclick="copyToClipboard('{{ configuracoes.JIRA_AUTH }}')">
-                                    <i class="fas fa-copy"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                </form>
             </div>
         </div>
 
@@ -150,31 +202,182 @@
                 </h5>
             </div>
             <div class="card-body">
-                <div class="alert alert-info">
-                    <h6><i class="fas fa-info-circle"></i> Sobre as Configurações</h6>
-                    <ul class="mb-0">
-                        <li>As configurações são carregadas do arquivo <code>.env</code> na raiz do projeto</li>
-                        <li>O token da API é mascarado por questões de segurança</li>
-                        <li>Para modificar as configurações, edite o arquivo <code>.env</code> e reinicie o servidor</li>
-                        <li>Certifique-se de que o arquivo <code>.env</code> não seja commitado no repositório</li>
-                    </ul>
-                </div>
-                
-                <div class="alert alert-warning">
-                    <h6><i class="fas fa-exclamation-triangle"></i> Segurança</h6>
-                    <ul class="mb-0">
-                        <li>Nunca compartilhe seu token de API</li>
-                        <li>Use sempre HTTPS para conexões com o Jira</li>
-                        <li>Mantenha o arquivo <code>.env</code> seguro e com permissões restritas</li>
-                    </ul>
+                <div class="row">
+                    <div class="col-lg-6 col-md-12 mb-3">
+                        <div class="alert alert-info">
+                            <h6><i class="fas fa-info-circle"></i> Sobre as Configurações</h6>
+                            <ul class="mb-0">
+                                <li>As configurações são salvas no arquivo <code>.env</code></li>
+                                <li>Campos marcados com <span class="text-danger">*</span> são obrigatórios</li>
+                                <li>Após salvar, reinicie o servidor para aplicar as mudanças</li>
+                                <li>O arquivo <code>.env</code> não deve ser commitado no repositório</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-lg-6 col-md-12 mb-3">
+                        <div class="alert alert-warning">
+                            <h6><i class="fas fa-exclamation-triangle"></i> Segurança</h6>
+                            <ul class="mb-0">
+                                <li>Nunca compartilhe seu token de API</li>
+                                <li>Use sempre HTTPS para conexões com o Jira</li>
+                                <li>Mantenha o arquivo <code>.env</code> seguro</li>
+                                <li>Gere tokens específicos para esta aplicação</li>
+                            </ul>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
+<!-- Modal de Confirmação -->
+<div class="modal fade" id="confirmModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirmar Alterações</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Tem certeza que deseja salvar as configurações? O servidor precisará ser reiniciado para aplicar as mudanças.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" onclick="confirmarSalvamento()">Salvar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
+let editMode = false;
+let originalValues = {};
+
+function toggleEditMode() {
+    editMode = !editMode;
+    const inputs = document.querySelectorAll('.config-input');
+    const btnEditar = document.getElementById('btnEditar');
+    const btnSalvar = document.getElementById('btnSalvar');
+    const btnCancelar = document.getElementById('btnCancelar');
+    
+    if (editMode) {
+        // Entrar no modo de edição
+        inputs.forEach(input => {
+            input.disabled = false;
+            originalValues[input.name] = input.value;
+        });
+        
+        btnEditar.classList.add('d-none');
+        btnSalvar.classList.remove('d-none');
+        btnCancelar.classList.remove('d-none');
+        
+        // Focar no primeiro campo
+        document.getElementById('jira_url').focus();
+    } else {
+        // Sair do modo de edição
+        inputs.forEach(input => {
+            input.disabled = true;
+        });
+        
+        btnEditar.classList.remove('d-none');
+        btnSalvar.classList.add('d-none');
+        btnCancelar.classList.add('d-none');
+    }
+}
+
+function cancelarEdicao() {
+    // Restaurar valores originais
+    const inputs = document.querySelectorAll('.config-input');
+    inputs.forEach(input => {
+        input.value = originalValues[input.name] || '';
+    });
+    
+    toggleEditMode();
+}
+
+function salvarConfiguracoes() {
+    // Validar formulário
+    const form = document.getElementById('configForm');
+    if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+    }
+    
+    // Mostrar modal de confirmação
+    const modal = new bootstrap.Modal(document.getElementById('confirmModal'));
+    modal.show();
+}
+
+function confirmarSalvamento() {
+    const form = document.getElementById('configForm');
+    const formData = new FormData(form);
+    const data = {};
+    
+    for (let [key, value] of formData.entries()) {
+        data[key] = value;
+    }
+    
+    // Fechar modal
+    bootstrap.Modal.getInstance(document.getElementById('confirmModal')).hide();
+    
+    // Mostrar loading
+    const btnSalvar = document.getElementById('btnSalvar');
+    const originalText = btnSalvar.innerHTML;
+    btnSalvar.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Salvando...';
+    btnSalvar.disabled = true;
+    
+    fetch('/api/configuracoes/salvar', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.sucesso) {
+            showAlert('success', data.mensagem);
+            toggleEditMode();
+            // Recarregar página após 2 segundos
+            setTimeout(() => {
+                window.location.reload();
+            }, 2000);
+        } else {
+            showAlert('danger', data.erro || 'Erro ao salvar configurações');
+        }
+    })
+    .catch(error => {
+        console.error('Erro:', error);
+        showAlert('danger', 'Erro ao salvar configurações');
+    })
+    .finally(() => {
+        btnSalvar.innerHTML = originalText;
+        btnSalvar.disabled = false;
+    });
+}
+
+function togglePasswordVisibility() {
+    const input = document.getElementById('jira_token');
+    const btn = document.querySelector('.config-toggle-btn i');
+    
+    if (input.type === 'password') {
+        input.type = 'text';
+        btn.classList.remove('fa-eye');
+        btn.classList.add('fa-eye-slash');
+    } else {
+        input.type = 'password';
+        btn.classList.remove('fa-eye-slash');
+        btn.classList.add('fa-eye');
+    }
+}
+
 function copyToClipboard(text) {
+    if (!text || text === '') {
+        showAlert('warning', 'Nenhum valor para copiar');
+        return;
+    }
+    
     navigator.clipboard.writeText(text).then(function() {
         // Mostrar feedback visual
         const button = event.target.closest('button');
@@ -188,11 +391,40 @@ function copyToClipboard(text) {
             button.classList.remove('btn-success');
             button.classList.add('btn-outline-secondary');
         }, 2000);
+        
+        showAlert('success', 'Valor copiado para a área de transferência');
     }).catch(function(err) {
         console.error('Erro ao copiar: ', err);
-        alert('Erro ao copiar para a área de transferência');
+        showAlert('danger', 'Erro ao copiar para a área de transferência');
     });
 }
+
+function showAlert(type, message) {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+    alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    document.body.appendChild(alertDiv);
+    
+    // Auto-remover após 5 segundos
+    setTimeout(() => {
+        if (alertDiv.parentNode) {
+            alertDiv.remove();
+        }
+    }, 5000);
+}
+
+// Inicializar tooltips
+document.addEventListener('DOMContentLoaded', function() {
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+});
 </script>
 
 <style>
@@ -202,7 +434,8 @@ function copyToClipboard(text) {
     padding: 1rem;
     border-radius: 8px;
     background-color: #f8f9fa;
-    margin-bottom: 1rem;
+    height: 100%;
+    min-height: 80px;
 }
 
 .status-icon {
@@ -214,6 +447,7 @@ function copyToClipboard(text) {
     justify-content: center;
     margin-right: 1rem;
     font-size: 1.2rem;
+    flex-shrink: 0;
 }
 
 .status-success {
@@ -248,18 +482,25 @@ function copyToClipboard(text) {
     margin-bottom: 0.5rem;
 }
 
-.config-value {
+.config-input-group {
     display: flex;
     align-items: center;
+    gap: 0.5rem;
 }
 
-.config-value code {
-    background-color: #f8f9fa;
-    padding: 0.5rem;
-    border-radius: 4px;
-    border: 1px solid #dee2e6;
+.config-input {
     flex: 1;
-    word-break: break-all;
+    min-width: 0;
+}
+
+.config-copy-btn,
+.config-toggle-btn {
+    flex-shrink: 0;
+    width: 40px;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .alert ul {
@@ -268,6 +509,83 @@ function copyToClipboard(text) {
 
 .alert li {
     margin-bottom: 0.25rem;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .config-status-item {
+        min-height: 70px;
+        padding: 0.75rem;
+    }
+    
+    .status-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 1rem;
+        margin-right: 0.75rem;
+    }
+    
+    .config-input-group {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .config-copy-btn,
+    .config-toggle-btn {
+        width: 100%;
+        height: 38px;
+        margin-top: 0.5rem;
+    }
+    
+    .alert {
+        margin-bottom: 1rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .config-status-item {
+        flex-direction: column;
+        text-align: center;
+        min-height: 100px;
+    }
+    
+    .status-icon {
+        margin-right: 0;
+        margin-bottom: 0.5rem;
+    }
+    
+    .card-body {
+        padding: 1rem;
+    }
+    
+    .btn {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+    
+    .btn + .btn {
+        margin-left: 0;
+    }
+}
+
+/* Animações */
+.config-input:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
+.config-copy-btn:hover,
+.config-toggle-btn:hover {
+    transform: scale(1.05);
+    transition: transform 0.2s ease;
+}
+
+.status-icon {
+    transition: all 0.3s ease;
+}
+
+.status-icon:hover {
+    transform: scale(1.1);
 }
 </style>
 {% endblock %}

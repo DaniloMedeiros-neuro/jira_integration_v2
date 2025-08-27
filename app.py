@@ -1710,21 +1710,92 @@ def configuracoes_page():
     """Página de configurações do sistema"""
     # Obter configurações do Jira do arquivo .env
     configuracoes = {
-        'JIRA_BASE_URL': os.getenv('JIRA_BASE_URL', 'Não configurado'),
-        'JIRA_EMAIL': os.getenv('JIRA_EMAIL', 'Não configurado'),
-        'JIRA_API_TOKEN': os.getenv('JIRA_API_TOKEN', 'Não configurado')[:20] + '...' if os.getenv('JIRA_API_TOKEN') else 'Não configurado',
-        'JIRA_AUTH': os.getenv('JIRA_AUTH', 'Não configurado')
+        'JIRA_BASE_URL': os.getenv('JIRA_BASE_URL', ''),
+        'JIRA_EMAIL': os.getenv('JIRA_EMAIL', ''),
+        'JIRA_API_TOKEN': os.getenv('JIRA_API_TOKEN', ''),
+        'JIRA_AUTH': os.getenv('JIRA_AUTH', '')
     }
     
     # Verificar se as configurações estão válidas
     status_config = {
-        'url_valida': bool(configuracoes['JIRA_BASE_URL'] != 'Não configurado'),
-        'email_valido': bool(configuracoes['JIRA_EMAIL'] != 'Não configurado'),
-        'token_valido': bool(configuracoes['JIRA_API_TOKEN'] != 'Não configurado'),
-        'auth_valida': bool(configuracoes['JIRA_AUTH'] != 'Não configurado')
+        'url_valida': bool(configuracoes['JIRA_BASE_URL']),
+        'email_valido': bool(configuracoes['JIRA_EMAIL']),
+        'token_valido': bool(configuracoes['JIRA_API_TOKEN']),
+        'auth_valida': bool(configuracoes['JIRA_AUTH'])
     }
     
     return render_template('configuracoes.html', configuracoes=configuracoes, status=status_config)
+
+@app.route('/api/configuracoes/salvar', methods=['POST'])
+def salvar_configuracoes():
+    """Salva as configurações no arquivo .env"""
+    try:
+        data = request.get_json()
+        
+        # Validar dados obrigatórios
+        required_fields = ['JIRA_BASE_URL', 'JIRA_EMAIL', 'JIRA_API_TOKEN']
+        for field in required_fields:
+            if not data.get(field):
+                return jsonify({'erro': f'Campo {field} é obrigatório'}), 400
+        
+        # Ler arquivo .env atual
+        env_path = '.env'
+        env_lines = []
+        
+        if os.path.exists(env_path):
+            with open(env_path, 'r', encoding='utf-8') as f:
+                env_lines = f.readlines()
+        
+        # Atualizar ou adicionar configurações
+        config_updated = {
+            'JIRA_BASE_URL': data['JIRA_BASE_URL'],
+            'JIRA_EMAIL': data['JIRA_EMAIL'],
+            'JIRA_API_TOKEN': data['JIRA_API_TOKEN'],
+            'JIRA_AUTH': data.get('JIRA_AUTH', '')
+        }
+        
+        # Processar linhas do arquivo .env
+        new_lines = []
+        existing_keys = set()
+        
+        # Processar linhas existentes
+        for line in env_lines:
+            line = line.strip()
+            if line and not line.startswith('#'):
+                if '=' in line:
+                    key = line.split('=')[0].strip()
+                    existing_keys.add(key)
+                    if key in config_updated:
+                        new_lines.append(f"{key}={config_updated[key]}\n")
+                        del config_updated[key]
+                    else:
+                        new_lines.append(line + '\n')
+                else:
+                    new_lines.append(line + '\n')
+            else:
+                new_lines.append(line + '\n')
+        
+        # Adicionar novas configurações
+        if config_updated:
+            new_lines.append('\n# Configurações do Jira\n')
+            for key, value in config_updated.items():
+                new_lines.append(f"{key}={value}\n")
+        
+        # Salvar arquivo .env
+        with open(env_path, 'w', encoding='utf-8') as f:
+            f.writelines(new_lines)
+        
+        # Recarregar variáveis de ambiente
+        load_dotenv(override=True)
+        
+        return jsonify({
+            'sucesso': True,
+            'mensagem': 'Configurações salvas com sucesso! Reinicie o servidor para aplicar as mudanças.'
+        })
+        
+    except Exception as e:
+        print(f"Erro ao salvar configurações: {str(e)}")
+        return jsonify({'erro': f'Erro ao salvar configurações: {str(e)}'}), 500
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=8081)
