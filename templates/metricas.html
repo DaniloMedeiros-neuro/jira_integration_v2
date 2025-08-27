@@ -180,245 +180,8 @@
         </div>
     </div>
 
-    <!-- Navegação por Abas -->
-    <div class="tabs-navigation">
-        <button class="tab-btn" data-tab="metricas-gerais">
-            <i class="fas fa-chart-line"></i>
-            Métricas Gerais
-        </button>
-        <button class="tab-btn active" data-tab="analise-epicos">
-            <i class="fas fa-layer-group"></i>
-            Análise Detalhada de Épicos
-        </button>
-    </div>
-
-    <!-- Aba: Métricas Gerais -->
-    <div id="metricas-gerais" class="tab-content">
-        <div class="metrics-container">
-            <p>Selecione a aba "Análise Detalhada de Épicos" para visualizar as métricas.</p>
-        </div>
-    </div>
-
-                <!-- Sub-aba: Visão Geral -->
-                <div id="overview" class="sub-tab-content">
-                    <div class="overview-grid">
-                        <div class="overview-card">
-                            <h4>Resumo do Épico</h4>
-                            <div class="overview-stats">
-                                <div class="stat-item">
-                                    <span class="stat-label">Total de Issues:</span>
-                                    <span class="stat-value" id="totalIssuesOverview">-</span>
-                                </div>
-                                <div class="stat-item">
-                                    <span class="stat-label">Histórias:</span>
-                                    <span class="stat-value" id="storiesCount">-</span>
-                                </div>
-                                <div class="stat-item">
-                                    <span class="stat-label">Tarefas:</span>
-                                    <span class="stat-value" id="tasksCount">-</span>
-                                </div>
-                                <div class="stat-item">
-                                    <span class="stat-label">Bugs:</span>
-                                    <span class="stat-value" id="bugsCountOverview">-</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="overview-card">
-                            <h4>Progresso Geral</h4>
-                            <div class="progress-overview">
-                                <div class="progress-item">
-                                    <span class="progress-label">Concluído</span>
-                                    <div class="progress-bar-mini">
-                                        <div class="progress-fill-mini" id="progressConcluido"></div>
-                                    </div>
-                                    <span class="progress-value" id="progressConcluidoValue">-</span>
-                                </div>
-                                <div class="progress-item">
-                                    <span class="progress-label">Em Progresso</span>
-                                    <div class="progress-bar-mini">
-                                        <div class="progress-fill-mini" id="progressEmProgresso"></div>
-                                    </div>
-                                    <span class="progress-value" id="progressEmProgressoValue">-</span>
-                                </div>
-                                <div class="progress-item">
-                                    <span class="progress-label">Impedimento</span>
-                                    <div class="progress-bar-mini">
-                                        <div class="progress-fill-mini" id="progressImpedimento"></div>
-                                    </div>
-                                    <span class="progress-value" id="progressImpedimentoValue">-</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="overview-card">
-                            <h4>Story Points</h4>
-                            <div class="story-points-overview">
-                                <div class="sp-item">
-                                    <span class="sp-label">Total:</span>
-                                    <span class="sp-value" id="spTotal">-</span>
-                                </div>
-                                <div class="sp-item">
-                                    <span class="sp-label">Concluído:</span>
-                                    <span class="sp-value" id="spConcluido">-</span>
-                                </div>
-                                <div class="sp-item">
-                                    <span class="sp-label">Pendente:</span>
-                                    <span class="sp-value" id="spPendente">-</span>
-                                </div>
-                                <div class="sp-item">
-                                    <span class="sp-label">% Concluído:</span>
-                                    <span class="sp-value" id="spPercentual">-</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Sub-aba: Breakdown por Status -->
-                <div id="status-breakdown" class="sub-tab-content">
-                    <div class="status-breakdown-container">
-                        <div class="status-chart-section">
-                            <h4>Distribuição Detalhada por Status</h4>
-                            <canvas id="statusBreakdownChart"></canvas>
-                        </div>
-                        <div class="status-table-section">
-                            <h4>Detalhamento por Status</h4>
-                            <div class="table-container">
-                                <table class="status-breakdown-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Status</th>
-                                            <th>Quantidade</th>
-                                            <th>Percentual</th>
-                                            <th>Story Points</th>
-                                            <th>Tempo Médio</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="statusBreakdownTableBody">
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Sub-aba: Casos de Teste -->
-                <div id="test-cases" class="sub-tab-content">
-                    <div class="test-cases-container">
-                        <div class="test-cases-summary">
-                            <h4>Resumo dos Casos de Teste</h4>
-                            <div class="test-cases-stats">
-                                <div class="test-stat-card">
-                                    <span class="test-stat-label">Total de Casos</span>
-                                    <span class="test-stat-value" id="totalTestCases">-</span>
-                                </div>
-                                <div class="test-stat-card">
-                                    <span class="test-stat-label">Passaram</span>
-                                    <span class="test-stat-value" id="passedTestCases">-</span>
-                                </div>
-                                <div class="test-stat-card">
-                                    <span class="test-stat-label">Falharam</span>
-                                    <span class="test-stat-value" id="failedTestCases">-</span>
-                                </div>
-                                <div class="test-stat-card">
-                                    <span class="test-stat-label">Não Executados</span>
-                                    <span class="test-stat-value" id="notExecutedTestCases">-</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="test-cases-details">
-                            <h4>Detalhes dos Casos de Teste</h4>
-                            <div class="table-container">
-                                <table class="test-cases-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Issue Key</th>
-                                            <th>Summary</th>
-                                            <th>Status</th>
-                                            <th>Test Status</th>
-                                            <th>Assignee</th>
-                                            <th>Última Execução</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="testCasesTableBody">
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Sub-aba: Evolução do Escopo -->
-                <div id="scope-evolution" class="sub-tab-content">
-                    <div class="scope-evolution-container">
-                        <div class="scope-summary">
-                            <h4>Evolução do Escopo</h4>
-                            <div class="scope-stats">
-                                <div class="scope-stat-card">
-                                    <span class="scope-stat-label">Itens Adicionados</span>
-                                    <span class="scope-stat-value" id="itemsAdicionados">-</span>
-                                </div>
-                                <div class="scope-stat-card">
-                                    <span class="scope-stat-label">Itens Removidos</span>
-                                    <span class="scope-stat-value" id="itemsRemovidos">-</span>
-                                </div>
-                                <div class="scope-stat-card">
-                                    <span class="scope-stat-label">Variação Líquida</span>
-                                    <span class="scope-stat-value" id="variacaoLiquida">-</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="scope-timeline">
-                            <h4>Timeline de Mudanças</h4>
-                            <canvas id="scopeEvolutionChart"></canvas>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Sub-aba: Velocidade e Tempo -->
-                <div id="velocity" class="sub-tab-content">
-                    <div class="velocity-container">
-                        <div class="velocity-metrics">
-                            <h4>Métricas de Velocidade</h4>
-                            <div class="velocity-stats">
-                                <div class="velocity-stat-card">
-                                    <span class="velocity-stat-label">Lead Time Médio</span>
-                                    <span class="velocity-stat-value" id="leadTimeMedioDetalhado">-</span>
-                                </div>
-                                <div class="velocity-stat-card">
-                                    <span class="velocity-stat-label">Cycle Time Médio</span>
-                                    <span class="velocity-stat-value" id="cycleTimeMedioDetalhado">-</span>
-                                </div>
-                                <div class="velocity-stat-card">
-                                    <span class="velocity-stat-label">Velocidade (SP/Sprint)</span>
-                                    <span class="velocity-stat-value" id="velocidadeSprint">-</span>
-                                </div>
-                                <div class="velocity-stat-card">
-                                    <span class="velocity-stat-label">Throughput (Issues/Sprint)</span>
-                                    <span class="velocity-stat-value" id="throughputSprint">-</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="velocity-charts">
-                            <div class="velocity-chart">
-                                <h4>Evolução da Velocidade</h4>
-                                <canvas id="velocityEvolutionChart"></canvas>
-                            </div>
-                            <div class="velocity-chart">
-                                <h4>Distribuição de Tempos</h4>
-                                <canvas id="timeDistributionChart"></canvas>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Aba: Análise Detalhada de Épicos -->
-    <div id="analise-epicos" class="tab-content active">
-        <div class="epic-analysis-container">
+    <!-- Análise Detalhada de Épicos -->
+    <div class="epic-analysis-container">
 
             <!-- Análise Detalhada -->
             <div id="analiseEpicoDetalhada" class="epic-analysis-section" style="display: none;">
@@ -585,15 +348,36 @@
                                     <th>%</th>
                                 </tr>
                             </thead>
-                            <tbody></tbody>
+                            <tbody id="statusBreakdownTableBody"></tbody>
                         </table>
                     </div>
                 </div>
 
                 <!-- Sub-aba: Casos de Teste -->
                 <div id="test-cases" class="sub-tab-content">
+                    <div class="test-cases-summary">
+                        <h4>Resumo dos Casos de Teste</h4>
+                        <div class="test-cases-stats">
+                            <div class="test-stat-card">
+                                <span class="test-stat-label">Total de Casos</span>
+                                <span class="test-stat-value" id="totalTestCases">-</span>
+                            </div>
+                            <div class="test-stat-card">
+                                <span class="test-stat-label">Passaram</span>
+                                <span class="test-stat-value" id="passedTestCases">-</span>
+                            </div>
+                            <div class="test-stat-card">
+                                <span class="test-stat-label">Falharam</span>
+                                <span class="test-stat-value" id="failedTestCases">-</span>
+                            </div>
+                            <div class="test-stat-card">
+                                <span class="test-stat-label">Não Executados</span>
+                                <span class="test-stat-value" id="notExecutedTestCases">-</span>
+                            </div>
+                        </div>
+                    </div>
                     <div class="chart-container">
-                        <h4>Resumo de Casos de Teste</h4>
+                        <h4>Gráfico de Casos de Teste</h4>
                         <canvas id="testCasesChart"></canvas>
                     </div>
                     <div class="table-container">
@@ -609,7 +393,7 @@
                                     <th>Total</th>
                                 </tr>
                             </thead>
-                            <tbody></tbody>
+                            <tbody id="testCasesTableBody"></tbody>
                         </table>
                     </div>
                 </div>
@@ -665,17 +449,6 @@ let timeDistributionChart = null;
 document.addEventListener('DOMContentLoaded', function() {
     console.log('DOM carregado - inicializando eventos de métricas');
     
-    // Adicionar event listeners para as abas principais
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.addEventListener('click', function(e) {
-            e.preventDefault();
-            const tabName = this.getAttribute('data-tab');
-            if (tabName) {
-                showTab(tabName);
-            }
-        });
-    });
-    
     // Adicionar event listeners para as sub-abas
     document.querySelectorAll('.sub-tab-btn').forEach(btn => {
         btn.addEventListener('click', function(e) {
@@ -687,66 +460,30 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-               // Verificar se há um epic_key na URL para carregar automaticamente
-               if (window.epicKeyFromURL) {
-                   console.log('Epic Key encontrado na URL:', window.epicKeyFromURL);
-                   
-                   // Preencher o campo de busca
-                   const epicKeyInput = document.getElementById('epicKey');
-                   if (epicKeyInput) {
-                       epicKeyInput.value = window.epicKeyFromURL;
-                       console.log('Campo preenchido com:', window.epicKeyFromURL);
-                       
-                       // Ativar aba de análise detalhada por padrão
-                       showTab('analise-epicos');
-                       
-                       // Executar busca automática
-                       setTimeout(() => {
-                           console.log('Iniciando busca automática...');
-                           buscarMetricas();
-                       }, 500);
-                   }
-               }
+    // Verificar se há um epic_key na URL para carregar automaticamente
+    if (window.epicKeyFromURL) {
+        console.log('Epic Key encontrado na URL:', window.epicKeyFromURL);
+        
+        // Preencher o campo de busca
+        const epicKeyInput = document.getElementById('epicKey');
+        if (epicKeyInput) {
+            epicKeyInput.value = window.epicKeyFromURL;
+            console.log('Campo preenchido com:', window.epicKeyFromURL);
+            
+            // Executar busca automática
+            setTimeout(() => {
+                console.log('Iniciando busca automática...');
+                buscarMetricas();
+            }, 500);
+        }
+    }
     
     console.log('Event listeners adicionados com sucesso');
 });
 
 
 
-// Funções de navegação por abas
-function showTab(tabName) {
-    console.log('showTab chamado com:', tabName);
-    
-    // Esconder todas as abas
-    document.querySelectorAll('.tab-content').forEach(tab => {
-        tab.classList.remove('active');
-        console.log('Removendo active de:', tab.id);
-    });
-    
-    // Remover classe active de todos os botões
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.classList.remove('active');
-        console.log('Removendo active de botão:', btn.getAttribute('data-tab'));
-    });
-    
-    // Mostrar a aba selecionada
-    const targetTab = document.getElementById(tabName);
-    if (targetTab) {
-        targetTab.classList.add('active');
-        console.log('Aba ativada:', tabName);
-    } else {
-        console.error('Aba não encontrada:', tabName);
-    }
-    
-    // Adicionar classe active ao botão correspondente
-    const targetBtn = document.querySelector(`[data-tab="${tabName}"]`);
-    if (targetBtn) {
-        targetBtn.classList.add('active');
-        console.log('Botão ativado:', tabName);
-    } else {
-        console.error('Botão não encontrado para:', tabName);
-    }
-}
+
 
 function showSubTab(subTabName) {
     console.log('showSubTab chamado com:', subTabName);
@@ -905,9 +642,6 @@ async function buscarMetricas() {
     document.getElementById('error').style.display = 'none';
 
     try {
-        // Ativar a aba de análise detalhada por padrão
-        showTab('analise-epicos');
-        
         // Buscar análise detalhada
         console.log('Fazendo requisição para análise detalhada:', `/api/analise-epico-detalhada/${epicKey}`);
         const response = await fetch(`/api/analise-epico-detalhada/${epicKey}`);
@@ -1474,6 +1208,45 @@ function preencherTabelaCasosTeste(casosTeste) {
     margin-bottom: 20px;
 }
 
+/* Test Cases Stats */
+.test-cases-summary {
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.test-cases-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 15px;
+    margin-top: 15px;
+}
+
+.test-stat-card {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 15px;
+    text-align: center;
+    border: 1px solid #e9ecef;
+}
+
+.test-stat-label {
+    display: block;
+    font-size: 12px;
+    color: #666;
+    margin-bottom: 5px;
+    font-weight: 500;
+}
+
+.test-stat-value {
+    display: block;
+    font-size: 24px;
+    font-weight: bold;
+    color: #333;
+}
+
 @media (max-width: 768px) {
     .metrics-grid {
         grid-template-columns: 1fr;
@@ -1486,6 +1259,10 @@ function preencherTabelaCasosTeste(casosTeste) {
     .metrics-header {
         flex-direction: column;
         gap: 15px;
+    }
+    
+    .test-cases-stats {
+        grid-template-columns: repeat(2, 1fr);
     }
 }
 </style>
