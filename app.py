@@ -1510,11 +1510,12 @@ def calcular_analise_epico_detalhada(epic_fields, issues):
                 print(f"Encontrados {len(test_issues)} casos de teste vinculados")
                 
                 for test_case in test_issues:
+                    if test_case and test_case.get('fields'):
                         casos_teste.append({
-                            'key': test_case['key'],
+                            'key': test_case.get('key', ''),
                             'summary': test_case['fields'].get('summary', ''),
-                            'status': test_case['fields'].get('status', {}).get('name', ''),
-                            'test_status': test_case['fields'].get('customfield_10016', {}).get('value', 'Não Executado'),
+                            'status': test_case['fields'].get('status', {}).get('name', '') if test_case['fields'].get('status') else '',
+                            'test_status': test_case['fields'].get('customfield_10016', {}).get('value', 'Não Executado') if test_case['fields'].get('customfield_10016') else 'Não Executado',
                             'assignee': test_case['fields'].get('assignee', {}).get('displayName', 'Não atribuído') if test_case['fields'].get('assignee') else 'Não atribuído',
                             'ultima_execucao': 'N/A'
                         })
@@ -1541,14 +1542,15 @@ def calcular_analise_epico_detalhada(epic_fields, issues):
                         print(f"Encontrados {len(subtask_issues)} sub-tarefas de teste")
                         
                         for test_case in subtask_issues:
-                            casos_teste.append({
-                                'key': test_case['key'],
-                                'summary': test_case['fields'].get('summary', ''),
-                                'status': test_case['fields'].get('status', {}).get('name', ''),
-                                'test_status': test_case['fields'].get('customfield_10016', {}).get('value', 'Não Executado'),
-                                'assignee': test_case['fields'].get('assignee', {}).get('displayName', 'Não atribuído') if test_case['fields'].get('assignee') else 'Não atribuído',
-                                'ultima_execucao': 'N/A'
-                            })
+                            if test_case and test_case.get('fields'):
+                                casos_teste.append({
+                                    'key': test_case.get('key', ''),
+                                    'summary': test_case['fields'].get('summary', ''),
+                                    'status': test_case['fields'].get('status', {}).get('name', '') if test_case['fields'].get('status') else '',
+                                    'test_status': test_case['fields'].get('customfield_10016', {}).get('value', 'Não Executado') if test_case['fields'].get('customfield_10016') else 'Não Executado',
+                                    'assignee': test_case['fields'].get('assignee', {}).get('displayName', 'Não atribuído') if test_case['fields'].get('assignee') else 'Não atribuído',
+                                    'ultima_execucao': 'N/A'
+                                })
                 
                 # Terceira tentativa: buscar por issues com "Test" no título
                 if len(test_issues) == 0:
@@ -1572,14 +1574,15 @@ def calcular_analise_epico_detalhada(epic_fields, issues):
                         print(f"Encontrados {len(test_title_issues)} issues com 'Test' no título")
                         
                         for test_case in test_title_issues:
-                            casos_teste.append({
-                                'key': test_case['key'],
-                                'summary': test_case['fields'].get('summary', ''),
-                                'status': test_case['fields'].get('status', {}).get('name', ''),
-                                'test_status': test_case['fields'].get('customfield_10016', {}).get('value', 'Não Executado'),
-                                'assignee': test_case['fields'].get('assignee', {}).get('displayName', 'Não atribuído') if test_case['fields'].get('assignee') else 'Não atribuído',
-                                'ultima_execucao': 'N/A'
-                            })
+                            if test_case and test_case.get('fields'):
+                                casos_teste.append({
+                                    'key': test_case.get('key', ''),
+                                    'summary': test_case['fields'].get('summary', ''),
+                                    'status': test_case['fields'].get('status', {}).get('name', '') if test_case['fields'].get('status') else '',
+                                    'test_status': test_case['fields'].get('customfield_10016', {}).get('value', 'Não Executado') if test_case['fields'].get('customfield_10016') else 'Não Executado',
+                                    'assignee': test_case['fields'].get('assignee', {}).get('displayName', 'Não atribuído') if test_case['fields'].get('assignee') else 'Não atribuído',
+                                    'ultima_execucao': 'N/A'
+                                })
                 
                 # Quarta tentativa: buscar todos os issues vinculados e filtrar por tipo
                 if len(test_issues) == 0:
@@ -1605,27 +1608,29 @@ def calcular_analise_epico_detalhada(epic_fields, issues):
                         # Filtrar apenas issues de teste
                         test_issues_filtered = []
                         for linked_issue in all_linked_issues:
-                            issue_type = linked_issue['fields'].get('issuetype', {}).get('name', '')
-                            summary = linked_issue['fields'].get('summary', '')
-                            
-                            # Verificar se é um caso de teste
-                            if (issue_type.lower() == 'test' or 
-                                'test' in summary.lower() or 
-                                'caso de teste' in summary.lower() or
-                                'test case' in summary.lower()):
-                                test_issues_filtered.append(linked_issue)
+                            if linked_issue and linked_issue.get('fields'):
+                                issue_type = linked_issue['fields'].get('issuetype', {}).get('name', '')
+                                summary = linked_issue['fields'].get('summary', '')
+                                
+                                # Verificar se é um caso de teste
+                                if (issue_type.lower() == 'test' or 
+                                    'test' in summary.lower() or 
+                                    'caso de teste' in summary.lower() or
+                                    'test case' in summary.lower()):
+                                    test_issues_filtered.append(linked_issue)
                         
                         print(f"Filtrados {len(test_issues_filtered)} casos de teste")
                         
                         for test_case in test_issues_filtered:
-                            casos_teste.append({
-                                'key': test_case['key'],
-                                'summary': test_case['fields'].get('summary', ''),
-                                'status': test_case['fields'].get('status', {}).get('name', ''),
-                                'test_status': test_case['fields'].get('customfield_10016', {}).get('value', 'Não Executado'),
-                                'assignee': test_case['fields'].get('assignee', {}).get('displayName', 'Não atribuído') if test_case['fields'].get('assignee') else 'Não atribuído',
-                                'ultima_execucao': 'N/A'
-                            })
+                            if test_case and test_case.get('fields'):
+                                casos_teste.append({
+                                    'key': test_case.get('key', ''),
+                                    'summary': test_case['fields'].get('summary', ''),
+                                    'status': test_case['fields'].get('status', {}).get('name', '') if test_case['fields'].get('status') else '',
+                                    'test_status': test_case['fields'].get('customfield_10016', {}).get('value', 'Não Executado') if test_case['fields'].get('customfield_10016') else 'Não Executado',
+                                    'assignee': test_case['fields'].get('assignee', {}).get('displayName', 'Não atribuído') if test_case['fields'].get('assignee') else 'Não atribuído',
+                                    'ultima_execucao': 'N/A'
+                                })
                 
             else:
                 print(f"Erro na busca de casos de teste: {test_response.status_code}")
