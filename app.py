@@ -1490,11 +1490,38 @@ def calcular_analise_epico_detalhada(epic_fields, issues):
                 key = test_case.get('key', '')
                 if key and key not in casos_teste_keys:
                     casos_teste_keys.add(key)
+                    
+                    # Obter status geral do issue
+                    status_geral = test_case['fields'].get('status', {}).get('name', '')
+                    
+                    # Obter status específico de execução do teste
+                    test_execution_status = test_case['fields'].get('customfield_10016', {}).get('value', '')
+                    
+                    # Determinar status de teste baseado na lógica do Jira
+                    if test_execution_status:
+                        # Se tem status específico de execução, usar ele
+                        test_status = test_execution_status
+                    elif status_geral.lower() in ['concluído', 'done', 'resolved', 'closed']:
+                        # Se está concluído mas não tem status específico, assumir que passou
+                        test_status = 'Passou'
+                    elif status_geral.lower() in ['em progresso', 'in progress', 'to do']:
+                        # Se está em progresso, assumir que não foi executado
+                        test_status = 'Não Executado'
+                    else:
+                        # Status padrão
+                        test_status = 'Não Executado'
+                    
+                    # Log detalhado para debug
+                    print(f"🔍 Processando caso de teste {key}:")
+                    print(f"   - Status Geral: {status_geral}")
+                    print(f"   - Status Execução: {test_execution_status}")
+                    print(f"   - Status Final: {test_status}")
+                    
                     casos_teste.append({
                         'key': key,
                         'summary': test_case['fields'].get('summary', ''),
-                        'status': test_case['fields'].get('status', {}).get('name', '') if test_case['fields'].get('status') else '',
-                        'test_status': test_case['fields'].get('customfield_10016', {}).get('value', 'Não Executado') if test_case['fields'].get('customfield_10016') else 'Não Executado',
+                        'status': status_geral,
+                        'test_status': test_status,
                         'assignee': test_case['fields'].get('assignee', {}).get('displayName', 'Não atribuído') if test_case['fields'].get('assignee') else 'Não atribuído',
                         'ultima_execucao': 'N/A'
                     })
