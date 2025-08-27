@@ -27,6 +27,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Preencher issuePai automaticamente se disponível (versão silenciosa)
     preencherIssuePaiAutomaticamente(true);
     
+
+    
     // Iniciar monitoramento do campo issuePai
     setTimeout(() => {
         monitorarCampoIssuePai();
@@ -1349,3 +1351,5 @@ function mostrarNotificacao(mensagem, tipo = 'info') {
     const bsToast = new bootstrap.Toast(toast);
     bsToast.show();
 }
+
+

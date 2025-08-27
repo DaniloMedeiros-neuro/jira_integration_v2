@@ -168,20 +168,14 @@
     <div class="search-section">
         <div class="search-container">
             <div class="search-box">
-                <div class="search-input-wrapper">
-                    <div class="search-input">
-                        <i class="fas fa-search search-icon"></i>
-                        <input type="text" id="epicKey" placeholder="Digite o ID do Épico ou cole URL do Jira" 
-                               autocomplete="off" spellcheck="false">
-                        <button class="search-btn" onclick="buscarMetricas()" id="searchBtn">
-                            <i class="fas fa-search"></i>
-                            <span class="btn-text">Buscar Métricas</span>
-                            <div class="loading-spinner-btn" style="display: none;">
-                                <i class="fas fa-spinner fa-spin"></i>
-                            </div>
-                        </button>
-                    </div>
-                    <div class="input-feedback" id="inputFeedback"></div>
+                <div class="search-input">
+                    <i class="fas fa-chart-line search-icon"></i>
+                    <input type="text" id="epicKey" placeholder="Digite o ID do Épico (ex: EPIC-123)" 
+                           autocomplete="off" spellcheck="false">
+                    <button class="search-btn" onclick="buscarMetricas()">
+                        <i class="fas fa-search"></i>
+                        Buscar Métricas
+                    </button>
                 </div>
             </div>
         </div>
@@ -467,8 +461,16 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Inicializar funcionalidades de busca
-    initializeBuscaAvancada();
+    // Permitir busca com Enter
+    const epicKeyInput = document.getElementById('epicKey');
+    if (epicKeyInput) {
+        epicKeyInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                buscarMetricas();
+            }
+        });
+    }
     
     // Verificar se há um epic_key na URL para carregar automaticamente
     if (window.epicKeyFromURL) {
@@ -491,74 +493,7 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('Event listeners adicionados com sucesso');
 });
 
-// Inicializar funcionalidades avançadas de busca
-function initializeBuscaAvancada() {
-    const epicKeyInput = document.getElementById('epicKey');
-    
-    // Enter para buscar
-    epicKeyInput.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            buscarMetricas();
-        }
-    });
-    
-    // Validar input em tempo real
-    epicKeyInput.addEventListener('input', function(e) {
-        const value = e.target.value.trim();
-        validarFormatoEpico(value);
-    });
-}
 
-// Validar formato do épico
-function validarFormatoEpico(value) {
-    const inputFeedback = document.getElementById('inputFeedback');
-    const epicKeyInput = document.getElementById('epicKey');
-    
-    if (!value) {
-        inputFeedback.innerHTML = '';
-        epicKeyInput.classList.remove('valid', 'invalid');
-        return;
-    }
-    
-    // Extrair ID do épico da string
-    const epicId = extrairEpicId(value);
-    
-    if (epicId) {
-        inputFeedback.innerHTML = `<i class="fas fa-check-circle text-success"></i> ID detectado: <strong>${epicId}</strong>`;
-        epicKeyInput.classList.remove('invalid');
-        epicKeyInput.classList.add('valid');
-    } else {
-        inputFeedback.innerHTML = `<i class="fas fa-exclamation-circle text-warning"></i> Formato não reconhecido. Use: PROJ-123 ou URL do Jira`;
-        epicKeyInput.classList.remove('valid');
-        epicKeyInput.classList.add('invalid');
-    }
-}
-
-// Extrair ID do épico de diferentes formatos
-function extrairEpicId(input) {
-    const inputLimpo = input.trim();
-    
-    // Formato direto: PROJ-123, EPIC-456
-    const formatoDireto = /^[A-Z]+-\d+$/i;
-    if (formatoDireto.test(inputLimpo)) {
-        return inputLimpo.toUpperCase();
-    }
-    
-    // URL do Jira: https://company.atlassian.net/browse/PROJ-123
-    const urlMatch = inputLimpo.match(/\/browse\/([A-Z]+-\d+)/i);
-    if (urlMatch) {
-        return urlMatch[1].toUpperCase();
-    }
-    
-    // Tentar extrair qualquer padrão PROJ-123 da string
-    const generalMatch = inputLimpo.match(/([A-Z]+-\d+)/i);
-    if (generalMatch) {
-        return generalMatch[1].toUpperCase();
-    }
-    
-    return null;
-}
 
 
 
@@ -711,25 +646,16 @@ function exibirAnaliseDetalhada(data) {
 
 
 async function buscarMetricas() {
-    const epicKeyInput = document.getElementById('epicKey');
-    const searchBtn = document.getElementById('searchBtn');
-    const inputValue = epicKeyInput.value.trim();
+    const epicKey = document.getElementById('epicKey').value.trim();
     
-    if (!inputValue) {
-        mostrarFeedbackBusca('Por favor, digite o ID do épico', 'warning');
-        epicKeyInput.focus();
-        return;
-    }
-
-    // Extrair ID do épico do input
-    const epicKey = extrairEpicId(inputValue);
     if (!epicKey) {
-        mostrarFeedbackBusca('Formato inválido. Use: PROJ-123 ou URL do Jira', 'error');
+        alert('Por favor, digite o ID do épico');
         return;
     }
 
-    // Atualizar interface de loading
-    mostrarLoadingBusca(true);
+    // Mostrar loading
+    document.getElementById('loading').style.display = 'flex';
+    document.getElementById('error').style.display = 'none';
 
     try {
         // Buscar análise detalhada
@@ -740,70 +666,20 @@ async function buscarMetricas() {
         console.log('Resposta recebida:', response.status, data);
 
         if (response.ok) {
-            // Atualizar input com ID limpo
-            epicKeyInput.value = epicKey;
-            
-            // Exibir resultados
             exibirAnaliseDetalhada(data);
-            mostrarFeedbackBusca(`Métricas carregadas para ${epicKey}`, 'success');
         } else {
             throw new Error(data.erro || 'Erro ao buscar análise detalhada');
         }
     } catch (error) {
         console.error('Erro na busca:', error);
-        mostrarFeedbackBusca(error.message, 'error');
         document.getElementById('errorMessage').textContent = error.message;
         document.getElementById('error').style.display = 'flex';
     } finally {
-        mostrarLoadingBusca(false);
+        document.getElementById('loading').style.display = 'none';
     }
 }
 
-// Controlar estado de loading do botão de busca
-function mostrarLoadingBusca(isLoading) {
-    const searchBtn = document.getElementById('searchBtn');
-    const btnText = searchBtn.querySelector('.btn-text');
-    const loadingSpinner = searchBtn.querySelector('.loading-spinner-btn');
-    const mainLoadingDiv = document.getElementById('loading');
-    
-    if (isLoading) {
-        // Botão
-        btnText.style.display = 'none';
-        loadingSpinner.style.display = 'inline-block';
-        searchBtn.disabled = true;
-        
-        // Loading principal
-        mainLoadingDiv.style.display = 'flex';
-        document.getElementById('error').style.display = 'none';
-    } else {
-        // Botão
-        btnText.style.display = 'inline';
-        loadingSpinner.style.display = 'none';
-        searchBtn.disabled = false;
-        
-        // Loading principal
-        mainLoadingDiv.style.display = 'none';
-    }
-}
 
-// Mostrar feedback de busca
-function mostrarFeedbackBusca(message, type) {
-    const inputFeedback = document.getElementById('inputFeedback');
-    const icons = {
-        success: 'fas fa-check-circle text-success',
-        warning: 'fas fa-exclamation-triangle text-warning', 
-        error: 'fas fa-times-circle text-danger'
-    };
-    
-    inputFeedback.innerHTML = `<i class="${icons[type]}"></i> ${message}`;
-    
-    // Remover feedback após 5 segundos para success
-    if (type === 'success') {
-        setTimeout(() => {
-            inputFeedback.innerHTML = '';
-        }, 5000);
-    }
-}
 
 async function buscarMetricasEpico() {
     const epicKey = document.getElementById('epicKey').value.trim();
@@ -1389,102 +1265,7 @@ function preencherTabelaCasosTeste(casosTeste) {
     color: #333;
 }
 
-/* Enhanced Search Styles */
-.search-input-wrapper {
-    position: relative;
-}
-
-.search-input {
-    position: relative;
-    display: flex;
-    align-items: center;
-    background: white;
-    border: 2px solid #e9ecef;
-    border-radius: 12px;
-    padding: 8px 16px;
-    transition: all 0.3s ease;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.search-input:focus-within {
-    border-color: #007bff;
-    box-shadow: 0 0 0 3px rgba(0,123,255,0.1);
-}
-
-.search-input.valid {
-    border-color: #28a745;
-}
-
-.search-input.invalid {
-    border-color: #dc3545;
-}
-
-.search-icon {
-    color: #6c757d;
-    margin-right: 12px;
-    font-size: 16px;
-}
-
-#epicKey {
-    flex: 1;
-    border: none;
-    outline: none;
-    font-size: 16px;
-    padding: 8px 0;
-    background: transparent;
-}
-
-#epicKey.valid {
-    color: #28a745;
-}
-
-#epicKey.invalid {
-    color: #dc3545;
-}
-
-
-
-.search-btn {
-    background: linear-gradient(135deg, #007bff, #0056b3);
-    border: none;
-    color: white;
-    padding: 12px 20px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: 600;
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    position: relative;
-}
-
-.search-btn:hover:not(:disabled) {
-    background: linear-gradient(135deg, #0056b3, #004085);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(0,123,255,0.3);
-}
-
-.search-btn:disabled {
-    opacity: 0.7;
-    cursor: not-allowed;
-    transform: none;
-}
-
-.loading-spinner-btn {
-    display: none;
-}
-
-.input-feedback {
-    margin-top: 8px;
-    font-size: 14px;
-    padding: 4px 0;
-    min-height: 20px;
-}
-
-.input-feedback .text-success { color: #28a745 !important; }
-.input-feedback .text-warning { color: #ffc107 !important; }
-.input-feedback .text-danger { color: #dc3545 !important; }
+/* Estilos específicos da página de métricas */
 
 
 
@@ -1506,23 +1287,7 @@ function preencherTabelaCasosTeste(casosTeste) {
         grid-template-columns: repeat(2, 1fr);
     }
     
-    /* Mobile Search Styles */
-    .search-input {
-        flex-direction: column;
-        gap: 12px;
-        padding: 16px;
-    }
-    
-    #epicKey {
-        font-size: 16px; /* Evita zoom no iOS */
-        padding: 12px 0;
-    }
-    
-    .search-btn {
-        width: 100%;
-        justify-content: center;
-        padding: 14px 20px;
-    }
+
 }
 </style>
 {% endblock %}

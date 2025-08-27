@@ -172,7 +172,11 @@
             <div class="modal-body">
                 <div class="form-group mb-3">
                     <label for="issuePai"><strong>Issue Pai (Requisito):</strong></label>
-                    <input type="text" class="form-control" id="issuePai" placeholder="Ex: CREDT-1161" required autocomplete="off">
+                    <div class="search-input compact theme-minimal">
+                        <i class="fas fa-clipboard-list search-icon"></i>
+                        <input type="text" id="issuePai" placeholder="Digite o ID do requisito (ex: CREDT-1161)" 
+                               required autocomplete="off" spellcheck="false">
+                    </div>
                     <small class="form-text text-muted">
                         <i class="fas fa-info-circle me-1"></i>
                         ID da issue pai onde os casos de teste serão criados. 

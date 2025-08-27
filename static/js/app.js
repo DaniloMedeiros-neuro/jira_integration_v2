@@ -1907,6 +1907,8 @@ async function enviarEvidenciasJira() {
     }
 }
 
+
+
 // Inicializar sistema de evidências quando a página carregar
 document.addEventListener('DOMContentLoaded', function() {
     configurarDragAndDrop();
