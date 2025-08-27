@@ -1705,5 +1705,26 @@ def status_evidencias():
         print(f"Erro ao obter status das evidências: {str(e)}")
         return jsonify({"erro": str(e)}), 500
 
+@app.route('/configuracoes')
+def configuracoes_page():
+    """Página de configurações do sistema"""
+    # Obter configurações do Jira do arquivo .env
+    configuracoes = {
+        'JIRA_BASE_URL': os.getenv('JIRA_BASE_URL', 'Não configurado'),
+        'JIRA_EMAIL': os.getenv('JIRA_EMAIL', 'Não configurado'),
+        'JIRA_API_TOKEN': os.getenv('JIRA_API_TOKEN', 'Não configurado')[:20] + '...' if os.getenv('JIRA_API_TOKEN') else 'Não configurado',
+        'JIRA_AUTH': os.getenv('JIRA_AUTH', 'Não configurado')
+    }
+    
+    # Verificar se as configurações estão válidas
+    status_config = {
+        'url_valida': bool(configuracoes['JIRA_BASE_URL'] != 'Não configurado'),
+        'email_valido': bool(configuracoes['JIRA_EMAIL'] != 'Não configurado'),
+        'token_valido': bool(configuracoes['JIRA_API_TOKEN'] != 'Não configurado'),
+        'auth_valida': bool(configuracoes['JIRA_AUTH'] != 'Não configurado')
+    }
+    
+    return render_template('configuracoes.html', configuracoes=configuracoes, status=status_config)
+
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=8081)
