@@ -1476,6 +1476,7 @@ def calcular_analise_epico_detalhada(epic_fields, issues):
         
         # 5. Casos de Teste
         casos_teste = []
+        casos_teste_keys = set()  # Para evitar duplicações
         headers = {
             "Accept": "application/json",
             "Authorization": f"Basic {base64.b64encode(f'{JIRA_EMAIL}:{JIRA_API_TOKEN}'.encode()).decode()}"
@@ -1483,154 +1484,84 @@ def calcular_analise_epico_detalhada(epic_fields, issues):
         
         print(f"Buscando casos de teste para {len(issues)} issues...")
         
-        # Buscar casos de teste de forma otimizada
-        print(f"Buscando casos de teste para {len(issues)} issues...")
+        # Função para adicionar caso de teste sem duplicação
+        def adicionar_caso_teste(test_case):
+            if test_case and test_case.get('fields'):
+                key = test_case.get('key', '')
+                if key and key not in casos_teste_keys:
+                    casos_teste_keys.add(key)
+                    casos_teste.append({
+                        'key': key,
+                        'summary': test_case['fields'].get('summary', ''),
+                        'status': test_case['fields'].get('status', {}).get('name', '') if test_case['fields'].get('status') else '',
+                        'test_status': test_case['fields'].get('customfield_10016', {}).get('value', 'Não Executado') if test_case['fields'].get('customfield_10016') else 'Não Executado',
+                        'assignee': test_case['fields'].get('assignee', {}).get('displayName', 'Não atribuído') if test_case['fields'].get('assignee') else 'Não atribuído',
+                        'ultima_execucao': 'N/A'
+                    })
+                    return True
+            return False
         
-        # Buscar todos os casos de teste de uma vez
+        # Buscar todos os casos de teste de uma vez - estratégia mais abrangente
         all_test_cases_jql = f'issuetype = "Test" AND ('
         issue_conditions = []
         for issue in issues:
             issue_key = issue['key']
-            issue_conditions.append(f'issue in linkedIssues({issue_key})')
+            # Buscar casos de teste vinculados, sub-tarefas e relacionados
+            issue_conditions.append(f'issue in linkedIssues({issue_key}) OR parent = {issue_key}')
         all_test_cases_jql += ' OR '.join(issue_conditions) + ')'
         
         test_search_url = f"{JIRA_BASE_URL}/rest/api/3/search"
         test_payload = {
             "jql": all_test_cases_jql,
-            "maxResults": 200,
-            "fields": ["key", "summary", "status", "assignee", "customfield_10016", "issuelinks"]
+            "maxResults": 500,  # Aumentado para capturar mais casos
+            "fields": ["key", "summary", "status", "assignee", "customfield_10016", "issuelinks", "issuetype"]
         }
         
         try:
-            # Primeira tentativa: casos de teste vinculados
+            # Busca principal: casos de teste vinculados e sub-tarefas
             test_response = requests.post(test_search_url, headers=headers, json=test_payload)
             if test_response.status_code == 200:
                 test_data = test_response.json()
                 test_issues = test_data.get('issues', [])
-                print(f"Encontrados {len(test_issues)} casos de teste vinculados")
+                print(f"Encontrados {len(test_issues)} casos de teste na busca principal")
                 
+                # Processar casos de teste encontrados
                 for test_case in test_issues:
-                    if test_case and test_case.get('fields'):
-                        casos_teste.append({
-                            'key': test_case.get('key', ''),
-                            'summary': test_case['fields'].get('summary', ''),
-                            'status': test_case['fields'].get('status', {}).get('name', '') if test_case['fields'].get('status') else '',
-                            'test_status': test_case['fields'].get('customfield_10016', {}).get('value', 'Não Executado') if test_case['fields'].get('customfield_10016') else 'Não Executado',
-                            'assignee': test_case['fields'].get('assignee', {}).get('displayName', 'Não atribuído') if test_case['fields'].get('assignee') else 'Não atribuído',
-                            'ultima_execucao': 'N/A'
-                        })
+                    adicionar_caso_teste(test_case)
                 
-                # Segunda tentativa: buscar por sub-tarefas de teste
-                if len(test_issues) == 0:
-                    print(f"Tentando buscar sub-tarefas de teste")
-                    # Buscar sub-tarefas de teste para todos os issues
-                    subtask_conditions = []
-                    for issue in issues:
-                        issue_key = issue['key']
-                        subtask_conditions.append(f'parent = {issue_key} AND issuetype = "Test"')
-                    subtask_jql = ' OR '.join(subtask_conditions)
-                    subtask_payload = {
-                        "jql": subtask_jql,
-                        "maxResults": 50,
-                        "fields": ["key", "summary", "status", "assignee", "customfield_10016"]
-                    }
-                    
-                    subtask_response = requests.post(test_search_url, headers=headers, json=subtask_payload)
-                    if subtask_response.status_code == 200:
-                        subtask_data = subtask_response.json()
-                        subtask_issues = subtask_data.get('issues', [])
-                        print(f"Encontrados {len(subtask_issues)} sub-tarefas de teste")
-                        
-                        for test_case in subtask_issues:
-                            if test_case and test_case.get('fields'):
-                                casos_teste.append({
-                                    'key': test_case.get('key', ''),
-                                    'summary': test_case['fields'].get('summary', ''),
-                                    'status': test_case['fields'].get('status', {}).get('name', '') if test_case['fields'].get('status') else '',
-                                    'test_status': test_case['fields'].get('customfield_10016', {}).get('value', 'Não Executado') if test_case['fields'].get('customfield_10016') else 'Não Executado',
-                                    'assignee': test_case['fields'].get('assignee', {}).get('displayName', 'Não atribuído') if test_case['fields'].get('assignee') else 'Não atribuído',
-                                    'ultima_execucao': 'N/A'
-                                })
+                # Busca adicional: todos os issues vinculados para filtrar casos de teste
+                print(f"Fazendo busca adicional para capturar todos os casos de teste...")
+                all_linked_conditions = []
+                for issue in issues:
+                    issue_key = issue['key']
+                    all_linked_conditions.append(f'issue in linkedIssues({issue_key})')
+                all_linked_jql = ' OR '.join(all_linked_conditions)
+                all_linked_payload = {
+                    "jql": all_linked_jql,
+                    "maxResults": 200,
+                    "fields": ["key", "summary", "status", "assignee", "issuetype", "customfield_10016"]
+                }
                 
-                # Terceira tentativa: buscar por issues com "Test" no título
-                if len(test_issues) == 0:
-                    print(f"Tentando buscar issues com 'Test' no título")
-                    # Buscar issues com "Test" no título para todos os issues
-                    test_title_conditions = []
-                    for issue in issues:
-                        issue_key = issue['key']
-                        test_title_conditions.append(f'issue in linkedIssues({issue_key}) AND summary ~ "Test"')
-                    test_title_jql = ' OR '.join(test_title_conditions)
-                    test_title_payload = {
-                        "jql": test_title_jql,
-                        "maxResults": 50,
-                        "fields": ["key", "summary", "status", "assignee", "customfield_10016"]
-                    }
+                all_linked_response = requests.post(test_search_url, headers=headers, json=all_linked_payload)
+                if all_linked_response.status_code == 200:
+                    all_linked_data = all_linked_response.json()
+                    all_linked_issues = all_linked_data.get('issues', [])
+                    print(f"Encontrados {len(all_linked_issues)} issues vinculados na busca adicional")
                     
-                    test_title_response = requests.post(test_search_url, headers=headers, json=test_title_payload)
-                    if test_title_response.status_code == 200:
-                        test_title_data = test_title_response.json()
-                        test_title_issues = test_title_data.get('issues', [])
-                        print(f"Encontrados {len(test_title_issues)} issues com 'Test' no título")
-                        
-                        for test_case in test_title_issues:
-                            if test_case and test_case.get('fields'):
-                                casos_teste.append({
-                                    'key': test_case.get('key', ''),
-                                    'summary': test_case['fields'].get('summary', ''),
-                                    'status': test_case['fields'].get('status', {}).get('name', '') if test_case['fields'].get('status') else '',
-                                    'test_status': test_case['fields'].get('customfield_10016', {}).get('value', 'Não Executado') if test_case['fields'].get('customfield_10016') else 'Não Executado',
-                                    'assignee': test_case['fields'].get('assignee', {}).get('displayName', 'Não atribuído') if test_case['fields'].get('assignee') else 'Não atribuído',
-                                    'ultima_execucao': 'N/A'
-                                })
+                    # Filtrar apenas issues de teste
+                    for linked_issue in all_linked_issues:
+                        if linked_issue and linked_issue.get('fields'):
+                            issue_type = linked_issue['fields'].get('issuetype', {}).get('name', '')
+                            summary = linked_issue['fields'].get('summary', '')
+                            
+                            # Verificar se é um caso de teste
+                            if (issue_type.lower() == 'test' or 
+                                'test' in summary.lower() or 
+                                'caso de teste' in summary.lower() or
+                                'test case' in summary.lower()):
+                                adicionar_caso_teste(linked_issue)
                 
-                # Quarta tentativa: buscar todos os issues vinculados e filtrar por tipo
-                if len(test_issues) == 0:
-                    print(f"Tentando buscar todos os issues vinculados")
-                    # Buscar todos os issues vinculados para todos os issues
-                    all_linked_conditions = []
-                    for issue in issues:
-                        issue_key = issue['key']
-                        all_linked_conditions.append(f'issue in linkedIssues({issue_key})')
-                    all_linked_jql = ' OR '.join(all_linked_conditions)
-                    all_linked_payload = {
-                        "jql": all_linked_jql,
-                        "maxResults": 100,
-                        "fields": ["key", "summary", "status", "assignee", "issuetype", "customfield_10016"]
-                    }
-                    
-                    all_linked_response = requests.post(test_search_url, headers=headers, json=all_linked_payload)
-                    if all_linked_response.status_code == 200:
-                        all_linked_data = all_linked_response.json()
-                        all_linked_issues = all_linked_data.get('issues', [])
-                        print(f"Encontrados {len(all_linked_issues)} issues vinculados")
-                        
-                        # Filtrar apenas issues de teste
-                        test_issues_filtered = []
-                        for linked_issue in all_linked_issues:
-                            if linked_issue and linked_issue.get('fields'):
-                                issue_type = linked_issue['fields'].get('issuetype', {}).get('name', '')
-                                summary = linked_issue['fields'].get('summary', '')
-                                
-                                # Verificar se é um caso de teste
-                                if (issue_type.lower() == 'test' or 
-                                    'test' in summary.lower() or 
-                                    'caso de teste' in summary.lower() or
-                                    'test case' in summary.lower()):
-                                    test_issues_filtered.append(linked_issue)
-                        
-                        print(f"Filtrados {len(test_issues_filtered)} casos de teste")
-                        
-                        for test_case in test_issues_filtered:
-                            if test_case and test_case.get('fields'):
-                                casos_teste.append({
-                                    'key': test_case.get('key', ''),
-                                    'summary': test_case['fields'].get('summary', ''),
-                                    'status': test_case['fields'].get('status', {}).get('name', '') if test_case['fields'].get('status') else '',
-                                    'test_status': test_case['fields'].get('customfield_10016', {}).get('value', 'Não Executado') if test_case['fields'].get('customfield_10016') else 'Não Executado',
-                                    'assignee': test_case['fields'].get('assignee', {}).get('displayName', 'Não atribuído') if test_case['fields'].get('assignee') else 'Não atribuído',
-                                    'ultima_execucao': 'N/A'
-                                })
+                print(f"Total de casos de teste únicos encontrados: {len(casos_teste)}")
                 
             else:
                 print(f"Erro na busca de casos de teste: {test_response.status_code}")
