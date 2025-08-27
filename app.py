@@ -1483,30 +1483,33 @@ def calcular_analise_epico_detalhada(epic_fields, issues):
         
         print(f"Buscando casos de teste para {len(issues)} issues...")
         
+        # Buscar casos de teste de forma otimizada
+        print(f"Buscando casos de teste para {len(issues)} issues...")
+        
+        # Buscar todos os casos de teste de uma vez
+        all_test_cases_jql = f'issuetype = "Test" AND ('
+        issue_conditions = []
         for issue in issues:
-            # Buscar casos de teste relacionados
             issue_key = issue['key']
-            print(f"Buscando casos de teste para issue: {issue_key}")
-            
-            # Tentar diferentes abordagens para encontrar casos de teste
-            test_cases_jql = f'issue in linkedIssues({issue_key}) AND issuetype = "Test"'
-            test_search_url = f"{JIRA_BASE_URL}/rest/api/3/search"
-            
-            test_payload = {
-                "jql": test_cases_jql,
-                "maxResults": 50,
-                "fields": ["key", "summary", "status", "assignee", "customfield_10016"]  # customfield_10016 é o status do teste
-            }
-            
-            try:
-                # Primeira tentativa: casos de teste vinculados
-                test_response = requests.post(test_search_url, headers=headers, json=test_payload)
-                if test_response.status_code == 200:
-                    test_data = test_response.json()
-                    test_issues = test_data.get('issues', [])
-                    print(f"Encontrados {len(test_issues)} casos de teste vinculados para {issue_key}")
-                    
-                    for test_case in test_issues:
+            issue_conditions.append(f'issue in linkedIssues({issue_key})')
+        all_test_cases_jql += ' OR '.join(issue_conditions) + ')'
+        
+        test_search_url = f"{JIRA_BASE_URL}/rest/api/3/search"
+        test_payload = {
+            "jql": all_test_cases_jql,
+            "maxResults": 200,
+            "fields": ["key", "summary", "status", "assignee", "customfield_10016", "issuelinks"]
+        }
+        
+        try:
+            # Primeira tentativa: casos de teste vinculados
+            test_response = requests.post(test_search_url, headers=headers, json=test_payload)
+            if test_response.status_code == 200:
+                test_data = test_response.json()
+                test_issues = test_data.get('issues', [])
+                print(f"Encontrados {len(test_issues)} casos de teste vinculados")
+                
+                for test_case in test_issues:
                         casos_teste.append({
                             'key': test_case['key'],
                             'summary': test_case['fields'].get('summary', ''),
@@ -1518,8 +1521,13 @@ def calcular_analise_epico_detalhada(epic_fields, issues):
                 
                 # Segunda tentativa: buscar por sub-tarefas de teste
                 if len(test_issues) == 0:
-                    print(f"Tentando buscar sub-tarefas de teste para {issue_key}")
-                    subtask_jql = f'parent = {issue_key} AND issuetype = "Test"'
+                    print(f"Tentando buscar sub-tarefas de teste")
+                    # Buscar sub-tarefas de teste para todos os issues
+                    subtask_conditions = []
+                    for issue in issues:
+                        issue_key = issue['key']
+                        subtask_conditions.append(f'parent = {issue_key} AND issuetype = "Test"')
+                    subtask_jql = ' OR '.join(subtask_conditions)
                     subtask_payload = {
                         "jql": subtask_jql,
                         "maxResults": 50,
@@ -1530,7 +1538,7 @@ def calcular_analise_epico_detalhada(epic_fields, issues):
                     if subtask_response.status_code == 200:
                         subtask_data = subtask_response.json()
                         subtask_issues = subtask_data.get('issues', [])
-                        print(f"Encontrados {len(subtask_issues)} sub-tarefas de teste para {issue_key}")
+                        print(f"Encontrados {len(subtask_issues)} sub-tarefas de teste")
                         
                         for test_case in subtask_issues:
                             casos_teste.append({
@@ -1544,8 +1552,13 @@ def calcular_analise_epico_detalhada(epic_fields, issues):
                 
                 # Terceira tentativa: buscar por issues com "Test" no título
                 if len(test_issues) == 0:
-                    print(f"Tentando buscar issues com 'Test' no título para {issue_key}")
-                    test_title_jql = f'issue in linkedIssues({issue_key}) AND summary ~ "Test"'
+                    print(f"Tentando buscar issues com 'Test' no título")
+                    # Buscar issues com "Test" no título para todos os issues
+                    test_title_conditions = []
+                    for issue in issues:
+                        issue_key = issue['key']
+                        test_title_conditions.append(f'issue in linkedIssues({issue_key}) AND summary ~ "Test"')
+                    test_title_jql = ' OR '.join(test_title_conditions)
                     test_title_payload = {
                         "jql": test_title_jql,
                         "maxResults": 50,
@@ -1556,7 +1569,7 @@ def calcular_analise_epico_detalhada(epic_fields, issues):
                     if test_title_response.status_code == 200:
                         test_title_data = test_title_response.json()
                         test_title_issues = test_title_data.get('issues', [])
-                        print(f"Encontrados {len(test_title_issues)} issues com 'Test' no título para {issue_key}")
+                        print(f"Encontrados {len(test_title_issues)} issues com 'Test' no título")
                         
                         for test_case in test_title_issues:
                             casos_teste.append({
@@ -1570,8 +1583,13 @@ def calcular_analise_epico_detalhada(epic_fields, issues):
                 
                 # Quarta tentativa: buscar todos os issues vinculados e filtrar por tipo
                 if len(test_issues) == 0:
-                    print(f"Tentando buscar todos os issues vinculados para {issue_key}")
-                    all_linked_jql = f'issue in linkedIssues({issue_key})'
+                    print(f"Tentando buscar todos os issues vinculados")
+                    # Buscar todos os issues vinculados para todos os issues
+                    all_linked_conditions = []
+                    for issue in issues:
+                        issue_key = issue['key']
+                        all_linked_conditions.append(f'issue in linkedIssues({issue_key})')
+                    all_linked_jql = ' OR '.join(all_linked_conditions)
                     all_linked_payload = {
                         "jql": all_linked_jql,
                         "maxResults": 100,
@@ -1582,7 +1600,7 @@ def calcular_analise_epico_detalhada(epic_fields, issues):
                     if all_linked_response.status_code == 200:
                         all_linked_data = all_linked_response.json()
                         all_linked_issues = all_linked_data.get('issues', [])
-                        print(f"Encontrados {len(all_linked_issues)} issues vinculados para {issue_key}")
+                        print(f"Encontrados {len(all_linked_issues)} issues vinculados")
                         
                         # Filtrar apenas issues de teste
                         test_issues_filtered = []
@@ -1597,7 +1615,7 @@ def calcular_analise_epico_detalhada(epic_fields, issues):
                                 'test case' in summary.lower()):
                                 test_issues_filtered.append(linked_issue)
                         
-                        print(f"Filtrados {len(test_issues_filtered)} casos de teste para {issue_key}")
+                        print(f"Filtrados {len(test_issues_filtered)} casos de teste")
                         
                         for test_case in test_issues_filtered:
                             casos_teste.append({
@@ -1609,10 +1627,10 @@ def calcular_analise_epico_detalhada(epic_fields, issues):
                                 'ultima_execucao': 'N/A'
                             })
                 
-                else:
-                    print(f"Erro na busca de casos de teste para {issue_key}: {test_response.status_code}")
-            except Exception as e:
-                print(f"Erro ao buscar casos de teste para {issue_key}: {e}")
+            else:
+                print(f"Erro na busca de casos de teste: {test_response.status_code}")
+        except Exception as e:
+            print(f"Erro ao buscar casos de teste: {e}")
         
         print(f"Total de casos de teste encontrados: {len(casos_teste)}")
         
