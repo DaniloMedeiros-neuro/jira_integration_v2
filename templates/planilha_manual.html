@@ -16,6 +16,22 @@
 {% endblock %}
 
 {% block content %}
+<!-- Seção de Busca -->
+<div class="search-section">
+    <div class="search-container">
+        <div class="search-box">
+            <div class="search-input">
+                <i class="fas fa-clipboard-list search-icon"></i>
+                <input type="text" id="requisitoPai" placeholder="Digite o ID do requisito (ex: REQ-123)" autocomplete="off" spellcheck="false">
+                <button class="search-btn" onclick="buscarRequisito()">
+                    <i class="fas fa-search"></i>
+                    Buscar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Seção de Importação em Massa -->
 <div class="card mb-4">
     <div class="card-header">
@@ -174,7 +190,7 @@
                     <label for="issuePai"><strong>Issue Pai (Requisito):</strong></label>
                     <div class="search-input compact theme-minimal">
                         <i class="fas fa-clipboard-list search-icon"></i>
-                        <input type="text" id="issuePai" placeholder="Digite o ID do requisito (ex: CREDT-1161)" 
+                        <input type="text" id="issuePai" placeholder="Digite o ID do requisito (ex: REQ-123)" 
                                required autocomplete="off" spellcheck="false">
                     </div>
                     <small class="form-text text-muted">

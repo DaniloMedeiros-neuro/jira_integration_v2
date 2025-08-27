@@ -595,11 +595,34 @@ body {
 
 /* Seção de Busca Padronizada - FORÇADA */
 .search-section {
+    padding: var(--spacing-md) 0 !important;
+    margin-bottom: var(--spacing-md) !important;
+    display: flex !important;
+    justify-content: center !important;
+    position: relative !important;
+    min-height: 80px !important;
+}
+
+.search-section::before {
+    content: '' !important;
     background: linear-gradient(135deg, var(--neurotech-primary) 0%, var(--neurotech-secondary) 100%) !important;
-    padding: var(--spacing-lg) 0 !important;
-    margin-bottom: var(--spacing-lg) !important;
-    border-radius: 0 0 var(--radius-xl) var(--radius-xl) !important;
-    box-shadow: var(--neurotech-shadow-xl) !important;
+    width: 850px !important;
+    height: 100% !important;
+    border-radius: 0 0 var(--radius-lg) var(--radius-lg) !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    z-index: 0 !important;
+    box-shadow: var(--neurotech-shadow-lg) !important;
+}
+
+.search-container {
+    max-width: 600px !important;
+    margin: 0 auto !important;
+    padding: 0 var(--spacing-lg) !important;
+    position: relative !important;
+    z-index: 1 !important;
 }
 
 .search-container {
@@ -641,14 +664,14 @@ body {
     flex: 1 !important;
     border: none !important;
     outline: none !important;
-    font-size: 1rem !important;
+    font-size: 1.1rem !important;
     color: var(--neurotech-secondary) !important;
     background: transparent !important;
     padding: var(--spacing-md) 0 !important;
-    min-width: 250px !important;
+    min-width: 350px !important;
     font-weight: 400 !important;
-    height: 44px !important;
-    line-height: 44px !important;
+    height: 50px !important;
+    line-height: 50px !important;
 }
 
 .search-input input::placeholder {
@@ -670,8 +693,8 @@ body {
     display: flex !important;
     align-items: center !important;
     gap: var(--spacing-sm) !important;
-    height: 44px !important;
-    min-height: 44px !important;
+    height: 50px !important;
+    min-height: 50px !important;
     white-space: nowrap !important;
     box-shadow: var(--neurotech-shadow) !important;
     flex-shrink: 0 !important;
@@ -3778,6 +3801,15 @@ body.edicao-ativa {
 
 .tab-content.active {
     display: block;
+}
+
+/* ========================================
+   METRICS CONTAINER
+   ======================================== */
+
+.metrics-container {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
 }
 
 /* ========================================
