@@ -1481,6 +1481,8 @@ def calcular_analise_epico_detalhada(epic_fields, issues):
             "Authorization": f"Basic {base64.b64encode(f'{JIRA_EMAIL}:{JIRA_API_TOKEN}'.encode()).decode()}"
         }
         
+        print(f"Buscando casos de teste para {len(issues)} issues...")
+        
         for issue in issues:
             # Buscar casos de teste relacionados
             issue_key = issue['key']
@@ -1497,7 +1499,10 @@ def calcular_analise_epico_detalhada(epic_fields, issues):
                 test_response = requests.post(test_search_url, headers=headers, json=test_payload)
                 if test_response.status_code == 200:
                     test_data = test_response.json()
-                    for test_case in test_data.get('issues', []):
+                    test_issues = test_data.get('issues', [])
+                    print(f"Encontrados {len(test_issues)} casos de teste para {issue_key}")
+                    
+                    for test_case in test_issues:
                         casos_teste.append({
                             'key': test_case['key'],
                             'summary': test_case['fields'].get('summary', ''),
@@ -1506,8 +1511,12 @@ def calcular_analise_epico_detalhada(epic_fields, issues):
                             'assignee': test_case['fields'].get('assignee', {}).get('displayName', 'Não atribuído') if test_case['fields'].get('assignee') else 'Não atribuído',
                             'ultima_execucao': 'N/A'  # Seria necessário buscar no histórico
                         })
+                else:
+                    print(f"Erro na busca de casos de teste para {issue_key}: {test_response.status_code}")
             except Exception as e:
                 print(f"Erro ao buscar casos de teste para {issue_key}: {e}")
+        
+        print(f"Total de casos de teste encontrados: {len(casos_teste)}")
         
         # 6. Evolução do Escopo (simulado - seria necessário histórico)
         evolucao_escopo = {

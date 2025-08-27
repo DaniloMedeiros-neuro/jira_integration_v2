@@ -386,12 +386,12 @@
                         <table class="metrics-table" id="testCasesTable">
                             <thead>
                                 <tr>
-                                    <th>Issue</th>
-                                    <th>Casos de Teste</th>
-                                    <th>Passed</th>
-                                    <th>Failed</th>
-                                    <th>Blocked</th>
-                                    <th>Total</th>
+                                    <th>Key</th>
+                                    <th>Summary</th>
+                                    <th>Status</th>
+                                    <th>Test Status</th>
+                                    <th>Assignee</th>
+                                    <th>Última Execução</th>
                                 </tr>
                             </thead>
                             <tbody id="testCasesTableBody"></tbody>
@@ -624,6 +624,7 @@ function exibirAnaliseDetalhada(data) {
 
     // Preencher tabelas
     preencherTabelaStatusBreakdown(data.breakdown_status);
+    console.log('Dados de casos de teste recebidos:', data.casos_teste);
     preencherTabelaCasosTeste(data.casos_teste);
 
         // Mostrar seção
@@ -1007,7 +1008,14 @@ function preencherTabelaStatusBreakdown(statusData) {
 }
 
 function preencherTabelaCasosTeste(casosTeste) {
+    console.log('preencherTabelaCasosTeste chamada com:', casosTeste);
+    
     const tbody = document.getElementById('testCasesTableBody');
+    if (!tbody) {
+        console.error('Elemento testCasesTableBody não encontrado!');
+        return;
+    }
+    
     tbody.innerHTML = '';
 
     // Contadores para o resumo
@@ -1015,6 +1023,8 @@ function preencherTabelaCasosTeste(casosTeste) {
     let passaram = 0;
     let falharam = 0;
     let naoExecutados = 0;
+    
+    console.log('Total de casos de teste:', totalCasos);
 
     casosTeste.forEach(caso => {
         const row = document.createElement('tr');
