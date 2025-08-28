@@ -8,35 +8,13 @@
 
 {% block content %}
 <div class="evidencias-container">
-    <!-- Header da página -->
-    <div class="evidencias-header">
-        <div class="evidencias-info">
-            <h3>Sistema de Evidências de Testes</h3>
-            <p>Extraia automaticamente evidências visuais de testes e envie-as para o Jira</p>
-        </div>
-        <div class="evidencias-actions">
-            <button class="btn btn-outline-primary" onclick="verificarStatusEvidencias()">
-                <i class="fas fa-sync-alt me-1"></i>
-                Verificar Status
-            </button>
-        </div>
-    </div>
-
-    <!-- Seção de Upload -->
-    <div class="evidencias-section">
-        <div class="section-header">
-            <div class="section-title">
-                <i class="fas fa-upload me-2"></i>
-                <h4>Upload de Log de Testes</h4>
-            </div>
-            <p class="section-subtitle">Faça upload do arquivo log.html para processar as evidências</p>
-        </div>
-        
+    <!-- Upload Section -->
+    <div class="upload-section">
         <div class="upload-area" id="uploadArea">
             <div class="upload-content">
-                <i class="fas fa-file-upload upload-icon"></i>
-                <h5>Arraste o arquivo log.html aqui</h5>
-                <p class="upload-text">ou clique para selecionar o arquivo</p>
+                <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                <h4>Arraste o arquivo log.html aqui</h4>
+                <p>ou clique para selecionar</p>
                 <input type="file" id="logFileInput" accept=".html" style="display: none;">
                 <button type="button" class="btn btn-primary" onclick="document.getElementById('logFileInput').click()">
                     <i class="fas fa-folder-open me-1"></i>
@@ -47,11 +25,9 @@
         
         <div id="fileInfo" class="file-info" style="display: none;">
             <div class="file-info-content">
-                <i class="fas fa-file-code file-icon"></i>
-                <div class="file-details">
-                    <span class="file-name" id="fileName"></span>
-                    <span class="file-size" id="fileSize"></span>
-                </div>
+                <i class="fas fa-file-code"></i>
+                <span id="fileName"></span>
+                <span id="fileSize"></span>
                 <button type="button" class="btn btn-sm btn-outline-danger" onclick="removerArquivo()">
                     <i class="fas fa-times"></i>
                 </button>
@@ -59,111 +35,63 @@
         </div>
     </div>
 
-    <!-- Seção de Processamento -->
-    <div class="evidencias-section" id="processamentoSection" style="display: none;">
-        <div class="section-header">
-            <div class="section-title">
-                <i class="fas fa-cogs me-2"></i>
-                <h4>Processamento de Evidências</h4>
-            </div>
-            <p class="section-subtitle">Acompanhe o progresso do processamento das evidências</p>
-        </div>
-        
-        <div class="processamento-steps">
-            <div class="step-item" id="step1">
-                <div class="step-icon">
-                    <i class="fas fa-camera"></i>
-                </div>
-                <div class="step-content">
-                    <h6>Extrair Screenshots</h6>
-                    <p>Captura automática de evidências visuais dos testes</p>
-                </div>
-                <div class="step-status" id="step1Status">
-                    <i class="fas fa-clock"></i>
-                </div>
-            </div>
-            
-            <div class="step-item" id="step2">
-                <div class="step-icon">
-                    <i class="fas fa-folder-open"></i>
-                </div>
-                <div class="step-content">
-                    <h6>Organizar por Status</h6>
-                    <p>Separação automática entre testes que passaram e falharam</p>
-                </div>
-                <div class="step-status" id="step2Status">
-                    <i class="fas fa-clock"></i>
-                </div>
-            </div>
-            
-            <div class="step-item" id="step3">
-                <div class="step-icon">
-                    <i class="fas fa-paper-plane"></i>
-                </div>
-                <div class="step-content">
-                    <h6>Preparar para Envio</h6>
-                    <p>Preparação das evidências para envio ao Jira</p>
-                </div>
-                <div class="step-status" id="step3Status">
-                    <i class="fas fa-clock"></i>
-                </div>
+    <!-- Processing Section -->
+    <div class="processing-section" id="processamentoSection" style="display: none;">
+        <div class="processing-header">
+            <h4>Processando Evidências</h4>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
             </div>
         </div>
         
-        <div class="section-actions">
-            <button type="button" class="btn btn-primary" id="btnProcessarEvidencias" onclick="processarEvidencias()" style="display: none;">
-                <i class="fas fa-play me-1"></i>
-                Processar Evidências
-            </button>
+        <div class="processing-steps">
+            <div class="step" id="step1">
+                <i class="fas fa-camera"></i>
+                <span>Extraindo Screenshots</span>
+                <div class="step-status" id="step1Status"></div>
+            </div>
+            <div class="step" id="step2">
+                <i class="fas fa-folder-open"></i>
+                <span>Organizando por Status</span>
+                <div class="step-status" id="step2Status"></div>
+            </div>
+            <div class="step" id="step3">
+                <i class="fas fa-paper-plane"></i>
+                <span>Preparando para Envio</span>
+                <div class="step-status" id="step3Status"></div>
+            </div>
         </div>
+        
+        <button type="button" class="btn btn-primary btn-process" id="btnProcessarEvidencias" onclick="processarEvidencias()" style="display: none;">
+            <i class="fas fa-play me-1"></i>
+            Processar
+        </button>
     </div>
 
-    <!-- Seção de Resultados -->
-    <div class="evidencias-section" id="resultadosSection" style="display: none;">
-        <div class="section-header">
-            <div class="section-title">
-                <i class="fas fa-chart-bar me-2"></i>
-                <h4>Resultados do Processamento</h4>
-            </div>
-            <p class="section-subtitle">Estatísticas das evidências processadas</p>
-        </div>
-        
-        <div class="resultados-stats">
-            <div class="stat-item">
-                <div class="stat-icon success">
-                    <i class="fas fa-check-circle"></i>
-                </div>
-                <div class="stat-content">
+    <!-- Results Section -->
+    <div class="results-section" id="resultadosSection" style="display: none;">
+        <div class="results-header">
+            <h4>Resultados</h4>
+            <div class="results-stats">
+                <div class="stat">
                     <span class="stat-number" id="sucessosCount">0</span>
                     <span class="stat-label">Sucessos</span>
                 </div>
-            </div>
-            
-            <div class="stat-item">
-                <div class="stat-icon error">
-                    <i class="fas fa-times-circle"></i>
-                </div>
-                <div class="stat-content">
+                <div class="stat">
                     <span class="stat-number" id="falhasCount">0</span>
                     <span class="stat-label">Falhas</span>
                 </div>
-            </div>
-            
-            <div class="stat-item">
-                <div class="stat-icon info">
-                    <i class="fas fa-paper-plane"></i>
-                </div>
-                <div class="stat-content">
+                <div class="stat">
                     <span class="stat-number" id="enviadosCount">0</span>
                     <span class="stat-label">Enviados</span>
                 </div>
             </div>
         </div>
         
-        <div class="section-actions">
+        <div class="results-actions">
             <button type="button" class="btn btn-outline-primary" onclick="visualizarEvidencias()">
                 <i class="fas fa-eye me-1"></i>
-                Visualizar Evidências
+                Visualizar
             </button>
             <button type="button" class="btn btn-primary" id="btnEnviarEvidencias" onclick="enviarEvidenciasJira()">
                 <i class="fas fa-paper-plane me-1"></i>
@@ -171,7 +99,7 @@
             </button>
             <button type="button" class="btn btn-outline-danger" onclick="limparEvidencias()">
                 <i class="fas fa-trash me-1"></i>
-                Limpar Evidências
+                Limpar
             </button>
         </div>
     </div>
@@ -314,6 +242,7 @@ async function processarEvidencias() {
         atualizarStepStatus('step1', 'processing');
         atualizarStepStatus('step2', 'waiting');
         atualizarStepStatus('step3', 'waiting');
+        atualizarProgresso(33);
         
         const response = await fetch('/api/evidencias/upload', {
             method: 'POST',
@@ -325,7 +254,9 @@ async function processarEvidencias() {
         if (resultado.sucesso) {
             // Atualizar steps com sucesso
             atualizarStepStatus('step1', 'success');
+            atualizarProgresso(66);
             atualizarStepStatus('step2', 'success');
+            atualizarProgresso(100);
             atualizarStepStatus('step3', 'success');
             
             // Mostrar resultados
@@ -379,6 +310,13 @@ function atualizarStepStatus(stepId, status) {
         case 'error':
             statusElement.innerHTML = '<i class="fas fa-times"></i>';
             break;
+    }
+}
+
+function atualizarProgresso(percentual) {
+    const progressFill = document.getElementById('progressFill');
+    if (progressFill) {
+        progressFill.style.width = percentual + '%';
     }
 }
 
@@ -607,97 +545,26 @@ function mostrarNotificacao(mensagem, tipo) {
 {% endblock %}
 
 <style>
-/* Estilos para a página de evidências padronizada */
+/* Estilos clean e minimalistas para a tela de evidências */
 .evidencias-container {
-    max-width: 1200px;
+    max-width: 800px;
     margin: 0 auto;
-    padding: 0 1rem;
+    padding: 2rem 1rem;
 }
 
-.evidencias-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
+/* Upload Section */
+.upload-section {
     margin-bottom: 2rem;
-    padding: 1.5rem;
-    background: linear-gradient(135deg, var(--neurotech-primary) 0%, var(--neurotech-secondary) 100%);
-    border-radius: var(--radius-lg);
-    color: white;
-    box-shadow: var(--neurotech-shadow-lg);
 }
 
-.evidencias-info h3 {
-    margin: 0 0 0.5rem 0;
-    font-size: 1.5rem;
-    font-weight: 600;
-}
-
-.evidencias-info p {
-    margin: 0;
-    opacity: 0.9;
-    font-size: 0.95rem;
-}
-
-.evidencias-actions {
-    flex-shrink: 0;
-}
-
-.evidencias-section {
-    background: white;
-    border-radius: var(--radius-lg);
-    box-shadow: var(--neurotech-shadow);
-    margin-bottom: 2rem;
-    overflow: hidden;
-}
-
-.section-header {
-    padding: 1.5rem;
-    border-bottom: 1px solid var(--neurotech-border);
-    background: var(--neurotech-light);
-}
-
-.section-title {
-    display: flex;
-    align-items: center;
-    margin-bottom: 0.5rem;
-}
-
-.section-title i {
-    color: var(--neurotech-accent);
-    font-size: 1.2rem;
-}
-
-.section-title h4 {
-    margin: 0;
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: var(--neurotech-primary);
-}
-
-.section-subtitle {
-    margin: 0;
-    color: var(--neurotech-gray);
-    font-size: 0.9rem;
-}
-
-.section-actions {
-    padding: 1.5rem;
-    border-top: 1px solid var(--neurotech-border);
-    background: var(--neurotech-light);
-    display: flex;
-    gap: 0.75rem;
-    flex-wrap: wrap;
-}
-
-/* Upload Area */
 .upload-area {
-    padding: 3rem 2rem;
-    text-align: center;
     border: 2px dashed var(--neurotech-border);
     border-radius: var(--radius-lg);
-    margin: 1.5rem;
-    transition: all var(--transition-normal);
+    padding: 3rem 2rem;
+    text-align: center;
     background: var(--neurotech-light);
+    transition: all var(--transition-normal);
+    cursor: pointer;
 }
 
 .upload-area:hover,
@@ -717,198 +584,173 @@ function mostrarNotificacao(mensagem, tipo) {
     margin-bottom: 1rem;
 }
 
-.upload-content h5 {
+.upload-content h4 {
     margin: 0 0 0.5rem 0;
     color: var(--neurotech-primary);
     font-weight: 600;
 }
 
-.upload-text {
+.upload-content p {
     color: var(--neurotech-gray);
     margin-bottom: 1.5rem;
 }
 
 /* File Info */
 .file-info {
-    margin: 0 1.5rem 1.5rem 1.5rem;
+    margin-top: 1rem;
     padding: 1rem;
-    background: var(--neurotech-light);
+    background: white;
     border-radius: var(--radius-md);
     border: 1px solid var(--neurotech-border);
+    box-shadow: var(--neurotech-shadow);
 }
 
 .file-info-content {
     display: flex;
     align-items: center;
-    gap: 1rem;
+    gap: 0.75rem;
 }
 
-.file-icon {
-    font-size: 1.5rem;
+.file-info-content i {
     color: var(--neurotech-accent);
+    font-size: 1.2rem;
 }
 
-.file-details {
-    flex: 1;
-}
-
-.file-name {
-    display: block;
-    font-weight: 600;
+.file-info-content span {
     color: var(--neurotech-primary);
-    margin-bottom: 0.25rem;
+    font-weight: 500;
 }
 
-.file-size {
-    font-size: 0.85rem;
+.file-info-content span:last-of-type {
     color: var(--neurotech-gray);
+    font-size: 0.9rem;
+    margin-left: auto;
 }
 
-/* Processamento Steps */
-.processamento-steps {
-    padding: 1.5rem;
-}
-
-.step-item {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    padding: 1rem;
-    margin-bottom: 1rem;
-    border-radius: var(--radius-md);
-    border: 1px solid var(--neurotech-border);
-    transition: all var(--transition-normal);
-}
-
-.step-item:hover {
+/* Processing Section */
+.processing-section {
+    background: white;
+    border-radius: var(--radius-lg);
+    padding: 2rem;
+    margin-bottom: 2rem;
     box-shadow: var(--neurotech-shadow);
 }
 
-.step-item.success {
-    border-color: var(--neurotech-success);
-    background: rgba(56, 161, 105, 0.05);
+.processing-header {
+    text-align: center;
+    margin-bottom: 2rem;
 }
 
-.step-item.error {
-    border-color: var(--neurotech-danger);
-    background: rgba(229, 62, 62, 0.05);
-}
-
-.step-item.processing {
-    border-color: var(--neurotech-accent);
-    background: rgba(49, 130, 206, 0.05);
-}
-
-.step-icon {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: var(--neurotech-accent);
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-}
-
-.step-item.success .step-icon {
-    background: var(--neurotech-success);
-}
-
-.step-item.error .step-icon {
-    background: var(--neurotech-danger);
-}
-
-.step-content {
-    flex: 1;
-}
-
-.step-content h6 {
-    margin: 0 0 0.25rem 0;
-    font-weight: 600;
+.processing-header h4 {
+    margin: 0 0 1rem 0;
     color: var(--neurotech-primary);
+    font-weight: 600;
 }
 
-.step-content p {
-    margin: 0;
-    font-size: 0.85rem;
+.progress-bar {
+    width: 100%;
+    height: 8px;
+    background: var(--neurotech-border);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: var(--neurotech-accent);
+    width: 0%;
+    transition: width 0.3s ease;
+}
+
+.processing-steps {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+}
+
+.step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    flex: 1;
+    padding: 1rem;
+    border-radius: var(--radius-md);
+    transition: all var(--transition-normal);
+}
+
+.step i {
+    font-size: 1.5rem;
     color: var(--neurotech-gray);
 }
 
-.step-status {
-    width: 24px;
-    height: 24px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
+.step span {
+    font-size: 0.85rem;
+    color: var(--neurotech-gray);
+    text-align: center;
 }
 
-.step-status i {
-    font-size: 1rem;
+.step.processing {
+    background: rgba(49, 130, 206, 0.1);
 }
 
-.step-item.success .step-status i {
+.step.processing i {
+    color: var(--neurotech-accent);
+}
+
+.step.success {
+    background: rgba(56, 161, 105, 0.1);
+}
+
+.step.success i {
     color: var(--neurotech-success);
 }
 
-.step-item.error .step-status i {
+.step.error {
+    background: rgba(229, 62, 62, 0.1);
+}
+
+.step.error i {
     color: var(--neurotech-danger);
 }
 
-.step-item.processing .step-status i {
-    color: var(--neurotech-accent);
+.step-status {
+    font-size: 1rem;
 }
 
-/* Resultados Stats */
-.resultados-stats {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 1.5rem;
-    padding: 1.5rem;
+.btn-process {
+    width: 100%;
+    padding: 1rem;
+    font-size: 1.1rem;
 }
 
-.stat-item {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    padding: 1.5rem;
-    background: var(--neurotech-light);
+/* Results Section */
+.results-section {
+    background: white;
     border-radius: var(--radius-lg);
-    border: 1px solid var(--neurotech-border);
-    transition: all var(--transition-normal);
-}
-
-.stat-item:hover {
+    padding: 2rem;
     box-shadow: var(--neurotech-shadow);
-    transform: translateY(-2px);
 }
 
-.stat-icon {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
+.results-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.results-header h4 {
+    margin: 0 0 1.5rem 0;
+    color: var(--neurotech-primary);
+    font-weight: 600;
+}
+
+.results-stats {
     display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.5rem;
-    color: white;
-    flex-shrink: 0;
+    justify-content: space-around;
+    gap: 1rem;
 }
 
-.stat-icon.success {
-    background: var(--neurotech-success);
-}
-
-.stat-icon.error {
-    background: var(--neurotech-danger);
-}
-
-.stat-icon.info {
-    background: var(--neurotech-accent);
-}
-
-.stat-content {
+.stat {
+    text-align: center;
     flex: 1;
 }
 
@@ -925,6 +767,17 @@ function mostrarNotificacao(mensagem, tipo) {
     font-size: 0.9rem;
     color: var(--neurotech-gray);
     font-weight: 500;
+}
+
+.results-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.results-actions .btn {
+    min-width: 120px;
 }
 
 /* Modal de Evidências */
@@ -996,65 +849,51 @@ function mostrarNotificacao(mensagem, tipo) {
 
 /* Responsividade */
 @media (max-width: 768px) {
-    .evidencias-header {
-        flex-direction: column;
-        gap: 1rem;
-        text-align: center;
-    }
-    
-    .evidencias-actions {
-        align-self: stretch;
-    }
-    
-    .resultados-stats {
-        grid-template-columns: 1fr;
-    }
-    
-    .section-actions {
-        flex-direction: column;
-    }
-    
-    .section-actions .btn {
-        width: 100%;
-    }
-    
-    .step-item {
-        flex-direction: column;
-        text-align: center;
-        gap: 0.75rem;
-    }
-    
-    .stat-item {
-        flex-direction: column;
-        text-align: center;
-        gap: 0.75rem;
-    }
-}
-
-@media (max-width: 576px) {
     .evidencias-container {
-        padding: 0 0.5rem;
-    }
-    
-    .evidencias-header {
-        padding: 1rem;
-    }
-    
-    .section-header {
         padding: 1rem;
     }
     
     .upload-area {
         padding: 2rem 1rem;
-        margin: 1rem;
     }
     
-    .processamento-steps {
-        padding: 1rem;
+    .processing-steps {
+        flex-direction: column;
+        gap: 1rem;
     }
     
-    .resultados-stats {
-        padding: 1rem;
+    .step {
+        flex-direction: row;
+        justify-content: flex-start;
+        text-align: left;
+    }
+    
+    .results-stats {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .results-actions {
+        flex-direction: column;
+    }
+    
+    .results-actions .btn {
+        width: 100%;
+    }
+}
+
+@media (max-width: 576px) {
+    .upload-content h4 {
+        font-size: 1.2rem;
+    }
+    
+    .processing-section,
+    .results-section {
+        padding: 1.5rem;
+    }
+    
+    .stat-number {
+        font-size: 1.5rem;
     }
 }
 </style>
