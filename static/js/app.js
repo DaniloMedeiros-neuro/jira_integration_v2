@@ -1655,11 +1655,17 @@ function resetarModalEvidencias() {
     processamentoEmAndamento = false;
     
     // Resetar interface
-    document.getElementById('uploadArea').style.display = 'block';
-    document.getElementById('fileInfo').style.display = 'none';
-    document.getElementById('processamentoSection').style.display = 'none';
-    document.getElementById('resultadosSection').style.display = 'none';
-    document.getElementById('btnProcessarEvidencias').style.display = 'none';
+    const uploadArea = document.getElementById('uploadArea');
+    const fileInfo = document.getElementById('fileInfo');
+    const processamentoSection = document.getElementById('processamentoSection');
+    const resultadosSection = document.getElementById('resultadosSection');
+    const btnProcessarEvidencias = document.getElementById('btnProcessarEvidencias');
+    
+    if (uploadArea) uploadArea.style.display = 'block';
+    if (fileInfo) fileInfo.style.display = 'none';
+    if (processamentoSection) processamentoSection.style.display = 'none';
+    if (resultadosSection) resultadosSection.style.display = 'none';
+    if (btnProcessarEvidencias) btnProcessarEvidencias.style.display = 'none';
     
     // Resetar steps
     resetarSteps();
@@ -1675,8 +1681,8 @@ function resetarSteps() {
         const step = document.getElementById(stepId);
         const status = document.getElementById(stepId + 'Status');
         
-        step.classList.remove('active', 'completed', 'error');
-        status.innerHTML = '<i class="fas fa-clock"></i>';
+        if (step) step.classList.remove('active', 'completed', 'error');
+        if (status) status.innerHTML = '<i class="fas fa-clock"></i>';
     });
 }
 
@@ -1719,12 +1725,12 @@ function preventDefaults(e) {
 
 function highlight(e) {
     const uploadArea = document.getElementById('uploadArea');
-    uploadArea.classList.add('drag-over');
+    if (uploadArea) uploadArea.classList.add('drag-over');
 }
 
 function unhighlight(e) {
     const uploadArea = document.getElementById('uploadArea');
-    uploadArea.classList.remove('drag-over');
+    if (uploadArea) uploadArea.classList.remove('drag-over');
 }
 
 function handleDrop(e) {
@@ -1763,8 +1769,11 @@ function processarArquivo(file) {
     mostrarInfoArquivo(file);
     
     // Mostrar seção de processamento
-    document.getElementById('processamentoSection').style.display = 'block';
-    document.getElementById('btnProcessarEvidencias').style.display = 'block';
+    const processamentoSection = document.getElementById('processamentoSection');
+    const btnProcessarEvidencias = document.getElementById('btnProcessarEvidencias');
+    
+    if (processamentoSection) processamentoSection.style.display = 'block';
+    if (btnProcessarEvidencias) btnProcessarEvidencias.style.display = 'block';
 }
 
 function mostrarInfoArquivo(file) {
@@ -1772,10 +1781,9 @@ function mostrarInfoArquivo(file) {
     const fileName = document.getElementById('fileName');
     const fileSize = document.getElementById('fileSize');
     
-    fileName.textContent = file.name;
-    fileSize.textContent = formatarTamanho(file.size);
-    
-    fileInfo.style.display = 'block';
+    if (fileName) fileName.textContent = file.name;
+    if (fileSize) fileSize.textContent = formatarTamanho(file.size);
+    if (fileInfo) fileInfo.style.display = 'block';
 }
 
 function formatarTamanho(bytes) {
@@ -1790,11 +1798,18 @@ function formatarTamanho(bytes) {
 
 function removerArquivo() {
     uploadedFile = null;
-    document.getElementById('fileInfo').style.display = 'none';
-    document.getElementById('processamentoSection').style.display = 'none';
-    document.getElementById('resultadosSection').style.display = 'none';
-    document.getElementById('btnProcessarEvidencias').style.display = 'none';
-    document.getElementById('logFileInput').value = '';
+    
+    const fileInfo = document.getElementById('fileInfo');
+    const processamentoSection = document.getElementById('processamentoSection');
+    const resultadosSection = document.getElementById('resultadosSection');
+    const btnProcessarEvidencias = document.getElementById('btnProcessarEvidencias');
+    const logFileInput = document.getElementById('logFileInput');
+    
+    if (fileInfo) fileInfo.style.display = 'none';
+    if (processamentoSection) processamentoSection.style.display = 'none';
+    if (resultadosSection) resultadosSection.style.display = 'none';
+    if (btnProcessarEvidencias) btnProcessarEvidencias.style.display = 'none';
+    if (logFileInput) logFileInput.value = '';
 }
 
 // Processar evidências
@@ -1814,8 +1829,10 @@ async function processarEvidencias() {
     try {
         // Mostrar loading
         const btnProcessar = document.getElementById('btnProcessarEvidencias');
-        btnProcessar.disabled = true;
-        btnProcessar.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processando...';
+        if (btnProcessar) {
+            btnProcessar.disabled = true;
+            btnProcessar.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processando...';
+        }
         
         // Executar steps
         await executarStep1();
@@ -1838,8 +1855,10 @@ async function processarEvidencias() {
         
         // Restaurar botão
         const btnProcessar = document.getElementById('btnProcessarEvidencias');
-        btnProcessar.disabled = false;
-        btnProcessar.innerHTML = '<i class="fas fa-play me-1"></i> Processar Evidências';
+        if (btnProcessar) {
+            btnProcessar.disabled = false;
+            btnProcessar.innerHTML = '<i class="fas fa-play me-1"></i> Processar Evidências';
+        }
     }
 }
 
@@ -1873,22 +1892,24 @@ async function executarStep1() {
     const step = document.getElementById('step1');
     const status = document.getElementById('step1Status');
     
-    step.classList.add('active');
-    status.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-    
-    try {
-        // Simular processamento
-        await new Promise(resolve => setTimeout(resolve, 1000));
+    if (step && status) {
+        step.classList.add('active');
+        status.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
         
-        step.classList.remove('active');
-        step.classList.add('completed');
-        status.innerHTML = '<i class="fas fa-check"></i>';
-        
-    } catch (error) {
-        step.classList.remove('active');
-        step.classList.add('error');
-        status.innerHTML = '<i class="fas fa-times"></i>';
-        throw error;
+        try {
+            // Simular processamento
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            step.classList.remove('active');
+            step.classList.add('completed');
+            status.innerHTML = '<i class="fas fa-check"></i>';
+            
+        } catch (error) {
+            step.classList.remove('active');
+            step.classList.add('error');
+            status.innerHTML = '<i class="fas fa-times"></i>';
+            throw error;
+        }
     }
 }
 
@@ -1897,22 +1918,24 @@ async function executarStep2() {
     const step = document.getElementById('step2');
     const status = document.getElementById('step2Status');
     
-    step.classList.add('active');
-    status.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-    
-    try {
-        // Simular processamento
-        await new Promise(resolve => setTimeout(resolve, 1000));
+    if (step && status) {
+        step.classList.add('active');
+        status.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
         
-        step.classList.remove('active');
-        step.classList.add('completed');
-        status.innerHTML = '<i class="fas fa-check"></i>';
-        
-    } catch (error) {
-        step.classList.remove('active');
-        step.classList.add('error');
-        status.innerHTML = '<i class="fas fa-times"></i>';
-        throw error;
+        try {
+            // Simular processamento
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            step.classList.remove('active');
+            step.classList.add('completed');
+            status.innerHTML = '<i class="fas fa-check"></i>';
+            
+        } catch (error) {
+            step.classList.remove('active');
+            step.classList.add('error');
+            status.innerHTML = '<i class="fas fa-times"></i>';
+            throw error;
+        }
     }
 }
 
@@ -1921,28 +1944,33 @@ async function executarStep3() {
     const step = document.getElementById('step3');
     const status = document.getElementById('step3Status');
     
-    step.classList.add('active');
-    status.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-    
-    try {
-        // Simular processamento
-        await new Promise(resolve => setTimeout(resolve, 1000));
+    if (step && status) {
+        step.classList.add('active');
+        status.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
         
-        step.classList.remove('active');
-        step.classList.add('completed');
-        status.innerHTML = '<i class="fas fa-check"></i>';
-        
-    } catch (error) {
-        step.classList.remove('active');
-        step.classList.add('error');
-        status.innerHTML = '<i class="fas fa-times"></i>';
-        throw error;
+        try {
+            // Simular processamento
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            step.classList.remove('active');
+            step.classList.add('completed');
+            status.innerHTML = '<i class="fas fa-check"></i>';
+            
+        } catch (error) {
+            step.classList.remove('active');
+            step.classList.add('error');
+            status.innerHTML = '<i class="fas fa-times"></i>';
+            throw error;
+        }
     }
 }
 
 // Função para mostrar resultados
 function mostrarResultados() {
-    document.getElementById('resultadosSection').style.display = 'block';
+    const resultadosSection = document.getElementById('resultadosSection');
+    if (resultadosSection) {
+        resultadosSection.style.display = 'block';
+    }
     
     // Buscar estatísticas reais
     verificarStatusEvidencias();
@@ -2001,40 +2029,59 @@ async function carregarEvidenciasProcessadas() {
 // Função para enviar evidências para o Jira
 async function enviarEvidenciasJira() {
     try {
-        // Obter chave da issue
-        const issueKey = prompt('Digite a chave da issue do Jira (ex: BC-123):');
-        
-        if (!issueKey) {
-            mostrarNotificacao('Chave da issue é obrigatória', 'warning');
+        // Verificar se há evidências processadas
+        if (!window.evidenciasProcessadas || window.evidenciasProcessadas.length === 0) {
+            mostrarNotificacao('Nenhuma evidência processada encontrada. Processe as evidências primeiro.', 'warning');
             return;
         }
         
-        // Validar formato da chave
-        if (!/^[A-Z]+-\d+$/.test(issueKey)) {
-            mostrarNotificacao('Formato de chave inválido. Use o formato: PROJ-123', 'error');
+        // Extrair IDs únicos dos cards a partir dos nomes dos arquivos
+        const cardIds = new Set();
+        window.evidenciasProcessadas.forEach(evidencia => {
+            // Extrair ID do card do nome do arquivo (ex: NEX-18_sucesso.png -> NEX-18)
+            const nomeArquivo = evidencia.arquivo;
+            const match = nomeArquivo.match(/^([A-Z]+-\d+)/);
+            if (match) {
+                cardIds.add(match[1]);
+            }
+        });
+        
+        if (cardIds.size === 0) {
+            mostrarNotificacao('Nenhum ID de card válido encontrado nos arquivos de evidência.', 'error');
+            return;
+        }
+        
+        // Mostrar confirmação com os IDs encontrados
+        const idsList = Array.from(cardIds).join(', ');
+        const confirmacao = confirm(`Enviar evidências para os seguintes cards:\n\n${idsList}\n\nTotal: ${cardIds.size} card(s)\n\nConfirmar envio?`);
+        
+        if (!confirmacao) {
             return;
         }
         
         // Mostrar loading
         const btnEnviar = document.getElementById('btnEnviarEvidencias');
-        btnEnviar.disabled = true;
-        btnEnviar.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
+        if (btnEnviar) {
+            btnEnviar.disabled = true;
+            btnEnviar.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
+        }
         
-        // Enviar evidências
+        // Enviar evidências para todos os cards encontrados
         const response = await fetch('/api/evidencias/enviar', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                issue_key: issueKey
+                issue_keys: Array.from(cardIds)
             })
         });
         
         const resultado = await response.json();
         
         if (response.ok && resultado.sucesso) {
-            mostrarNotificacao(`Evidências enviadas com sucesso para ${issueKey}!`, 'success');
+            const idsList = Array.from(cardIds).join(', ');
+            mostrarNotificacao(`Evidências enviadas com sucesso para ${cardIds.size} card(s): ${idsList}`, 'success');
             
             // Atualizar estatísticas
             verificarStatusEvidencias();
@@ -2052,8 +2099,10 @@ async function enviarEvidenciasJira() {
     } finally {
         // Restaurar botão
         const btnEnviar = document.getElementById('btnEnviarEvidencias');
-        btnEnviar.disabled = false;
-        btnEnviar.innerHTML = '<i class="fas fa-paper-plane me-1"></i> Enviar para Jira';
+        if (btnEnviar) {
+            btnEnviar.disabled = false;
+            btnEnviar.innerHTML = '<i class="fas fa-paper-plane me-1"></i> Enviar para Jira';
+        }
     }
 }
 

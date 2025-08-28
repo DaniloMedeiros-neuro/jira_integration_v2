@@ -1664,6 +1664,9 @@ def upload_evidencias():
         log_path = os.path.join(os.getcwd(), 'log.html')
         file.save(log_path)
         
+        # Limpar evidências anteriores antes do processamento
+        limpar_evidencias_anteriores()
+        
         # Processar o arquivo HTML usando método híbrido
         resultado = processar_evidencias_hibrido(log_path)
         
@@ -1712,6 +1715,76 @@ def extrair_codigo_card(texto):
         return codigo
     
     return None
+
+def limpar_evidencias_anteriores():
+    """Remove todas as evidências anteriores antes de iniciar novo processamento"""
+    try:
+        import shutil
+        
+        # Diretórios de evidências
+        base_dir = os.path.join(os.getcwd(), 'prints_tests')
+        falhas_dir = os.path.join(base_dir, 'falhas')
+        sucessos_dir = os.path.join(base_dir, 'sucessos')
+        
+        print("🧹 Iniciando limpeza de evidências anteriores...")
+        
+        # Contar arquivos antes da limpeza
+        arquivos_removidos = 0
+        
+        # Remover arquivos de falhas
+        if os.path.exists(falhas_dir):
+            for arquivo in os.listdir(falhas_dir):
+                if arquivo.endswith(('.png', '.jpg', '.jpeg', '.gif')):
+                    arquivo_path = os.path.join(falhas_dir, arquivo)
+                    try:
+                        os.remove(arquivo_path)
+                        arquivos_removidos += 1
+                        print(f"   🗑️ Removido: {arquivo}")
+                    except Exception as e:
+                        print(f"   ⚠️ Erro ao remover {arquivo}: {e}")
+        
+        # Remover arquivos de sucessos
+        if os.path.exists(sucessos_dir):
+            for arquivo in os.listdir(sucessos_dir):
+                if arquivo.endswith(('.png', '.jpg', '.jpeg', '.gif')):
+                    arquivo_path = os.path.join(sucessos_dir, arquivo)
+                    try:
+                        os.remove(arquivo_path)
+                        arquivos_removidos += 1
+                        print(f"   🗑️ Removido: {arquivo}")
+                    except Exception as e:
+                        print(f"   ⚠️ Erro ao remover {arquivo}: {e}")
+        
+        # Remover diretórios vazios (opcional)
+        try:
+            if os.path.exists(falhas_dir) and not os.listdir(falhas_dir):
+                os.rmdir(falhas_dir)
+                print("   📁 Diretório de falhas removido (vazio)")
+        except Exception as e:
+            print(f"   ⚠️ Erro ao remover diretório de falhas: {e}")
+        
+        try:
+            if os.path.exists(sucessos_dir) and not os.listdir(sucessos_dir):
+                os.rmdir(sucessos_dir)
+                print("   📁 Diretório de sucessos removido (vazio)")
+        except Exception as e:
+            print(f"   ⚠️ Erro ao remover diretório de sucessos: {e}")
+        
+        print(f"✅ Limpeza concluída: {arquivos_removidos} arquivos removidos")
+        
+        # Recriar diretórios se necessário
+        os.makedirs(falhas_dir, exist_ok=True)
+        os.makedirs(sucessos_dir, exist_ok=True)
+        print("📁 Diretórios de evidências recriados")
+        
+        return arquivos_removidos
+        
+    except Exception as e:
+        print(f"❌ Erro durante limpeza: {e}")
+        # Garantir que os diretórios existam mesmo em caso de erro
+        os.makedirs(falhas_dir, exist_ok=True)
+        os.makedirs(sucessos_dir, exist_ok=True)
+        return 0
 
 def encontrar_elementos_teste_especificos(soup):
     """Busca elementos usando seletores específicos conhecidos (método do usuário)"""
@@ -1834,16 +1907,13 @@ def processar_evidencias_com_selenium(log_path):
             driver.get(f"file://{log_path_abs}")
             time.sleep(2)
             
+            # Limpar evidências anteriores
+            limpar_evidencias_anteriores()
+            
             # Criar diretórios
             base_dir = os.path.abspath(os.path.join(os.path.dirname(log_path), "prints_tests"))
-            if os.path.exists(base_dir):
-                print("🧹 Removendo pasta antiga de prints...")
-                shutil.rmtree(base_dir)
-            
             falhas_dir = os.path.join(base_dir, "falhas")
             sucessos_dir = os.path.join(base_dir, "sucessos")
-            os.makedirs(falhas_dir)
-            os.makedirs(sucessos_dir)
             
             # Buscar elementos usando seletores específicos
             test_divs = driver.find_elements(By.CSS_SELECTOR, ".children.populated > div.test")
@@ -2014,6 +2084,10 @@ def processar_arquivo_log(log_path):
         # Parsear o HTML
         logger.info("Parseando HTML com BeautifulSoup...")
         soup = BeautifulSoup(html_content, 'html.parser')
+        
+        # Limpar evidências anteriores
+        logger.info("Limpando evidências anteriores...")
+        limpar_evidencias_anteriores()
         
         # Criar diretórios se não existirem
         os.makedirs('prints_tests/falhas', exist_ok=True)
@@ -2426,14 +2500,20 @@ def enviar_evidencias_jira():
     """Envia evidências processadas para o Jira"""
     try:
         data = request.get_json()
-        issue_key = data.get('issue_key')
+        issue_keys = data.get('issue_keys', [])
+        issue_key = data.get('issue_key')  # Mantém compatibilidade com versão anterior
         
-        if not issue_key:
-            return jsonify({"erro": "Chave da issue é obrigatória"}), 400
+        # Se issue_keys não foi fornecido, usar issue_key (compatibilidade)
+        if not issue_keys and issue_key:
+            issue_keys = [issue_key]
         
-        # Validar formato da chave
-        if not re.match(r'^[A-Z]+-\d+$', issue_key):
-            return jsonify({"erro": "Formato de chave inválido. Use o formato: PROJ-123"}), 400
+        if not issue_keys:
+            return jsonify({"erro": "IDs dos cards são obrigatórios"}), 400
+        
+        # Validar formato das chaves
+        for key in issue_keys:
+            if not re.match(r'^[A-Z]+-\d+$', key):
+                return jsonify({"erro": f"Formato de chave inválido: {key}. Use o formato: PROJ-123"}), 400
         
         # Verificar se as configurações do Jira estão disponíveis
         if not all([JIRA_BASE_URL, JIRA_EMAIL, JIRA_API_TOKEN]):
@@ -2451,93 +2531,131 @@ def enviar_evidencias_jira():
         if total_enviados == 0:
             return jsonify({"erro": "Nenhuma evidência encontrada para envio"}), 400
         
-        # Verificar se a issue existe
-        issue_url = f"{JIRA_BASE_URL}/rest/api/3/issue/{issue_key}"
+        # Verificar se as issues existem
         headers = {
             "Accept": "application/json",
             "Authorization": f"Basic {base64.b64encode(f'{JIRA_EMAIL}:{JIRA_API_TOKEN}'.encode()).decode()}"
         }
         
-        issue_response = requests.get(issue_url, headers=headers)
-        if issue_response.status_code != 200:
-            return jsonify({"erro": f"Issue {issue_key} não encontrada"}), 404
+        issues_validas = []
+        for key in issue_keys:
+            issue_url = f"{JIRA_BASE_URL}/rest/api/3/issue/{key}"
+            issue_response = requests.get(issue_url, headers=headers)
+            if issue_response.status_code == 200:
+                issues_validas.append(key)
+            else:
+                print(f"Issue {key} não encontrada (status: {issue_response.status_code})")
+        
+        if not issues_validas:
+            return jsonify({"erro": "Nenhuma issue válida encontrada"}), 404
         
         # Preparar dados para upload
         detalhes_upload = []
         total_processados = 0
+        total_enviados = 0
         
-        # Upload de arquivos de falha
-        if os.path.exists(falhas_dir):
-            for arquivo in os.listdir(falhas_dir):
-                if arquivo.endswith(('.png', '.txt')):
-                    caminho_arquivo = os.path.join(falhas_dir, arquivo)
-                    try:
-                        # Upload do arquivo para o Jira
-                        upload_success = upload_arquivo_jira(issue_key, caminho_arquivo, headers)
-                        detalhes_upload.append({
+        # Processar cada issue válida
+        for issue_key in issues_validas:
+            print(f"Processando issue: {issue_key}")
+            
+            # Encontrar arquivos específicos para esta issue
+            arquivos_issue = []
+            
+            # Buscar em falhas
+            if os.path.exists(falhas_dir):
+                for arquivo in os.listdir(falhas_dir):
+                    if arquivo.startswith(issue_key) and arquivo.endswith('.png'):
+                        arquivos_issue.append({
                             "arquivo": arquivo,
-                            "tipo": "falha",
-                            "sucesso": upload_success
+                            "caminho": os.path.join(falhas_dir, arquivo),
+                            "tipo": "falha"
+                        })
+            
+            # Buscar em sucessos
+            if os.path.exists(sucessos_dir):
+                for arquivo in os.listdir(sucessos_dir):
+                    if arquivo.startswith(issue_key) and arquivo.endswith('.png'):
+                        arquivos_issue.append({
+                            "arquivo": arquivo,
+                            "caminho": os.path.join(sucessos_dir, arquivo),
+                            "tipo": "sucesso"
+                        })
+            
+            # Upload dos arquivos para esta issue
+            for arquivo_info in arquivos_issue:
+                try:
+                    # Upload do arquivo para o Jira
+                    image_meta = upload_arquivo_jira(issue_key, arquivo_info["caminho"], headers)
+                    
+                    if image_meta:
+                        # Definir mensagem e tipo de painel baseado no tipo de evidência
+                        if arquivo_info["tipo"] == "sucessos":
+                            mensagem = [
+                                {"type": "text", "text": "TESTE AUTOMAÇÃO ", "marks": [{"type": "strong"}]},
+                                {"type": "text", "text": "APROVADO", "marks": [{"type": "strong"}]}
+                            ]
+                            tipo_painel = "success"
+                        else:  # falhas
+                            mensagem = [
+                                {"type": "text", "text": "TESTE AUTOMAÇÃO ", "marks": [{"type": "strong"}]},
+                                {"type": "text", "text": "REPROVADO", "marks": [{"type": "strong"}]}
+                            ]
+                            tipo_painel = "error"
+                        
+                        # Adicionar comentário com imagem
+                        comentario_success = comentar_com_imagem(issue_key, mensagem, tipo_painel, image_meta, headers)
+                        
+                        detalhes_upload.append({
+                            "issue_key": issue_key,
+                            "arquivo": arquivo_info["arquivo"],
+                            "tipo": arquivo_info["tipo"],
+                            "sucesso": comentario_success,
+                            "anexo_id": image_meta["id"]
                         })
                         total_processados += 1
-                    except Exception as e:
+                        if comentario_success:
+                            total_enviados += 1
+                    else:
                         detalhes_upload.append({
-                            "arquivo": arquivo,
-                            "tipo": "falha",
+                            "issue_key": issue_key,
+                            "arquivo": arquivo_info["arquivo"],
+                            "tipo": arquivo_info["tipo"],
                             "sucesso": False,
-                            "erro": str(e)
-                        })
-        
-        # Upload de arquivos de sucesso
-        if os.path.exists(sucessos_dir):
-            for arquivo in os.listdir(sucessos_dir):
-                if arquivo.endswith(('.png', '.txt')):
-                    caminho_arquivo = os.path.join(sucessos_dir, arquivo)
-                    try:
-                        # Upload do arquivo para o Jira
-                        upload_success = upload_arquivo_jira(issue_key, caminho_arquivo, headers)
-                        detalhes_upload.append({
-                            "arquivo": arquivo,
-                            "tipo": "sucesso",
-                            "sucesso": upload_success
+                            "erro": "Falha no upload do anexo"
                         })
                         total_processados += 1
-                    except Exception as e:
-                        detalhes_upload.append({
-                            "arquivo": arquivo,
-                            "tipo": "sucesso",
-                            "sucesso": False,
-                            "erro": str(e)
-                        })
+                        
+                except Exception as e:
+                    detalhes_upload.append({
+                        "issue_key": issue_key,
+                        "arquivo": arquivo_info["arquivo"],
+                        "tipo": arquivo_info["tipo"],
+                        "sucesso": False,
+                        "erro": str(e)
+                    })
+                    total_processados += 1
         
-        # Adicionar comentário na issue
+        # Resumo do processamento
         sucessos_upload = len([d for d in detalhes_upload if d['sucesso']])
-        comentario = f"""
-**Evidências de Teste Enviadas**
-
-📊 **Resumo:**
-- Total de evidências: {total_processados}
-- Enviadas com sucesso: {sucessos_upload}
-- Falhas no envio: {total_processados - sucessos_upload}
-
-📁 **Detalhes:**
-- Evidências de sucesso: {sucessos_count}
-- Evidências de falha: {falhas_count}
-
-🕒 **Enviado em:** {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}
-        """
+        issues_processadas = list(set([d['issue_key'] for d in detalhes_upload]))
         
-        # Enviar comentário
-        comment_url = f"{JIRA_BASE_URL}/rest/api/3/issue/{issue_key}/comment"
-        comment_data = {"body": {"type": "doc", "version": 1, "content": [{"type": "paragraph", "content": [{"type": "text", "text": comentario}]}]}}
+        print(f"\n📊 RESUMO DO ENVIO:")
+        print(f"   📋 Issues processadas: {len(issues_processadas)}")
+        print(f"   📄 Total de arquivos: {total_processados}")
+        print(f"   ✅ Enviados com sucesso: {total_enviados}")
+        print(f"   ❌ Falhas: {total_processados - total_enviados}")
         
-        comment_response = requests.post(comment_url, headers=headers, json=comment_data)
+        for issue_key in issues_processadas:
+            arquivos_issue = [d for d in detalhes_upload if d['issue_key'] == issue_key]
+            sucessos_issue = len([d for d in arquivos_issue if d['sucesso']])
+            print(f"   🎯 {issue_key}: {sucessos_issue}/{len(arquivos_issue)} evidências enviadas")
         
         return jsonify({
             "sucesso": True,
-            "mensagem": f"Evidências enviadas com sucesso para {issue_key}",
-            "enviados": sucessos_upload,
+            "mensagem": f"Evidências enviadas com sucesso para {len(issues_processadas)} card(s)",
+            "enviados": total_enviados,
             "total_processados": total_processados,
+            "issues_processadas": issues_processadas,
             "estatisticas": {
                 "falhas": falhas_count,
                 "sucessos": sucessos_count
@@ -2550,23 +2668,23 @@ def enviar_evidencias_jira():
         return jsonify({"erro": str(e)}), 500
 
 def upload_arquivo_jira(issue_key, caminho_arquivo, headers):
-    """Faz upload de um arquivo para uma issue do Jira"""
+    """Faz upload de um arquivo para uma issue do Jira e retorna os metadados"""
     try:
         # Verificar se o arquivo existe
         if not os.path.exists(caminho_arquivo):
-            return False
+            return None
         
         # Verificar tamanho do arquivo (máximo 10MB)
         tamanho_arquivo = os.path.getsize(caminho_arquivo)
         if tamanho_arquivo > 10 * 1024 * 1024:  # 10MB
             print(f"Arquivo {caminho_arquivo} muito grande: {tamanho_arquivo} bytes")
-            return False
+            return None
         
         # Preparar upload
         upload_url = f"{JIRA_BASE_URL}/rest/api/3/issue/{issue_key}/attachments"
         
         with open(caminho_arquivo, 'rb') as f:
-            files = {'file': (os.path.basename(caminho_arquivo), f, 'application/octet-stream')}
+            files = {'file': (os.path.basename(caminho_arquivo), f, 'image/png')}
             upload_headers = {
                 "X-Atlassian-Token": "no-check",
                 "Authorization": headers["Authorization"]
@@ -2574,15 +2692,69 @@ def upload_arquivo_jira(issue_key, caminho_arquivo, headers):
             
             response = requests.post(upload_url, headers=upload_headers, files=files)
             
-            if response.status_code == 200:
-                print(f"Upload realizado com sucesso: {caminho_arquivo}")
-                return True
+            if response.status_code in [200, 201]:
+                result = response.json()[0]
+                print(f"[ANEXO] 📎 Enviado para {issue_key}: {os.path.basename(caminho_arquivo)}")
+                return {
+                    "filename": result["filename"],
+                    "id": result["id"],
+                }
             else:
-                print(f"Erro no upload {caminho_arquivo}: {response.status_code}")
-                return False
+                print(f"[ERRO] ❌ Erro ao anexar em {issue_key}: {response.status_code}")
+                print(f"[RESPOSTA] {response.text}")
+                return None
                 
     except Exception as e:
         print(f"Erro ao fazer upload de {caminho_arquivo}: {e}")
+        return None
+
+def comentar_com_imagem(issue_key, mensagem, tipo_painel, image_meta, headers):
+    """Adiciona comentário no Jira com imagem formatada"""
+    try:
+        url = f"{JIRA_BASE_URL}/rest/api/3/issue/{issue_key}/comment"
+        comment_headers = {"Content-Type": "application/json", "Authorization": headers["Authorization"]}
+
+        image_url = f"{JIRA_BASE_URL}/rest/api/3/attachment/content/{image_meta['id']}"
+
+        body = {
+            "type": "doc",
+            "version": 1,
+            "content": [
+                {
+                    "type": "panel",
+                    "attrs": {"panelType": tipo_painel},
+                    "content": [
+                        {"type": "paragraph", "content": mensagem}
+                    ]
+                },
+                {
+                    "type": "mediaSingle",
+                    "attrs": {"layout": "center"},
+                    "content": [
+                        {
+                            "type": "media",
+                            "attrs": {
+                                "type": "external",
+                                "url": image_url
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+
+        response = requests.post(url, json={"body": body}, headers=comment_headers)
+        
+        if response.status_code in [200, 201]:
+            print(f"[COMENTÁRIO] 🖼️ Adicionado em {issue_key}")
+            return True
+        else:
+            print(f"[ERRO] ⚠️ Erro ao adicionar comentário em {issue_key}: {response.status_code}")
+            print(f"[RESPOSTA] {response.text}")
+            return False
+            
+    except Exception as e:
+        print(f"Erro ao adicionar comentário em {issue_key}: {e}")
         return False
 
 @app.route('/evidencias')
@@ -2663,6 +2835,25 @@ def lista_evidencias():
             "evidencias": [],
             "total": 0
         })
+
+@app.route('/api/evidencias/limpar', methods=['POST'])
+def limpar_evidencias():
+    """Limpa todas as evidências processadas"""
+    try:
+        arquivos_removidos = limpar_evidencias_anteriores()
+        
+        return jsonify({
+            "sucesso": True,
+            "mensagem": f"Limpeza concluída com sucesso",
+            "arquivos_removidos": arquivos_removidos
+        })
+        
+    except Exception as e:
+        print(f"Erro ao limpar evidências: {e}")
+        return jsonify({
+            "sucesso": False,
+            "erro": str(e)
+        }), 500
 
 @app.route('/configuracoes')
 def configuracoes_page():

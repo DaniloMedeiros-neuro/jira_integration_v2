@@ -169,9 +169,13 @@
                     <i class="fas fa-eye me-1"></i>
                     Visualizar Evidências
                 </button>
-                <button type="button" class="btn btn-primary" onclick="enviarEvidenciasJira()">
+                <button type="button" class="btn btn-primary" id="btnEnviarEvidencias" onclick="enviarEvidenciasJira()">
                     <i class="fas fa-paper-plane me-1"></i>
                     Enviar ao Jira
+                </button>
+                <button type="button" class="btn btn-outline-danger" onclick="limparEvidencias()">
+                    <i class="fas fa-trash me-1"></i>
+                    Limpar Evidências
                 </button>
             </div>
         </div>
@@ -248,6 +252,42 @@ function visualizarEvidencias() {
         });
     } else {
         mostrarNotificacao('Nenhuma evidência processada encontrada', 'warning');
+    }
+}
+
+// Função para limpar evidências
+async function limparEvidencias() {
+    if (!confirm('Tem certeza que deseja limpar todas as evidências processadas? Esta ação não pode ser desfeita.')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch('/api/evidencias/limpar', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        const resultado = await response.json();
+        
+        if (resultado.sucesso) {
+            mostrarNotificacao(`Limpeza concluída! ${resultado.arquivos_removidos} arquivos removidos.`, 'success');
+            
+            // Atualizar interface
+            window.evidenciasProcessadas = [];
+            verificarStatusEvidencias();
+            
+            // Ocultar seção de resultados se não há mais evidências
+            document.getElementById('resultadosSection').style.display = 'none';
+            
+        } else {
+            mostrarNotificacao('Erro ao limpar evidências: ' + resultado.erro, 'error');
+        }
+        
+    } catch (error) {
+        console.error('Erro ao limpar evidências:', error);
+        mostrarNotificacao('Erro ao limpar evidências: ' + error.message, 'error');
     }
 }
 

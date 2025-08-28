@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Log de Testes - Exemplo</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-result { margin: 10px 0; padding: 10px; border-radius: 5px; }
+        .test-pass { background-color: #d4edda; border: 1px solid #c3e6cb; }
+        .test-fail { background-color: #f8d7da; border: 1px solid #f5c6cb; }
+        .success { color: #155724; }
+        .failure { color: #721c24; }
+    </style>
+</head>
+<body>
+    <h1>Relatório de Testes</h1>
+    
+    <div class="test-result test-pass">
+        <h3>BC-123: Teste de Login</h3>
+        <p>Status: ✅ PASSED</p>
+        <p>Duração: 2.5s</p>
+        <p>Usuário conseguiu fazer login com sucesso</p>
+    </div>
+    
+    <div class="test-result test-pass">
+        <h3>PROJ-456: Teste de Cadastro</h3>
+        <p>Status: ✅ PASSED</p>
+        <p>Duração: 3.1s</p>
+        <p>Novo usuário foi cadastrado corretamente</p>
+    </div>
+    
+    <div class="test-result test-fail">
+        <h3>TEST-789: Teste de Validação</h3>
+        <p>Status: ❌ FAILED</p>
+        <p>Duração: 1.8s</p>
+        <p>Erro: Campo obrigatório não foi preenchido</p>
+    </div>
+    
+    <div class="test-result test-pass">
+        <h3>BUG-101: Teste de Correção</h3>
+        <p>Status: ✅ PASSED</p>
+        <p>Duração: 4.2s</p>
+        <p>Bug foi corrigido com sucesso</p>
+    </div>
+    
+    <div class="test-result test-fail">
+        <h3>FEATURE-202: Teste de Nova Funcionalidade</h3>
+        <p>Status: ❌ FAILED</p>
+        <p>Duração: 5.7s</p>
+        <p>Erro: Timeout na execução do teste</p>
+    </div>
+    
+    <div class="test-result test-pass">
+        <h3>DAT-280: Teste de Banco de Dados</h3>
+        <p>Status: ✅ PASSED</p>
+        <p>Duração: 1.2s</p>
+        <p>Dados foram salvos corretamente</p>
+    </div>
+    
+    <div class="test-result test-pass">
+        <h3>TAX-DE: Teste de Cálculo</h3>
+        <p>Status: ✅ PASSED</p>
+        <p>Duração: 0.8s</p>
+        <p>Cálculo de impostos realizado corretamente</p>
+    </div>
+    
+    <div class="test-result test-fail">
+        <h3>TESTE_010: Teste de Interface</h3>
+        <p>Status: ❌ FAILED</p>
+        <p>Duração: 2.3s</p>
+        <p>Erro: Elemento não encontrado na página</p>
+    </div>
+    
+    <div class="test-result test-pass">
+        <h3>TESTE_007: Teste de API</h3>
+        <p>Status: ✅ PASSED</p>
+        <p>Duração: 1.5s</p>
+        <p>API retornou resposta correta</p>
+    </div>
+    
+    <div class="test-result test-pass">
+        <h3>TESTE_008: Teste de Performance</h3>
+        <p>Status: ✅ PASSED</p>
+        <p>Duração: 6.1s</p>
+        <p>Performance dentro dos limites aceitáveis</p>
+    </div>
+    
+    <div class="test-result test-fail">
+        <h3>TESTE_011: Teste de Segurança</h3>
+        <p>Status: ❌ FAILED</p>
+        <p>Duração: 3.9s</p>
+        <p>Erro: Vulnerabilidade de segurança detectada</p>
+    </div>
+    
+    <div class="test-result test-fail">
+        <h3>DC3545: Teste de Integração</h3>
+        <p>Status: ❌ FAILED</p>
+        <p>Duração: 7.2s</p>
+        <p>Erro: Falha na comunicação entre sistemas</p>
+    </div>
+</body>
+</html>
