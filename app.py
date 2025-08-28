@@ -1664,8 +1664,8 @@ def upload_evidencias():
         log_path = os.path.join(os.getcwd(), 'log.html')
         file.save(log_path)
         
-        # Processar o arquivo HTML
-        resultado = processar_arquivo_log(log_path)
+        # Processar o arquivo HTML usando método híbrido
+        resultado = processar_evidencias_hibrido(log_path)
         
         if resultado['sucesso']:
             return jsonify({
@@ -1712,6 +1712,251 @@ def extrair_codigo_card(texto):
         return codigo
     
     return None
+
+def encontrar_elementos_teste_especificos(soup):
+    """Busca elementos usando seletores específicos conhecidos (método do usuário)"""
+    elementos = []
+    
+    # Método 1: Seletores específicos (como no método do usuário)
+    test_divs = soup.select(".children.populated > div.test")
+    elementos.extend(test_divs)
+    
+    # Método 2: Headers com nomes
+    name_spans = soup.select(".element-header-left .name")
+    for span in name_spans:
+        parent = span.find_parent("div", class_="test")
+        if parent and parent not in elementos:
+            elementos.append(parent)
+    
+    # Método 3: Labels com status
+    labels = soup.select(".element-header-left .label")
+    for label in labels:
+        parent = label.find_parent("div", class_="test")
+        if parent and parent not in elementos:
+            elementos.append(parent)
+    
+    return elementos
+
+def extrair_nome_teste_especifico(elemento):
+    """Extrai nome do teste usando seletores específicos"""
+    # Tentar seletores específicos primeiro
+    name_span = elemento.select_one(".element-header-left .name")
+    if name_span:
+        texto = name_span.get_text().strip()
+        
+        # Padrão específico TLD (como no método do usuário)
+        match = re.search(r"TLD-\d+", texto)
+        if match:
+            return match.group(0)
+        
+        # Outros padrões conhecidos
+        for padrao in [r"([A-Z]{2,4}-\d+)", r"([A-Z]+-\d+)"]:
+            match = re.search(padrao, texto)
+            if match:
+                return match.group(1)
+        
+        # Fallback: texto limpo (como no método do usuário)
+        return texto.replace(" ", "_").replace("/", "_")
+    
+    # Fallback para método atual
+    return extrair_codigo_card(elemento.get_text())
+
+def detectar_status_especifico(elemento):
+    """Detecta status usando seletores específicos (método do usuário)"""
+    try:
+        # Tentar seletores específicos primeiro
+        label = elemento.select_one(".element-header-left .label")
+        if label:
+            classes = label.get('class', [])
+            is_fail = any('fail' in classe.lower() for classe in classes)
+            return not is_fail  # True para sucesso, False para falha
+    except Exception:
+        pass
+    
+    # Fallback para método atual
+    texto_elemento = elemento.get_text().lower()
+    html_elemento = str(elemento).lower()
+    
+    classes_elemento = elemento.get('class', [])
+    is_sucesso = (
+        any('pass' in classe.lower() for classe in classes_elemento) or
+        any('success' in classe.lower() for classe in classes_elemento) or
+        '✅' in html_elemento or
+        '✓' in html_elemento
+    )
+    
+    is_falha = (
+        any('fail' in classe.lower() for classe in classes_elemento) or
+        any('error' in classe.lower() for classe in classes_elemento) or
+        '❌' in html_elemento or
+        '✗' in html_elemento
+    )
+    
+    if is_sucesso:
+        return True
+    elif is_falha:
+        return False
+    else:
+        # Se não determinou, verificar pelo texto
+        sucesso_keywords = ['pass', 'success', 'sucesso', 'passed', '✅', '✓', 'ok', 'successful']
+        falha_keywords = ['fail', 'error', 'falha', 'failed', '❌', '✗', 'erro', 'exception', 'timeout']
+        
+        is_sucesso = any(palavra in texto_elemento for palavra in sucesso_keywords)
+        is_falha = any(palavra in texto_elemento for palavra in falha_keywords)
+        
+        if is_sucesso:
+            return True
+        elif is_falha:
+            return False
+        else:
+            # Padrão mais comum é sucesso
+            return True
+
+def processar_evidencias_com_selenium(log_path):
+    """Processa evidências usando Selenium (método do usuário)"""
+    try:
+        from selenium import webdriver
+        from selenium.webdriver.common.by import By
+        from selenium.webdriver.chrome.options import Options
+        from selenium.webdriver.common.action_chains import ActionChains
+        import time
+        import shutil
+        
+        # Configuração do Chrome
+        options = Options()
+        options.add_argument("--headless=new")
+        options.add_argument("--window-size=1920,3000")
+        
+        driver = webdriver.Chrome(options=options)
+        
+        try:
+            log_path_abs = os.path.abspath(log_path)
+            driver.get(f"file://{log_path_abs}")
+            time.sleep(2)
+            
+            # Criar diretórios
+            base_dir = os.path.abspath(os.path.join(os.path.dirname(log_path), "prints_tests"))
+            if os.path.exists(base_dir):
+                print("🧹 Removendo pasta antiga de prints...")
+                shutil.rmtree(base_dir)
+            
+            falhas_dir = os.path.join(base_dir, "falhas")
+            sucessos_dir = os.path.join(base_dir, "sucessos")
+            os.makedirs(falhas_dir)
+            os.makedirs(sucessos_dir)
+            
+            # Buscar elementos usando seletores específicos
+            test_divs = driver.find_elements(By.CSS_SELECTOR, ".children.populated > div.test")
+            print(f"🧪 Total de testes encontrados: {len(test_divs)}")
+            
+            processados = {}
+            sucessos = 0
+            falhas = 0
+            nomes_evidencias = []
+            
+            for i, test_div in enumerate(test_divs, start=1):
+                try:
+                    test_id = test_div.get_attribute("id")
+                    
+                    # Detectar status
+                    label = test_div.find_element(By.CSS_SELECTOR, ".element-header-left .label")
+                    is_fail = "fail" in label.get_attribute("class").lower()
+                    
+                    # Extrair nome do teste
+                    name_span = test_div.find_element(By.CSS_SELECTOR, ".element-header-left .name")
+                    match = re.search(r"TLD-\d+", name_span.text)
+                    if match:
+                        test_code = match.group(0)
+                    else:
+                        test_code = name_span.text.strip().replace(" ", "_").replace("/", "_")
+                    
+                    # Verificar duplicidade com prioridade para falha
+                    if test_code in processados:
+                        if processados[test_code] == "fail":
+                            continue
+                        elif processados[test_code] == "pass" and is_fail:
+                            print(f"⚠️ Atualizando status de {test_code} de sucesso para falha")
+                            sucesso_path = os.path.join(sucessos_dir, f"{test_code}.png")
+                            if os.path.exists(sucesso_path):
+                                os.remove(sucesso_path)
+                        else:
+                            continue
+                    
+                    processados[test_code] = "fail" if is_fail else "pass"
+                    
+                    # Expander apenas testes de sucesso
+                    if not is_fail:
+                        try:
+                            header = test_div.find_element(By.CLASS_NAME, "element-header")
+                            ActionChains(driver).move_to_element(header).click().perform()
+                            time.sleep(0.4)
+                        except Exception as e:
+                            print(f"⚠️ Não foi possível expandir o card de {test_code}: {e}")
+                    
+                    # Scroll para o elemento
+                    driver.execute_script("arguments[0].scrollIntoView(true);", test_div)
+                    time.sleep(0.2)
+                    
+                    # Capturar screenshot
+                    target_dir = falhas_dir if is_fail else sucessos_dir
+                    screenshot_path = os.path.join(target_dir, f"{test_code}.png")
+                    test_div.screenshot(screenshot_path)
+                    print(f"📸 Screenshot salvo: {screenshot_path}")
+                    
+                    # Contar estatísticas
+                    if is_fail:
+                        falhas += 1
+                    else:
+                        sucessos += 1
+                    
+                    nomes_evidencias.append({
+                        "nome": test_code,
+                        "arquivo": f"{test_code}.png",
+                        "status": "falha" if is_fail else "sucesso",
+                        "diretorio": target_dir,
+                        "elemento_index": i
+                    })
+                    
+                except Exception as e:
+                    print(f"❌ Erro ao capturar screenshot do teste {i} ({test_id}): {e}")
+                    continue
+            
+            return {
+                "sucesso": True,
+                "estatisticas": {
+                    "sucessos": sucessos,
+                    "falhas": falhas,
+                    "total": sucessos + falhas,
+                    "elementos_processados": len(test_divs)
+                },
+                "nomes_evidencias": nomes_evidencias,
+                "metodo": "selenium_especifico"
+            }
+            
+        finally:
+            driver.quit()
+            
+    except ImportError:
+        print("❌ Selenium não disponível, usando método genérico")
+        return None
+    except Exception as e:
+        print(f"❌ Erro no método Selenium: {e}")
+        return None
+
+def processar_evidencias_hibrido(log_path):
+    """Método híbrido combinando precisão e flexibilidade"""
+    print("🔄 Iniciando processamento híbrido de evidências...")
+    
+    # 1. Tentar método específico com Selenium primeiro
+    resultado_selenium = processar_evidencias_com_selenium(log_path)
+    
+    if resultado_selenium and resultado_selenium['sucesso']:
+        print("✅ Método específico (Selenium) executado com sucesso")
+        return resultado_selenium
+    
+    # 2. Fallback para método genérico atual
+    print("🔄 Fallback para método genérico...")
+    return processar_arquivo_log(log_path)
 
 def processar_arquivo_log(log_path):
     """Processa o arquivo log.html e extrai evidências com logs detalhados"""
@@ -2174,98 +2419,26 @@ def criar_screenshot_simulado(caminho_arquivo, nome_teste, is_sucesso):
     except Exception as e:
         print(f"Erro ao criar screenshot: {e}")
 
-def criar_screenshot_real(caminho_arquivo, nome_teste, is_sucesso):
-    """Cria um screenshot real usando Selenium"""
-    try:
-        from selenium import webdriver
-        from selenium.webdriver.chrome.options import Options
-        from selenium.webdriver.common.by import By
-        from selenium.webdriver.support.ui import WebDriverWait
-        from selenium.webdriver.support import expected_conditions as EC
-        from webdriver_manager.chrome import ChromeDriverManager
-        
-        # Configurar Chrome em modo headless
-        chrome_options = Options()
-        chrome_options.add_argument("--headless")
-        chrome_options.add_argument("--no-sandbox")
-        chrome_options.add_argument("--disable-dev-shm-usage")
-        chrome_options.add_argument("--window-size=1024,768")
-        
-        # Inicializar driver
-        driver = webdriver.Chrome(ChromeDriverManager().install(), options=chrome_options)
-        
-        try:
-            # Criar uma página HTML simples para capturar
-            html_content = f"""
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <title>Evidência de Teste - {nome_teste}</title>
-                <style>
-                    body {{ font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }}
-                    .container {{ max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }}
-                    .header {{ text-align: center; margin-bottom: 30px; }}
-                    .status {{ font-size: 24px; font-weight: bold; margin: 20px 0; text-align: center; }}
-                    .success {{ color: #28a745; }}
-                    .failure {{ color: #dc3545; }}
-                    .details {{ background: #f8f9fa; padding: 20px; border-radius: 5px; margin: 20px 0; }}
-                    .info {{ margin: 10px 0; }}
-                </style>
-            </head>
-            <body>
-                <div class="container">
-                    <div class="header">
-                        <h1>Evidência de Teste</h1>
-                        <h2>{nome_teste}</h2>
-                    </div>
-                    <div class="status {'success' if is_sucesso else 'failure'}">
-                        {'✅ SUCESSO' if is_sucesso else '❌ FALHA'}
-                    </div>
-                    <div class="details">
-                        <div class="info"><strong>Teste:</strong> {nome_teste}</div>
-                        <div class="info"><strong>Status:</strong> {'PASSED' if is_sucesso else 'FAILED'}</div>
-                        <div class="info"><strong>Data:</strong> {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}</div>
-                        <div class="info"><strong>Timestamp:</strong> {datetime.now().isoformat()}</div>
-                        <div class="info"><strong>ID da Sessão:</strong> {random.randint(10000, 99999)}</div>
-                    </div>
-                </div>
-            </body>
-            </html>
-            """
-            
-            # Salvar HTML temporário
-            temp_html = f"temp_{nome_teste}.html"
-            with open(temp_html, 'w', encoding='utf-8') as f:
-                f.write(html_content)
-            
-            # Carregar página
-            driver.get(f"file://{os.path.abspath(temp_html)}")
-            
-            # Aguardar carregamento
-            WebDriverWait(driver, 10).until(
-                EC.presence_of_element_located((By.TAG_NAME, "body"))
-            )
-            
-            # Capturar screenshot
-            driver.save_screenshot(caminho_arquivo)
-            
-            # Limpar arquivo temporário
-            os.remove(temp_html)
-            
-            print(f"Screenshot real criado: {caminho_arquivo}")
-            
-        finally:
-            driver.quit()
-            
-    except Exception as e:
-        print(f"Erro ao criar screenshot real: {e}")
-        # Fallback para screenshot simulado
-        criar_screenshot_simulado(caminho_arquivo, nome_teste, is_sucesso)
+
 
 @app.route('/api/evidencias/enviar', methods=['POST'])
 def enviar_evidencias_jira():
     """Envia evidências processadas para o Jira"""
     try:
+        data = request.get_json()
+        issue_key = data.get('issue_key')
+        
+        if not issue_key:
+            return jsonify({"erro": "Chave da issue é obrigatória"}), 400
+        
+        # Validar formato da chave
+        if not re.match(r'^[A-Z]+-\d+$', issue_key):
+            return jsonify({"erro": "Formato de chave inválido. Use o formato: PROJ-123"}), 400
+        
+        # Verificar se as configurações do Jira estão disponíveis
+        if not all([JIRA_BASE_URL, JIRA_EMAIL, JIRA_API_TOKEN]):
+            return jsonify({"erro": "Configurações do Jira incompletas"}), 500
+        
         # Contar arquivos processados
         falhas_dir = os.path.join('prints_tests', 'falhas')
         sucessos_dir = os.path.join('prints_tests', 'sucessos')
@@ -2278,23 +2451,139 @@ def enviar_evidencias_jira():
         if total_enviados == 0:
             return jsonify({"erro": "Nenhuma evidência encontrada para envio"}), 400
         
-        # Simular envio para o Jira
-        # Em uma implementação real, aqui seria feito o upload das imagens para o Jira
-        print(f"Simulando envio de {total_enviados} evidências para o Jira")
+        # Verificar se a issue existe
+        issue_url = f"{JIRA_BASE_URL}/rest/api/3/issue/{issue_key}"
+        headers = {
+            "Accept": "application/json",
+            "Authorization": f"Basic {base64.b64encode(f'{JIRA_EMAIL}:{JIRA_API_TOKEN}'.encode()).decode()}"
+        }
+        
+        issue_response = requests.get(issue_url, headers=headers)
+        if issue_response.status_code != 200:
+            return jsonify({"erro": f"Issue {issue_key} não encontrada"}), 404
+        
+        # Preparar dados para upload
+        detalhes_upload = []
+        total_processados = 0
+        
+        # Upload de arquivos de falha
+        if os.path.exists(falhas_dir):
+            for arquivo in os.listdir(falhas_dir):
+                if arquivo.endswith(('.png', '.txt')):
+                    caminho_arquivo = os.path.join(falhas_dir, arquivo)
+                    try:
+                        # Upload do arquivo para o Jira
+                        upload_success = upload_arquivo_jira(issue_key, caminho_arquivo, headers)
+                        detalhes_upload.append({
+                            "arquivo": arquivo,
+                            "tipo": "falha",
+                            "sucesso": upload_success
+                        })
+                        total_processados += 1
+                    except Exception as e:
+                        detalhes_upload.append({
+                            "arquivo": arquivo,
+                            "tipo": "falha",
+                            "sucesso": False,
+                            "erro": str(e)
+                        })
+        
+        # Upload de arquivos de sucesso
+        if os.path.exists(sucessos_dir):
+            for arquivo in os.listdir(sucessos_dir):
+                if arquivo.endswith(('.png', '.txt')):
+                    caminho_arquivo = os.path.join(sucessos_dir, arquivo)
+                    try:
+                        # Upload do arquivo para o Jira
+                        upload_success = upload_arquivo_jira(issue_key, caminho_arquivo, headers)
+                        detalhes_upload.append({
+                            "arquivo": arquivo,
+                            "tipo": "sucesso",
+                            "sucesso": upload_success
+                        })
+                        total_processados += 1
+                    except Exception as e:
+                        detalhes_upload.append({
+                            "arquivo": arquivo,
+                            "tipo": "sucesso",
+                            "sucesso": False,
+                            "erro": str(e)
+                        })
+        
+        # Adicionar comentário na issue
+        sucessos_upload = len([d for d in detalhes_upload if d['sucesso']])
+        comentario = f"""
+**Evidências de Teste Enviadas**
+
+📊 **Resumo:**
+- Total de evidências: {total_processados}
+- Enviadas com sucesso: {sucessos_upload}
+- Falhas no envio: {total_processados - sucessos_upload}
+
+📁 **Detalhes:**
+- Evidências de sucesso: {sucessos_count}
+- Evidências de falha: {falhas_count}
+
+🕒 **Enviado em:** {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}
+        """
+        
+        # Enviar comentário
+        comment_url = f"{JIRA_BASE_URL}/rest/api/3/issue/{issue_key}/comment"
+        comment_data = {"body": {"type": "doc", "version": 1, "content": [{"type": "paragraph", "content": [{"type": "text", "text": comentario}]}]}}
+        
+        comment_response = requests.post(comment_url, headers=headers, json=comment_data)
         
         return jsonify({
             "sucesso": True,
-            "mensagem": f"Evidências enviadas com sucesso para o Jira",
-            "enviados": total_enviados,
+            "mensagem": f"Evidências enviadas com sucesso para {issue_key}",
+            "enviados": sucessos_upload,
+            "total_processados": total_processados,
             "estatisticas": {
                 "falhas": falhas_count,
                 "sucessos": sucessos_count
-            }
+            },
+            "detalhes": detalhes_upload
         })
             
     except Exception as e:
         print(f"Erro no envio de evidências: {str(e)}")
         return jsonify({"erro": str(e)}), 500
+
+def upload_arquivo_jira(issue_key, caminho_arquivo, headers):
+    """Faz upload de um arquivo para uma issue do Jira"""
+    try:
+        # Verificar se o arquivo existe
+        if not os.path.exists(caminho_arquivo):
+            return False
+        
+        # Verificar tamanho do arquivo (máximo 10MB)
+        tamanho_arquivo = os.path.getsize(caminho_arquivo)
+        if tamanho_arquivo > 10 * 1024 * 1024:  # 10MB
+            print(f"Arquivo {caminho_arquivo} muito grande: {tamanho_arquivo} bytes")
+            return False
+        
+        # Preparar upload
+        upload_url = f"{JIRA_BASE_URL}/rest/api/3/issue/{issue_key}/attachments"
+        
+        with open(caminho_arquivo, 'rb') as f:
+            files = {'file': (os.path.basename(caminho_arquivo), f, 'application/octet-stream')}
+            upload_headers = {
+                "X-Atlassian-Token": "no-check",
+                "Authorization": headers["Authorization"]
+            }
+            
+            response = requests.post(upload_url, headers=upload_headers, files=files)
+            
+            if response.status_code == 200:
+                print(f"Upload realizado com sucesso: {caminho_arquivo}")
+                return True
+            else:
+                print(f"Erro no upload {caminho_arquivo}: {response.status_code}")
+                return False
+                
+    except Exception as e:
+        print(f"Erro ao fazer upload de {caminho_arquivo}: {e}")
+        return False
 
 @app.route('/evidencias')
 def evidencias_page():
@@ -2325,6 +2614,54 @@ def status_evidencias():
             "sucessos": 0,
             "total": 0,
             "processado": False
+        })
+
+@app.route('/api/evidencias/lista')
+def lista_evidencias():
+    """Retorna lista das evidências processadas"""
+    try:
+        falhas_dir = os.path.join('prints_tests', 'falhas')
+        sucessos_dir = os.path.join('prints_tests', 'sucessos')
+        
+        evidencias = []
+        
+        # Adicionar evidências de sucesso
+        if os.path.exists(sucessos_dir):
+            for arquivo in os.listdir(sucessos_dir):
+                if arquivo.endswith('.png'):
+                    nome = arquivo.replace('_sucesso.png', '').replace('.png', '')
+                    evidencias.append({
+                        "nome": nome,
+                        "arquivo": arquivo,
+                        "status": "sucesso",
+                        "diretorio": "sucessos"
+                    })
+        
+        # Adicionar evidências de falha
+        if os.path.exists(falhas_dir):
+            for arquivo in os.listdir(falhas_dir):
+                if arquivo.endswith('.png'):
+                    nome = arquivo.replace('_falha.png', '').replace('.png', '')
+                    evidencias.append({
+                        "nome": nome,
+                        "arquivo": arquivo,
+                        "status": "falha",
+                        "diretorio": "falhas"
+                    })
+        
+        return jsonify({
+            "sucesso": True,
+            "evidencias": evidencias,
+            "total": len(evidencias)
+        })
+        
+    except Exception as e:
+        print(f"Erro ao listar evidências: {e}")
+        return jsonify({
+            "sucesso": False,
+            "erro": str(e),
+            "evidencias": [],
+            "total": 0
         })
 
 @app.route('/configuracoes')

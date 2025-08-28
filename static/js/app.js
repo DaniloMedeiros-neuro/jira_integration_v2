@@ -1969,10 +1969,32 @@ async function verificarStatusEvidencias() {
         const resultadosSection = document.getElementById('resultadosSection');
         if (status.processado) {
             resultadosSection.style.display = 'block';
+            
+            // Carregar lista de evidências processadas
+            await carregarEvidenciasProcessadas();
         }
         
     } catch (error) {
         console.error('Erro ao verificar status:', error);
+    }
+}
+
+// Função para carregar evidências processadas
+async function carregarEvidenciasProcessadas() {
+    try {
+        const response = await fetch('/api/evidencias/lista');
+        const resultado = await response.json();
+        
+        if (resultado.sucesso) {
+            window.evidenciasProcessadas = resultado.evidencias;
+            console.log('Evidências carregadas:', resultado.evidencias);
+        } else {
+            console.error('Erro ao carregar evidências:', resultado.erro);
+            window.evidenciasProcessadas = [];
+        }
+    } catch (error) {
+        console.error('Erro ao carregar evidências:', error);
+        window.evidenciasProcessadas = [];
     }
 }
 
@@ -2042,15 +2064,110 @@ function mostrarDetalhesEnvio(resultado) {
     const falhas = detalhes.filter(d => d.sucesso && d.tipo === 'falha').length;
     const erros = detalhes.filter(d => !d.sucesso).length;
     
-    let mensagem = `Enviados: ${resultado.enviados}/${resultado.total_processados}\n`;
-    mensagem += `Sucessos: ${sucessos}\n`;
-    mensagem += `Falhas: ${falhas}\n`;
+    let mensagem = `📊 **Resumo do Envio:**\n\n`;
+    mensagem += `✅ Enviados com sucesso: ${resultado.enviados}/${resultado.total_processados}\n`;
+    mensagem += `📁 Evidências de sucesso: ${sucessos}\n`;
+    mensagem += `📁 Evidências de falha: ${falhas}\n`;
     
     if (erros > 0) {
-        mensagem += `Erros: ${erros}`;
+        mensagem += `❌ Erros no envio: ${erros}\n\n`;
+        mensagem += `**Arquivos com erro:**\n`;
+        detalhes.filter(d => !d.sucesso).forEach(d => {
+            mensagem += `- ${d.arquivo}: ${d.erro || 'Erro desconhecido'}\n`;
+        });
     }
     
-    alert(mensagem);
+    // Criar modal com detalhes
+    const modalHtml = `
+        <div class="modal fade" id="modalDetalhesEnvio" tabindex="-1">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Detalhes do Envio
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="alert alert-success">
+                            <h6><i class="fas fa-check-circle me-2"></i>Envio Concluído</h6>
+                            <p>${resultado.mensagem}</p>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="card text-center">
+                                    <div class="card-body">
+                                        <h3 class="text-success">${resultado.enviados}</h3>
+                                        <p class="card-text">Enviados com Sucesso</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card text-center">
+                                    <div class="card-body">
+                                        <h3 class="text-info">${resultado.total_processados}</h3>
+                                        <p class="card-text">Total Processados</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card text-center">
+                                    <div class="card-body">
+                                        <h3 class="text-danger">${erros}</h3>
+                                        <p class="card-text">Erros no Envio</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        ${erros > 0 ? `
+                        <div class="mt-3">
+                            <h6><i class="fas fa-exclamation-triangle me-2"></i>Arquivos com Erro:</h6>
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Arquivo</th>
+                                            <th>Tipo</th>
+                                            <th>Erro</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${detalhes.filter(d => !d.sucesso).map(d => `
+                                            <tr>
+                                                <td>${d.arquivo}</td>
+                                                <td><span class="badge bg-${d.tipo === 'sucesso' ? 'success' : 'danger'}">${d.tipo}</span></td>
+                                                <td class="text-danger">${d.erro || 'Erro desconhecido'}</td>
+                                            </tr>
+                                        `).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        ` : ''}
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Remover modal anterior se existir
+    const modalAnterior = document.getElementById('modalDetalhesEnvio');
+    if (modalAnterior) {
+        modalAnterior.remove();
+    }
+    
+    // Adicionar modal ao DOM
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    
+    // Mostrar modal
+    const modal = new bootstrap.Modal(document.getElementById('modalDetalhesEnvio'));
+    modal.show();
 }
 
 // Inicializar sistema de evidências quando a página carregar
