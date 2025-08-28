@@ -154,3 +154,6 @@ logs/
 
 # Reference folder (contains sensitive data and examples)
 reference/
+
+# Test screenshots and evidence
+prints_tests/
