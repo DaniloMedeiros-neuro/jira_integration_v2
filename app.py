@@ -7,9 +7,9 @@ from datetime import datetime
 import pandas as pd
 import io
 from openpyxl import Workbook
-from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+from openpyxl.styles import Font, PatternFill, Alignment
 import re
-from urllib.parse import urlparse, parse_qs
+
 import base64
 
 load_dotenv()
@@ -25,7 +25,7 @@ def after_request(response):
     return response
 
 # Configurações do Jira
-JIRA_BASE_URL = os.getenv("JIRA_BASE_URL")
+JIRA_BASE_URL = os.getenv("JIRA_URL")
 JIRA_EMAIL = os.getenv("JIRA_EMAIL")
 JIRA_API_TOKEN = os.getenv("JIRA_API_TOKEN")
 
@@ -65,78 +65,53 @@ def obter_informacoes_issue(issue_key):
         return None, None
 
 def buscar_issues_similares(issue_key):
-    """Busca issues similares para sugerir correção de digitação"""
+    """Busca issues similares para sugerir correção de erros de digitação"""
     try:
-        # Extrair prefixo e número da issue
+        # Extrair o prefixo do projeto (ex: BC de BC-126)
         if '-' in issue_key:
-            prefixo, numero = issue_key.split('-', 1)
+            prefixo = issue_key.split('-')[0]
         else:
-            return []
+            prefixo = issue_key
         
-        # Buscar issues com o mesmo prefixo
-        jql = f'project = {prefixo} AND issuekey LIKE "{prefixo}-%" ORDER BY created DESC'
+        # Buscar issues recentes com o mesmo prefixo
+        jql = f'project = {prefixo} ORDER BY created DESC'
         url = f"{JIRA_BASE_URL}/rest/api/3/search"
-        
         payload = {
             "jql": jql,
-            "maxResults": 10,
-            "fields": ["key", "summary"]
+            "maxResults": 5,
+            "fields": ["summary"]
         }
         
         response = requests.post(url, headers=HEADERS, json=payload, auth=(JIRA_EMAIL, JIRA_API_TOKEN))
         
         if response.status_code == 200:
-            data = response.json()
-            issues = data.get('issues', [])
-            
-            # Filtrar issues mais similares (mesmo número ou próximo)
-            sugestoes = []
-            for issue in issues:
-                issue_key_found = issue['key']
-                if issue_key_found != issue_key:  # Não sugerir a mesma issue
-                    sugestoes.append(issue_key_found)
-            
-            return sugestoes[:5]  # Retornar até 5 sugestões
-        
-        return []
-        
+            issues = response.json().get('issues', [])
+            sugestoes = [issue['key'] for issue in issues[:3]]  # Retorna até 3 sugestões
+            return sugestoes
+        else:
+            return []
     except Exception as e:
         print(f"Erro ao buscar issues similares: {e}")
         return []
 
 def obter_tipos_issue_disponiveis(project_key):
-    """Obtém todos os tipos de issue disponíveis no projeto"""
+    """Obtém os tipos de issue disponíveis para um projeto"""
     try:
-        # Primeira tentativa: obter metadados completos do projeto
-        url = f"{JIRA_BASE_URL}/rest/api/3/issue/createmeta?projectKeys={project_key}"
+        url = f"{JIRA_BASE_URL}/rest/api/3/project/{project_key}"
         response = requests.get(url, headers=HEADERS, auth=(JIRA_EMAIL, JIRA_API_TOKEN))
         
         if response.status_code == 200:
-            data = response.json()
-            tipos_disponiveis = []
-            subtarefas = []
-            issues_normais = []
+            project_data = response.json()
+            issue_types = project_data.get('issueTypes', [])
             
-            if 'projects' in data and data['projects']:
-                project = data['projects'][0]
-                if 'issuetypes' in project:
-                    for issue_type in project['issuetypes']:
-                        nome = issue_type['name']
-                        eh_subtarefa = issue_type.get('subtask', False)
-                        
-                        tipos_disponiveis.append(nome)
-                        if eh_subtarefa:
-                            subtarefas.append(nome)
-                        else:
-                            issues_normais.append(nome)
-                        
-                        print(f"Tipo disponível: {nome} (subtarefa: {eh_subtarefa})")
+            todos_tipos = [issue_type['name'] for issue_type in issue_types]
+            subtarefas = [issue_type['name'] for issue_type in issue_types if issue_type.get('subtask', False)]
+            issues_normais = [issue_type['name'] for issue_type in issue_types if not issue_type.get('subtask', False)]
             
-            print(f"Subtarefas encontradas: {subtarefas}")
-            print(f"Issues normais encontradas: {issues_normais}")
-            return tipos_disponiveis, subtarefas, issues_normais
+            print(f"Tipos disponíveis no projeto {project_key}: {todos_tipos}")
+            return todos_tipos, subtarefas, issues_normais
         else:
-            print(f"Erro ao obter tipos de issue: {response.status_code} - {response.text}")
+            print(f"Erro ao obter tipos de issue: {response.status_code}")
             return [], [], []
     except Exception as e:
         print(f"Erro ao obter tipos de issue: {e}")
@@ -169,16 +144,7 @@ def index():
     """Página principal"""
     return render_template('index.html')
 
-@app.route('/<requisito_id>')
-def requisito_direto(requisito_id):
-    """Rota para acessar diretamente um requisito via URL"""
-    # Verificar se o formato é válido (ex: CREDT-1161)
-    import re
-    if re.match(r'^[A-Z]+-\d+$', requisito_id):
-        return render_template('index.html')
-    else:
-        # Se não for um formato válido, retornar 404
-        return "Página não encontrada", 404
+
 
 @app.route('/api/casos-teste/<issue_pai>')
 def buscar_casos_teste(issue_pai):
@@ -421,29 +387,9 @@ def visualizar_metricas():
     """Página para visualizar métricas administrativas"""
     return render_template('metricas.html')
 
-@app.route('/teste-epic/<epic_key>')
-def teste_epic(epic_key):
-    """Rota de teste para verificar se o parâmetro está sendo passado"""
-    print(f"=== TESTE EPIC: {epic_key} ===")
-    debug_html = f"<!-- DEBUG: epic_key = {epic_key} -->"
-    return render_template('teste_epic.html', epic_key=epic_key, debug_html=debug_html)
 
-@app.route('/metricas/<epic_key>')
-def metricas_epico_direto(epic_key):
-    """Rota para acessar diretamente a análise de um épico via URL"""
-    print(f"=== ACESSANDO MÉTRICAS DO ÉPICO: {epic_key} ===")
-    
-    # Verificar se o formato é válido (ex: TLD-100, BC-8)
-    import re
-    if re.match(r'^[A-Z]+-\d+$', epic_key):
-        print(f"✅ Formato válido, renderizando template com epic_key: {epic_key}")
-        # Adicionar debug no HTML
-        debug_html = f"<!-- DEBUG: epic_key = {epic_key} -->"
-        return render_template('metricas.html', epic_key=epic_key, debug_html=debug_html)
-    else:
-        print(f"❌ Formato inválido: {epic_key}")
-        # Se não for um formato válido, retornar 404
-        return "Épico não encontrado", 404
+
+
 
 @app.route('/api/caso-teste/<issue_key>', methods=['GET'])
 def obter_caso_teste(issue_key):
@@ -565,9 +511,18 @@ def criar_caso_teste():
         print("JIRA_EMAIL:", JIRA_EMAIL)
         print("JIRA_API_TOKEN:", "***" if JIRA_API_TOKEN else "NÃO CONFIGURADO")
         
-        if not all([JIRA_BASE_URL, JIRA_EMAIL, JIRA_API_TOKEN]):
-            print("Erro: Configurações do Jira incompletas")
-            return jsonify({"erro": "Configurações do Jira incompletas. Verifique as variáveis de ambiente."}), 500
+        # Verificação mais detalhada
+        if not JIRA_BASE_URL:
+            print("❌ JIRA_BASE_URL não configurado")
+            return jsonify({"erro": "JIRA_BASE_URL não configurado"}), 500
+        if not JIRA_EMAIL:
+            print("❌ JIRA_EMAIL não configurado")
+            return jsonify({"erro": "JIRA_EMAIL não configurado"}), 500
+        if not JIRA_API_TOKEN:
+            print("❌ JIRA_API_TOKEN não configurado")
+            return jsonify({"erro": "JIRA_API_TOKEN não configurado"}), 500
+        
+        print("✅ Todas as configurações estão presentes")
         
         # Obter informações da issue pai
         project_key, issue_type_pai = obter_informacoes_issue(issue_pai)
@@ -583,11 +538,10 @@ def criar_caso_teste():
             return jsonify({"erro": erro_msg}), 400
         
         # Verificar tipos de issue disponíveis
-        todos_tipos, subtarefas, issues_normais = obter_tipos_issue_disponiveis(project_key)
+        todos_tipos, _, _ = obter_tipos_issue_disponiveis(project_key)
         
         # SEMPRE criar como "Caso de Teste" (não como subtarefa)
         tipo_caso_teste = "Caso de Teste"
-        eh_subtarefa = False
         
         # Verificar se "Caso de Teste" está disponível
         if "Caso de Teste" in todos_tipos:
@@ -770,23 +724,7 @@ def atualizar_caso_teste(issue_key):
     except Exception as e:
         return jsonify({"erro": str(e)}), 500
 
-@app.route('/api/caso-teste/<issue_key>', methods=['DELETE'])
-def excluir_caso_teste(issue_key):
-    """Exclui um caso de teste"""
-    try:
-        url = f"{JIRA_BASE_URL}/rest/api/3/issue/{issue_key}"
-        response = requests.delete(url, headers=HEADERS, auth=(JIRA_EMAIL, JIRA_API_TOKEN))
-        
-        if response.status_code == 204:
-            return jsonify({
-                "sucesso": True,
-                "mensagem": f"Caso de teste {issue_key} excluído com sucesso"
-            })
-        else:
-            return jsonify({"erro": f"Erro ao excluir caso de teste: {response.status_code}", "detalhes": response.text}), 500
-            
-    except Exception as e:
-        return jsonify({"erro": str(e)}), 500
+
 
 @app.route('/api/casos-teste/batch-update', methods=['PUT'])
 def atualizar_casos_teste_batch():
@@ -837,6 +775,7 @@ def atualizar_casos_teste_batch():
                     payload["fields"]["components"] = componentes
                 
                 if 'objetivo' in campos_alterados:
+                    # Atualizar campo customizado
                     payload["fields"]["customfield_10066"] = {
                         "type": "doc",
                         "version": 1,
@@ -852,8 +791,63 @@ def atualizar_casos_teste_batch():
                             }
                         ]
                     }
+                    
+                    # Também atualizar a descrição principal para manter sincronização
+                    # Primeiro, buscar a descrição atual para preservar outros campos
+                    try:
+                        url_get = f"{JIRA_BASE_URL}/rest/api/3/issue/{issue_key}"
+                        response_get = requests.get(url_get, headers=HEADERS, auth=(JIRA_EMAIL, JIRA_API_TOKEN))
+                        if response_get.status_code == 200:
+                            issue_data = response_get.json()
+                            descricao_atual = issue_data.get('fields', {}).get('description', {})
+                            
+                            # Extrair pré-condições e descrição BDD da descrição atual
+                            pre_condicoes_atual = ""
+                            descricao_bdd_atual = ""
+                            
+                            if descricao_atual and descricao_atual.get('content'):
+                                current_section = None
+                                for content in descricao_atual.get('content', []):
+                                    if content.get('type') == 'paragraph':
+                                        paragraph_text = ""
+                                        for para_content in content.get('content', []):
+                                            if para_content.get('type') == 'text':
+                                                paragraph_text += para_content.get('text', '')
+                                        
+                                        if 'Pré Condição:' in paragraph_text:
+                                            current_section = 'pre_condicoes'
+                                        elif paragraph_text.strip() and current_section == 'pre_condicoes':
+                                            pre_condicoes_atual = paragraph_text.strip()
+                                            current_section = None
+                                    elif content.get('type') == 'codeBlock':
+                                        for code_content in content.get('content', []):
+                                            if code_content.get('type') == 'text':
+                                                descricao_bdd_atual += code_content.get('text', '')
+                            
+                            # Criar nova descrição com objetivo atualizado
+                            payload["fields"]["description"] = {
+                                "type": "doc",
+                                "version": 1,
+                                "content": [
+                                    {"type": "paragraph", "content": [{"type": "text", "text": ""}]},
+                                    {"type": "paragraph", "content": [{"type": "text", "text": "Objetivo:", "marks": [{"type": "strong"}]}]},
+                                    {"type": "paragraph", "content": [{"type": "text", "text": campos_alterados['objetivo'] or ""}]},
+                                    {"type": "paragraph", "content": [{"type": "text", "text": "Pré Condição:", "marks": [{"type": "strong"}]}]},
+                                    {"type": "paragraph", "content": [{"type": "text", "text": pre_condicoes_atual}]},
+                                    {"type": "paragraph", "content": [{"type": "text", "text": ""}]},
+                                    {
+                                        "type": "codeBlock",
+                                        "attrs": {"language": "gherkin"},
+                                        "content": [{"type": "text", "text": descricao_bdd_atual}]
+                                    }
+                                ]
+                            }
+                    except Exception as e:
+                        print(f"Erro ao sincronizar descrição: {e}")
+                        # Se não conseguir sincronizar, pelo menos atualizar o campo customizado
                 
                 if 'pre_condicoes' in campos_alterados:
+                    # Atualizar campo customizado
                     payload["fields"]["customfield_10065"] = {
                         "type": "doc",
                         "version": 1,
@@ -869,6 +863,60 @@ def atualizar_casos_teste_batch():
                             }
                         ]
                     }
+                    
+                    # Também atualizar a descrição principal para manter sincronização
+                    # Primeiro, buscar a descrição atual para preservar outros campos
+                    try:
+                        url_get = f"{JIRA_BASE_URL}/rest/api/3/issue/{issue_key}"
+                        response_get = requests.get(url_get, headers=HEADERS, auth=(JIRA_EMAIL, JIRA_API_TOKEN))
+                        if response_get.status_code == 200:
+                            issue_data = response_get.json()
+                            descricao_atual = issue_data.get('fields', {}).get('description', {})
+                            
+                            # Extrair objetivo e descrição BDD da descrição atual
+                            objetivo_atual = ""
+                            descricao_bdd_atual = ""
+                            
+                            if descricao_atual and descricao_atual.get('content'):
+                                current_section = None
+                                for content in descricao_atual.get('content', []):
+                                    if content.get('type') == 'paragraph':
+                                        paragraph_text = ""
+                                        for para_content in content.get('content', []):
+                                            if para_content.get('type') == 'text':
+                                                paragraph_text += para_content.get('text', '')
+                                        
+                                        if 'Objetivo:' in paragraph_text:
+                                            current_section = 'objetivo'
+                                        elif paragraph_text.strip() and current_section == 'objetivo':
+                                            objetivo_atual = paragraph_text.strip()
+                                            current_section = None
+                                    elif content.get('type') == 'codeBlock':
+                                        for code_content in content.get('content', []):
+                                            if code_content.get('type') == 'text':
+                                                descricao_bdd_atual += code_content.get('text', '')
+                            
+                            # Criar nova descrição com pré-condições atualizadas
+                            payload["fields"]["description"] = {
+                                "type": "doc",
+                                "version": 1,
+                                "content": [
+                                    {"type": "paragraph", "content": [{"type": "text", "text": ""}]},
+                                    {"type": "paragraph", "content": [{"type": "text", "text": "Objetivo:", "marks": [{"type": "strong"}]}]},
+                                    {"type": "paragraph", "content": [{"type": "text", "text": objetivo_atual}]},
+                                    {"type": "paragraph", "content": [{"type": "text", "text": "Pré Condição:", "marks": [{"type": "strong"}]}]},
+                                    {"type": "paragraph", "content": [{"type": "text", "text": campos_alterados['pre_condicoes'] or ""}]},
+                                    {"type": "paragraph", "content": [{"type": "text", "text": ""}]},
+                                    {
+                                        "type": "codeBlock",
+                                        "attrs": {"language": "gherkin"},
+                                        "content": [{"type": "text", "text": descricao_bdd_atual}]
+                                    }
+                                ]
+                            }
+                    except Exception as e:
+                        print(f"Erro ao sincronizar descrição: {e}")
+                        # Se não conseguir sincronizar, pelo menos atualizar o campo customizado
                 
                 if 'descricao' in campos_alterados:
                     payload["fields"]["description"] = {
@@ -1259,95 +1307,7 @@ def calcular_metricas_epico(epic_fields, issues):
         traceback.print_exc()
         raise e
 
-@app.route('/api/metricas-sprint/<sprint_id>')
-def obter_metricas_sprint(sprint_id):
-    """Obtém métricas de uma sprint específica"""
-    try:
-        print(f"=== OBTENDO MÉTRICAS DA SPRINT: {sprint_id} ===")
-        
-        if not all([JIRA_BASE_URL, JIRA_EMAIL, JIRA_API_TOKEN]):
-            return jsonify({"erro": "Configurações do Jira incompletas"}), 500
-        
-        # Buscar informações da sprint
-        sprint_url = f"{JIRA_BASE_URL}/rest/agile/1.0/sprint/{sprint_id}"
-        headers = {
-            "Accept": "application/json",
-            "Authorization": f"Basic {base64.b64encode(f'{JIRA_EMAIL}:{JIRA_API_TOKEN}'.encode()).decode()}"
-        }
-        
-        sprint_response = requests.get(sprint_url, headers=headers)
-        if sprint_response.status_code != 200:
-            return jsonify({"erro": f"Sprint {sprint_id} não encontrada"}), 404
-        
-        sprint_data = sprint_response.json()
-        
-        # Buscar issues da sprint
-        issues_url = f"{JIRA_BASE_URL}/rest/agile/1.0/sprint/{sprint_id}/issue"
-        issues_response = requests.get(issues_url, headers=headers)
-        
-        if issues_response.status_code != 200:
-            return jsonify({"erro": "Erro ao buscar issues da sprint"}), 500
-        
-        issues_data = issues_response.json()
-        issues = issues_data.get('issues', [])
-        
-        # Calcular métricas da sprint
-        metricas = calcular_metricas_sprint(sprint_data, issues)
-        
-        return jsonify(metricas)
-        
-    except Exception as e:
-        print(f"Erro ao obter métricas da sprint: {str(e)}")
-        return jsonify({"erro": str(e)}), 500
 
-def calcular_metricas_sprint(sprint_data, issues):
-    """Calcula métricas de uma sprint"""
-    
-    total_issues = len(issues)
-    issues_concluidas = sum(1 for issue in issues if issue['fields'].get('status', {}).get('name') in ['Done', 'Resolved', 'Closed'])
-    
-    # Story points
-    story_points_total = sum(issue['fields'].get('storypoints', 0) or 0 for issue in issues)
-    story_points_concluidos = sum(
-        issue['fields'].get('storypoints', 0) or 0 
-        for issue in issues 
-        if issue['fields'].get('status', {}).get('name') in ['Done', 'Resolved', 'Closed']
-    )
-    
-    # Velocidade
-    velocity = story_points_concluidos
-    
-    # Burndown data
-    burndown_data = []
-    for issue in issues:
-        if issue['fields'].get('status', {}).get('name') in ['Done', 'Resolved', 'Closed']:
-            resolved_date = issue['fields'].get('resolutiondate')
-            if resolved_date:
-                burndown_data.append({
-                    'date': resolved_date,
-                    'story_points': issue['fields'].get('storypoints', 0) or 0
-                })
-    
-    return {
-        "sprint_info": {
-            "id": sprint_data.get('id'),
-            "name": sprint_data.get('name'),
-            "state": sprint_data.get('state'),
-            "startDate": sprint_data.get('startDate'),
-            "endDate": sprint_data.get('endDate'),
-            "goal": sprint_data.get('goal')
-        },
-        "metricas": {
-            "total_issues": total_issues,
-            "issues_concluidas": issues_concluidas,
-            "issues_pendentes": total_issues - issues_concluidas,
-            "story_points_total": story_points_total,
-            "story_points_concluidos": story_points_concluidos,
-            "velocity": velocity,
-            "percentual_conclusao": round((issues_concluidas / total_issues * 100), 2) if total_issues > 0 else 0
-        },
-        "burndown_data": burndown_data
-    }
 
 @app.route('/api/analise-epico-detalhada/<epic_key>')
 def obter_analise_epico_detalhada(epic_key):
@@ -1884,6 +1844,384 @@ def salvar_configuracoes():
     except Exception as e:
         print(f"Erro ao salvar configurações: {str(e)}")
         return jsonify({'erro': f'Erro ao salvar configurações: {str(e)}'}), 500
+
+@app.route('/api/metricas-casos-teste/<epic_key>')
+def obter_metricas_casos_teste(epic_key):
+    """Obtém métricas de casos de teste varrendo todos os cards relacionados até chegar aos casos de teste"""
+    try:
+        print(f"=== OBTENDO MÉTRICAS DE CASOS DE TESTE DO ÉPICO: {epic_key} ===")
+        
+        if not all([JIRA_BASE_URL, JIRA_EMAIL, JIRA_API_TOKEN]):
+            return jsonify({"erro": "Configurações do Jira incompletas"}), 500
+        
+        headers = {
+            "Accept": "application/json",
+            "Authorization": f"Basic {base64.b64encode(f'{JIRA_EMAIL}:{JIRA_API_TOKEN}'.encode()).decode()}"
+        }
+        
+        # 1. Buscar o épico
+        epic_url = f"{JIRA_BASE_URL}/rest/api/3/issue/{epic_key}"
+        epic_response = requests.get(epic_url, headers=headers)
+        
+        if epic_response.status_code != 200:
+            return jsonify({"erro": f"Épico {epic_key} não encontrado"}), 404
+        
+        epic_data = epic_response.json()
+        epic_fields = epic_data.get('fields', {})
+        
+        # 2. Buscar todas as issues do épico (histórias, tarefas, etc.)
+        jql = f'"Epic Link" = {epic_key} OR parent = {epic_key}'
+        search_url = f"{JIRA_BASE_URL}/rest/api/3/search"
+        
+        search_payload = {
+            "jql": jql,
+            "maxResults": 1000,
+            "fields": [
+                "key", "summary", "status", "assignee", "reporter", 
+                "created", "updated", "resolutiondate", "issuetype",
+                "priority", "components", "labels", "worklog", "comment"
+            ]
+        }
+        
+        search_response = requests.post(search_url, headers=headers, json=search_payload)
+        if search_response.status_code != 200:
+            return jsonify({"erro": "Erro ao buscar issues do épico"}), 500
+        
+        issues_data = search_response.json()
+        issues = issues_data.get('issues', [])
+        
+        print(f"Encontradas {len(issues)} issues no épico {epic_key}")
+        
+        # 3. Para cada issue, buscar casos de teste relacionados (incluindo toda hierarquia)
+        todos_casos_teste = []
+        casos_teste_keys = set()  # Para evitar duplicações
+        hierarquia_cards = []
+        
+        print(f"\n🔍 INICIANDO BUSCA RECURSIVA EM TODA HIERARQUIA DO ÉPICO {epic_key}")
+        print("=" * 80)
+        
+        for issue in issues:
+            issue_key = issue['key']
+            issue_summary = issue['fields'].get('summary', '')
+            issue_type = issue['fields'].get('issuetype', {}).get('name', '')
+            issue_status = issue['fields'].get('status', {}).get('name', '')
+            
+            print(f"\n📋 Processando issue: {issue_key} ({issue_type}) - {issue_summary}")
+            print(f"   Status: {issue_status}")
+            
+            # Buscar casos de teste relacionados a esta issue (incluindo toda hierarquia)
+            casos_teste_relacionados = buscar_casos_teste_para_issue(issue_key, headers)
+            
+            # Adicionar à hierarquia
+            hierarquia_cards.append({
+                "card_key": issue_key,
+                "card_summary": issue_summary,
+                "card_type": issue_type,
+                "card_status": issue_status,
+                "casos_teste": casos_teste_relacionados,
+                "total_casos_teste": len(casos_teste_relacionados)
+            })
+            
+            # Adicionar casos de teste únicos
+            for caso in casos_teste_relacionados:
+                if caso['key'] not in casos_teste_keys:
+                    casos_teste_keys.add(caso['key'])
+                    todos_casos_teste.append(caso)
+        
+        print(f"\n" + "=" * 80)
+        print(f"🎯 RESUMO DA BUSCA RECURSIVA:")
+        print(f"   Total de cards processados: {len(hierarquia_cards)}")
+        print(f"   Total de casos de teste únicos encontrados: {len(todos_casos_teste)}")
+        print(f"   Cards com casos de teste: {sum(1 for card in hierarquia_cards if card['total_casos_teste'] > 0)}")
+        print("=" * 80)
+        
+        # 4. Calcular métricas dos casos de teste
+        metricas_casos_teste = calcular_metricas_casos_teste(todos_casos_teste)
+        
+        # 5. Preparar resposta
+        resultado = {
+            "epic_key": epic_key,
+            "epic_summary": epic_fields.get('summary', ''),
+            "epic_status": epic_fields.get('status', {}).get('name', ''),
+            "hierarquia_cards": hierarquia_cards,
+            "metricas_casos_teste": metricas_casos_teste,
+            "casos_teste_detalhados": todos_casos_teste,  # Adicionar dados detalhados dos casos de teste
+            "resumo": {
+                "total_cards": len(hierarquia_cards),
+                "total_casos_teste": len(todos_casos_teste),
+                "cards_com_casos_teste": sum(1 for card in hierarquia_cards if card['total_casos_teste'] > 0)
+            }
+        }
+        
+        return jsonify(resultado)
+        
+    except Exception as e:
+        print(f"Erro ao obter métricas de casos de teste: {str(e)}")
+        import traceback
+        print("Traceback completo:")
+        traceback.print_exc()
+        return jsonify({"erro": str(e)}), 500
+
+def buscar_casos_teste_para_issue(issue_key, headers, issues_processadas=None):
+    """Busca casos de teste relacionados a uma issue específica de forma recursiva"""
+    if issues_processadas is None:
+        issues_processadas = set()
+    
+    if issue_key in issues_processadas:
+        return []
+    
+    issues_processadas.add(issue_key)
+    
+    try:
+        casos_teste = []
+        casos_teste_keys = set()
+        
+        # Estratégia 1: Buscar sub-tarefas (filhos diretos)
+        jql_filhos = f'parent = {issue_key}'
+        search_url = f"{JIRA_BASE_URL}/rest/api/3/search"
+        
+        search_payload = {
+            "jql": jql_filhos,
+            "maxResults": 500,
+            "fields": [
+                "key", "summary", "status", "assignee", "reporter", 
+                "created", "updated", "resolutiondate", "issuetype",
+                "priority", "components", "labels", "worklog", "comment"
+            ]
+        }
+        
+        response = requests.post(search_url, headers=headers, json=search_payload)
+        if response.status_code == 200:
+            data = response.json()
+            for issue in data.get('issues', []):
+                issue_type = issue['fields'].get('issuetype', {}).get('name', '')
+                
+                # Se é um caso de teste, adicionar à lista
+                if issue_type == "Casos de Teste":
+                    if issue['key'] not in casos_teste_keys:
+                        casos_teste_keys.add(issue['key'])
+                        casos_teste.append(processar_caso_teste(issue))
+                
+                # Se não é caso de teste, fazer busca recursiva (filhos, netos, bisnetos)
+                else:
+                    print(f"  Buscando recursivamente em {issue['key']} ({issue_type})")
+                    casos_filhos = buscar_casos_teste_para_issue(issue['key'], headers, issues_processadas)
+                    for caso in casos_filhos:
+                        if caso['key'] not in casos_teste_keys:
+                            casos_teste_keys.add(caso['key'])
+                            casos_teste.append(caso)
+        
+        # Estratégia 2: Buscar casos de teste vinculados por links
+        jql_links = f'issue in linkedIssues({issue_key}) AND issuetype = "Casos de Teste"'
+        search_payload["jql"] = jql_links
+        
+        response = requests.post(search_url, headers=headers, json=search_payload)
+        if response.status_code == 200:
+            data = response.json()
+            for issue in data.get('issues', []):
+                if issue['key'] not in casos_teste_keys:
+                    casos_teste_keys.add(issue['key'])
+                    casos_teste.append(processar_caso_teste(issue))
+        
+        # Estratégia 3: Buscar casos de teste que mencionam esta issue
+        jql_mentions = f'issuetype = "Casos de Teste" AND text ~ "{issue_key}"'
+        search_payload["jql"] = jql_mentions
+        
+        response = requests.post(search_url, headers=headers, json=search_payload)
+        if response.status_code == 200:
+            data = response.json()
+            for issue in data.get('issues', []):
+                if issue['key'] not in casos_teste_keys:
+                    casos_teste_keys.add(issue['key'])
+                    casos_teste.append(processar_caso_teste(issue))
+        
+        print(f"Encontrados {len(casos_teste)} casos de teste para {issue_key} (incluindo hierarquia)")
+        return casos_teste
+        
+    except Exception as e:
+        print(f"Erro ao buscar casos de teste para {issue_key}: {e}")
+        return []
+
+def processar_caso_teste(issue):
+    """Processa um caso de teste e extrai informações relevantes"""
+    fields = issue.get('fields', {})
+    
+    # Determinar status de execução
+    status_execucao = determinar_status_execucao(fields)
+    
+    return {
+        "key": issue['key'],
+        "summary": fields.get('summary', ''),
+        "status": fields.get('status', {}).get('name', ''),
+        "status_execucao": status_execucao,
+        "assignee": fields.get('assignee', {}).get('displayName', '') if fields.get('assignee') else '',
+        "reporter": fields.get('reporter', {}).get('displayName', '') if fields.get('reporter') else '',
+        "created": fields.get('created', ''),
+        "updated": fields.get('updated', ''),
+        "resolutiondate": fields.get('resolutiondate', ''),
+        "priority": fields.get('priority', {}).get('name', '') if fields.get('priority') else '',
+        "components": [comp.get('name', '') for comp in fields.get('components', [])],
+        "labels": fields.get('labels', []),
+        "worklog_count": len(fields.get('worklog', {}).get('worklogs', [])) if fields.get('worklog') else 0,
+        "comment_count": len(fields.get('comment', {}).get('comments', [])) if fields.get('comment') else 0
+    }
+
+def determinar_status_execucao(fields):
+    """Determina o status de execução de um caso de teste"""
+    status = fields.get('status', {}).get('name', '').lower()
+    
+    # Mapeamento de status para execução
+    status_mapping = {
+        'passou': 'Passou',
+        'passed': 'Passou',
+        'falhou': 'Falhou',
+        'failed': 'Falhou',
+        'blocked': 'Bloqueado',
+        'bloqueado': 'Bloqueado',
+        'concluído': 'Passou',  # Status 'Concluído' mapeia para 'Passou' quando não há status específico
+        'concluido': 'Passou',
+        'done': 'Passou',
+        'resolved': 'Passou',
+        'closed': 'Passou',
+        'to do': 'Não Executado',
+        'todo': 'Não Executado',
+        'open': 'Não Executado',
+        'in progress': 'Em Execução',
+        'em execução': 'Em Execução',
+        'em execucao': 'Em Execução'
+    }
+    
+    # Verificar se há status específico de teste
+    for status_key, status_value in status_mapping.items():
+        if status_key in status:
+            return status_value
+    
+    # Se não encontrar mapeamento específico, usar lógica inteligente
+    if 'concluído' in status or 'concluido' in status or 'done' in status or 'resolved' in status or 'closed' in status:
+        return 'Passou'
+    elif 'falhou' in status or 'failed' in status:
+        return 'Falhou'
+    elif 'bloqueado' in status or 'blocked' in status:
+        return 'Bloqueado'
+    elif 'progress' in status or 'execução' in status or 'execucao' in status:
+        return 'Em Execução'
+    else:
+        return 'Não Executado'
+
+def calcular_metricas_casos_teste(casos_teste):
+    """Calcula métricas dos casos de teste"""
+    if not casos_teste:
+        return {
+            "total": 0,
+            "por_status": {},
+            "por_prioridade": {},
+            "por_responsavel": {},
+            "taxa_sucesso": 0,
+            "casos_por_mes": {},
+            "tempo_medio_execucao": 0
+        }
+    
+    # Contadores
+    total = len(casos_teste)
+    por_status = {}
+    por_prioridade = {}
+    por_responsavel = {}
+    casos_por_mes = {}
+    
+    # Contadores de execução
+    passaram = 0
+    falharam = 0
+    bloqueados = 0
+    em_execucao = 0
+    nao_executados = 0
+    
+    # Tempos de execução
+    tempos_execucao = []
+    
+    for caso in casos_teste:
+        # Status de execução
+        status_exec = caso.get('status_execucao', 'Não Executado')
+        por_status[status_exec] = por_status.get(status_exec, 0) + 1
+        
+        if status_exec == 'Passou':
+            passaram += 1
+        elif status_exec == 'Falhou':
+            falharam += 1
+        elif status_exec == 'Bloqueado':
+            bloqueados += 1
+        elif status_exec == 'Em Execução':
+            em_execucao += 1
+        else:
+            nao_executados += 1
+        
+        # Prioridade
+        prioridade = caso.get('priority', 'Sem Prioridade')
+        por_prioridade[prioridade] = por_prioridade.get(prioridade, 0) + 1
+        
+        # Responsável
+        responsavel = caso.get('assignee', 'Não Atribuído')
+        por_responsavel[responsavel] = por_responsavel.get(responsavel, 0) + 1
+        
+        # Casos por mês (baseado na data de criação)
+        if caso.get('created'):
+            try:
+                data_criacao = datetime.fromisoformat(caso['created'].replace('Z', '+00:00'))
+                mes_ano = data_criacao.strftime('%Y-%m')
+                casos_por_mes[mes_ano] = casos_por_mes.get(mes_ano, 0) + 1
+            except:
+                pass
+        
+        # Tempo de execução (se houver data de resolução)
+        if caso.get('resolutiondate') and caso.get('created'):
+            try:
+                data_criacao = datetime.fromisoformat(caso['created'].replace('Z', '+00:00'))
+                data_resolucao = datetime.fromisoformat(caso['resolutiondate'].replace('Z', '+00:00'))
+                tempo_exec = (data_resolucao - data_criacao).days
+                if tempo_exec >= 0:
+                    tempos_execucao.append(tempo_exec)
+            except:
+                pass
+    
+    # Calcular taxa de sucesso
+    total_executados = passaram + falharam + bloqueados
+    taxa_sucesso = (passaram / total_executados * 100) if total_executados > 0 else 0
+    
+    # Calcular tempo médio de execução
+    tempo_medio_execucao = sum(tempos_execucao) / len(tempos_execucao) if tempos_execucao else 0
+    
+    return {
+        "total": total,
+        "por_status": por_status,
+        "por_prioridade": por_prioridade,
+        "por_responsavel": por_responsavel,
+        "taxa_sucesso": round(taxa_sucesso, 2),
+        "casos_por_mes": casos_por_mes,
+        "tempo_medio_execucao": round(tempo_medio_execucao, 1),
+        "detalhamento": {
+            "passaram": passaram,
+            "falharam": falharam,
+            "bloqueados": bloqueados,
+            "em_execucao": em_execucao,
+            "nao_executados": nao_executados
+        }
+    }
+
+@app.route('/metricas-casos-teste/<epic_key>')
+def metricas_casos_teste(epic_key):
+    """Rota para visualizar métricas de casos de teste de um épico específico"""
+    print(f"=== ACESSANDO MÉTRICAS DE CASOS DE TESTE DO ÉPICO: {epic_key} ===")
+    
+    # Verificar se o formato é válido (ex: TLD-100, BC-8)
+    import re
+    if re.match(r'^[A-Z]+-\d+$', epic_key):
+        print(f"✅ Formato válido, renderizando template com epic_key: {epic_key}")
+        # Adicionar debug no HTML
+        debug_html = f"<!-- DEBUG: epic_key = {epic_key} -->"
+        return render_template('metricas_casos_teste.html', epic_key=epic_key, debug_html=debug_html)
+    else:
+        print(f"❌ Formato inválido: {epic_key}")
+        # Se não for um formato válido, retornar 404
+        return "Épico não encontrado", 404
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=8081)
