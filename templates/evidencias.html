@@ -7,180 +7,173 @@
 {% block page_subtitle %}Processe e envie evidências de testes automaticamente{% endblock %}
 
 {% block content %}
-<div class="evidencias-page">
+<div class="evidencias-container">
     <!-- Header da página -->
     <div class="evidencias-header">
-        <div class="evidencias-header-content">
-            <div class="evidencias-header-info">
-                <h2>Sistema de Evidências de Testes</h2>
-                <p>Extraia automaticamente evidências visuais de testes e envie-as para o Jira</p>
+        <div class="evidencias-info">
+            <h3>Sistema de Evidências de Testes</h3>
+            <p>Extraia automaticamente evidências visuais de testes e envie-as para o Jira</p>
+        </div>
+        <div class="evidencias-actions">
+            <button class="btn btn-outline-primary" onclick="verificarStatusEvidencias()">
+                <i class="fas fa-sync-alt me-1"></i>
+                Verificar Status
+            </button>
+        </div>
+    </div>
+
+    <!-- Seção de Upload -->
+    <div class="evidencias-section">
+        <div class="section-header">
+            <div class="section-title">
+                <i class="fas fa-upload me-2"></i>
+                <h4>Upload de Log de Testes</h4>
             </div>
-            <div class="evidencias-header-actions">
-                <button class="btn btn-outline-primary" onclick="verificarStatusEvidencias()">
-                    <i class="fas fa-sync-alt me-1"></i>
-                    Verificar Status
+            <p class="section-subtitle">Faça upload do arquivo log.html para processar as evidências</p>
+        </div>
+        
+        <div class="upload-area" id="uploadArea">
+            <div class="upload-content">
+                <i class="fas fa-file-upload upload-icon"></i>
+                <h5>Arraste o arquivo log.html aqui</h5>
+                <p class="upload-text">ou clique para selecionar o arquivo</p>
+                <input type="file" id="logFileInput" accept=".html" style="display: none;">
+                <button type="button" class="btn btn-primary" onclick="document.getElementById('logFileInput').click()">
+                    <i class="fas fa-folder-open me-1"></i>
+                    Selecionar Arquivo
+                </button>
+            </div>
+        </div>
+        
+        <div id="fileInfo" class="file-info" style="display: none;">
+            <div class="file-info-content">
+                <i class="fas fa-file-code file-icon"></i>
+                <div class="file-details">
+                    <span class="file-name" id="fileName"></span>
+                    <span class="file-size" id="fileSize"></span>
+                </div>
+                <button type="button" class="btn btn-sm btn-outline-danger" onclick="removerArquivo()">
+                    <i class="fas fa-times"></i>
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- Container principal -->
-    <div class="evidencias-container">
-        <!-- Seção de Upload -->
-        <div class="evidencias-section">
-            <div class="evidencias-section-header">
-                <h3>
-                    <i class="fas fa-upload me-2"></i>
-                    Upload de Log de Testes
-                </h3>
-                <p>Faça upload do arquivo log.html para processar as evidências</p>
+    <!-- Seção de Processamento -->
+    <div class="evidencias-section" id="processamentoSection" style="display: none;">
+        <div class="section-header">
+            <div class="section-title">
+                <i class="fas fa-cogs me-2"></i>
+                <h4>Processamento de Evidências</h4>
             </div>
-            
-            <div class="upload-area" id="uploadArea">
-                <div class="upload-content">
-                    <i class="fas fa-file-upload upload-icon"></i>
-                    <h4>Arraste o arquivo log.html aqui</h4>
-                    <p class="upload-text">ou clique para selecionar o arquivo</p>
-                    <input type="file" id="logFileInput" accept=".html" style="display: none;">
-                    <button type="button" class="btn btn-primary" onclick="document.getElementById('logFileInput').click()">
-                        <i class="fas fa-folder-open me-1"></i>
-                        Selecionar Arquivo
-                    </button>
+            <p class="section-subtitle">Acompanhe o progresso do processamento das evidências</p>
+        </div>
+        
+        <div class="processamento-steps">
+            <div class="step-item" id="step1">
+                <div class="step-icon">
+                    <i class="fas fa-camera"></i>
+                </div>
+                <div class="step-content">
+                    <h6>Extrair Screenshots</h6>
+                    <p>Captura automática de evidências visuais dos testes</p>
+                </div>
+                <div class="step-status" id="step1Status">
+                    <i class="fas fa-clock"></i>
                 </div>
             </div>
             
-            <div id="fileInfo" class="file-info" style="display: none;">
-                <div class="file-info-content">
-                    <i class="fas fa-file-code file-icon"></i>
-                    <div class="file-details">
-                        <span class="file-name" id="fileName"></span>
-                        <span class="file-size" id="fileSize"></span>
-                    </div>
-                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="removerArquivo()">
-                        <i class="fas fa-times"></i>
-                    </button>
+            <div class="step-item" id="step2">
+                <div class="step-icon">
+                    <i class="fas fa-folder-open"></i>
+                </div>
+                <div class="step-content">
+                    <h6>Organizar por Status</h6>
+                    <p>Separação automática entre testes que passaram e falharam</p>
+                </div>
+                <div class="step-status" id="step2Status">
+                    <i class="fas fa-clock"></i>
+                </div>
+            </div>
+            
+            <div class="step-item" id="step3">
+                <div class="step-icon">
+                    <i class="fas fa-paper-plane"></i>
+                </div>
+                <div class="step-content">
+                    <h6>Preparar para Envio</h6>
+                    <p>Preparação das evidências para envio ao Jira</p>
+                </div>
+                <div class="step-status" id="step3Status">
+                    <i class="fas fa-clock"></i>
                 </div>
             </div>
         </div>
+        
+        <div class="section-actions">
+            <button type="button" class="btn btn-primary" id="btnProcessarEvidencias" onclick="processarEvidencias()" style="display: none;">
+                <i class="fas fa-play me-1"></i>
+                Processar Evidências
+            </button>
+        </div>
+    </div>
 
-        <!-- Seção de Processamento -->
-        <div class="evidencias-section" id="processamentoSection" style="display: none;">
-            <div class="evidencias-section-header">
-                <h3>
-                    <i class="fas fa-cogs me-2"></i>
-                    Processamento de Evidências
-                </h3>
-                <p>Acompanhe o progresso do processamento das evidências</p>
+    <!-- Seção de Resultados -->
+    <div class="evidencias-section" id="resultadosSection" style="display: none;">
+        <div class="section-header">
+            <div class="section-title">
+                <i class="fas fa-chart-bar me-2"></i>
+                <h4>Resultados do Processamento</h4>
             </div>
-            
-            <div class="processamento-steps">
-                <div class="step-item" id="step1">
-                    <div class="step-icon">
-                        <i class="fas fa-camera"></i>
-                    </div>
-                    <div class="step-content">
-                        <h6>Extrair Screenshots</h6>
-                        <p>Captura automática de evidências visuais dos testes</p>
-                    </div>
-                    <div class="step-status" id="step1Status">
-                        <i class="fas fa-clock"></i>
-                    </div>
+            <p class="section-subtitle">Estatísticas das evidências processadas</p>
+        </div>
+        
+        <div class="resultados-stats">
+            <div class="stat-item">
+                <div class="stat-icon success">
+                    <i class="fas fa-check-circle"></i>
                 </div>
-                
-                <div class="step-item" id="step2">
-                    <div class="step-icon">
-                        <i class="fas fa-folder-open"></i>
-                    </div>
-                    <div class="step-content">
-                        <h6>Organizar por Status</h6>
-                        <p>Separação automática entre testes que passaram e falharam</p>
-                    </div>
-                    <div class="step-status" id="step2Status">
-                        <i class="fas fa-clock"></i>
-                    </div>
-                </div>
-                
-                <div class="step-item" id="step3">
-                    <div class="step-icon">
-                        <i class="fas fa-paper-plane"></i>
-                    </div>
-                    <div class="step-content">
-                        <h6>Preparar para Envio</h6>
-                        <p>Preparação das evidências para envio ao Jira</p>
-                    </div>
-                    <div class="step-status" id="step3Status">
-                        <i class="fas fa-clock"></i>
-                    </div>
+                <div class="stat-content">
+                    <span class="stat-number" id="sucessosCount">0</span>
+                    <span class="stat-label">Sucessos</span>
                 </div>
             </div>
             
-            <div class="processamento-actions">
-                <button type="button" class="btn btn-primary" id="btnProcessarEvidencias" onclick="processarEvidencias()" style="display: none;">
-                    <i class="fas fa-play me-1"></i>
-                    Processar Evidências
-                </button>
+            <div class="stat-item">
+                <div class="stat-icon error">
+                    <i class="fas fa-times-circle"></i>
+                </div>
+                <div class="stat-content">
+                    <span class="stat-number" id="falhasCount">0</span>
+                    <span class="stat-label">Falhas</span>
+                </div>
+            </div>
+            
+            <div class="stat-item">
+                <div class="stat-icon info">
+                    <i class="fas fa-paper-plane"></i>
+                </div>
+                <div class="stat-content">
+                    <span class="stat-number" id="enviadosCount">0</span>
+                    <span class="stat-label">Enviados</span>
+                </div>
             </div>
         </div>
-
-        <!-- Seção de Resultados -->
-        <div class="evidencias-section" id="resultadosSection" style="display: none;">
-            <div class="evidencias-section-header">
-                <h3>
-                    <i class="fas fa-chart-bar me-2"></i>
-                    Resultados do Processamento
-                </h3>
-                <p>Estatísticas das evidências processadas</p>
-            </div>
-            
-            <div class="resultados-stats">
-                <div class="stat-item">
-                    <div class="stat-icon success">
-                        <i class="fas fa-check-circle"></i>
-                    </div>
-                    <div class="stat-content">
-                        <span class="stat-number" id="sucessosCount">0</span>
-                        <span class="stat-label">Sucessos</span>
-                    </div>
-                </div>
-                
-                <div class="stat-item">
-                    <div class="stat-icon error">
-                        <i class="fas fa-times-circle"></i>
-                    </div>
-                    <div class="stat-content">
-                        <span class="stat-number" id="falhasCount">0</span>
-                        <span class="stat-label">Falhas</span>
-                    </div>
-                </div>
-                
-                <div class="stat-item">
-                    <div class="stat-icon info">
-                        <i class="fas fa-paper-plane"></i>
-                    </div>
-                    <div class="stat-content">
-                        <span class="stat-number" id="enviadosCount">0</span>
-                        <span class="stat-label">Enviados</span>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="resultados-actions">
-                <button type="button" class="btn btn-outline-primary" onclick="visualizarEvidencias()">
-                    <i class="fas fa-eye me-1"></i>
-                    Visualizar Evidências
-                </button>
-                <button type="button" class="btn btn-primary" id="btnEnviarEvidencias" onclick="enviarEvidenciasJira()">
-                    <i class="fas fa-paper-plane me-1"></i>
-                    Enviar ao Jira
-                </button>
-                <button type="button" class="btn btn-outline-danger" onclick="limparEvidencias()">
-                    <i class="fas fa-trash me-1"></i>
-                    Limpar Evidências
-                </button>
-            </div>
+        
+        <div class="section-actions">
+            <button type="button" class="btn btn-outline-primary" onclick="visualizarEvidencias()">
+                <i class="fas fa-eye me-1"></i>
+                Visualizar Evidências
+            </button>
+            <button type="button" class="btn btn-primary" id="btnEnviarEvidencias" onclick="enviarEvidenciasJira()">
+                <i class="fas fa-paper-plane me-1"></i>
+                Enviar ao Jira
+            </button>
+            <button type="button" class="btn btn-outline-danger" onclick="limparEvidencias()">
+                <i class="fas fa-trash me-1"></i>
+                Limpar Evidências
+            </button>
         </div>
-
-
     </div>
 </div>
 {% endblock %}
@@ -196,17 +189,240 @@ document.addEventListener('DOMContentLoaded', function() {
     verificarStatusEvidencias();
 });
 
+// Função para configurar drag and drop
+function configurarDragAndDrop() {
+    const uploadArea = document.getElementById('uploadArea');
+    const fileInput = document.getElementById('logFileInput');
+    
+    if (!uploadArea || !fileInput) return;
+    
+    // Prevenir comportamento padrão do navegador
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        uploadArea.addEventListener(eventName, preventDefaults, false);
+        document.body.addEventListener(eventName, preventDefaults, false);
+    });
+    
+    // Destacar área de upload
+    ['dragenter', 'dragover'].forEach(eventName => {
+        uploadArea.addEventListener(eventName, highlight, false);
+    });
+    
+    ['dragleave', 'drop'].forEach(eventName => {
+        uploadArea.addEventListener(eventName, unhighlight, false);
+    });
+    
+    // Processar arquivo solto
+    uploadArea.addEventListener('drop', handleDrop, false);
+    
+    // Processar arquivo selecionado
+    fileInput.addEventListener('change', handleFileSelect);
+}
 
+function preventDefaults(e) {
+    e.preventDefault();
+    e.stopPropagation();
+}
 
+function highlight(e) {
+    const uploadArea = document.getElementById('uploadArea');
+    if (uploadArea) uploadArea.classList.add('drag-over');
+}
 
+function unhighlight(e) {
+    const uploadArea = document.getElementById('uploadArea');
+    if (uploadArea) uploadArea.classList.remove('drag-over');
+}
 
+function handleDrop(e) {
+    const dt = e.dataTransfer;
+    const files = dt.files;
+    handleFiles(files);
+}
 
+function handleFileSelect(e) {
+    const files = e.target.files;
+    handleFiles(files);
+}
 
+function handleFiles(files) {
+    if (files.length > 0) {
+        const file = files[0];
+        if (file.name.toLowerCase().endsWith('.html')) {
+            arquivoSelecionado = file;
+            mostrarInfoArquivo(file);
+            mostrarSecaoProcessamento();
+        } else {
+            mostrarNotificacao('Por favor, selecione apenas arquivos HTML (.html)', 'error');
+        }
+    }
+}
 
+function mostrarInfoArquivo(file) {
+    const fileInfo = document.getElementById('fileInfo');
+    const fileName = document.getElementById('fileName');
+    const fileSize = document.getElementById('fileSize');
+    
+    if (!fileInfo || !fileName || !fileSize) return;
+    
+    fileName.textContent = file.name;
+    fileSize.textContent = formatarTamanhoArquivo(file.size);
+    fileInfo.style.display = 'block';
+}
 
+function formatarTamanhoArquivo(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
 
+function mostrarSecaoProcessamento() {
+    const processamentoSection = document.getElementById('processamentoSection');
+    const btnProcessar = document.getElementById('btnProcessarEvidencias');
+    
+    if (!processamentoSection || !btnProcessar) return;
+    
+    processamentoSection.style.display = 'block';
+    btnProcessar.style.display = 'inline-block';
+}
 
+function removerArquivo() {
+    arquivoSelecionado = null;
+    const fileInfo = document.getElementById('fileInfo');
+    const fileInput = document.getElementById('logFileInput');
+    const processamentoSection = document.getElementById('processamentoSection');
+    
+    if (!fileInfo || !fileInput || !processamentoSection) return;
+    
+    fileInfo.style.display = 'none';
+    fileInput.value = '';
+    processamentoSection.style.display = 'none';
+}
 
+async function processarEvidencias() {
+    if (!arquivoSelecionado) {
+        mostrarNotificacao('Nenhum arquivo selecionado', 'error');
+        return;
+    }
+    
+    const formData = new FormData();
+    formData.append('log_file', arquivoSelecionado);
+    
+    try {
+        // Atualizar interface para mostrar processamento
+        atualizarStepStatus('step1', 'processing');
+        atualizarStepStatus('step2', 'waiting');
+        atualizarStepStatus('step3', 'waiting');
+        
+        const response = await fetch('/api/evidencias/upload', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const resultado = await response.json();
+        
+        if (resultado.sucesso) {
+            // Atualizar steps com sucesso
+            atualizarStepStatus('step1', 'success');
+            atualizarStepStatus('step2', 'success');
+            atualizarStepStatus('step3', 'success');
+            
+            // Mostrar resultados
+            setTimeout(() => {
+                mostrarResultados(resultado);
+            }, 1000);
+            
+        } else {
+            // Atualizar steps com erro
+            atualizarStepStatus('step1', 'error');
+            atualizarStepStatus('step2', 'error');
+            atualizarStepStatus('step3', 'error');
+            
+            mostrarNotificacao('Erro ao processar evidências: ' + resultado.erro, 'error');
+        }
+        
+    } catch (error) {
+        console.error('Erro ao processar evidências:', error);
+        mostrarNotificacao('Erro ao processar evidências: ' + error.message, 'error');
+        
+        // Atualizar steps com erro
+        atualizarStepStatus('step1', 'error');
+        atualizarStepStatus('step2', 'error');
+        atualizarStepStatus('step3', 'error');
+    }
+}
+
+function atualizarStepStatus(stepId, status) {
+    const step = document.getElementById(stepId);
+    const statusElement = document.getElementById(stepId + 'Status');
+    
+    if (!step || !statusElement) return;
+    
+    // Remover classes anteriores
+    step.classList.remove('success', 'error', 'processing');
+    statusElement.innerHTML = '';
+    
+    // Adicionar nova classe e ícone
+    step.classList.add(status);
+    
+    switch (status) {
+        case 'waiting':
+            statusElement.innerHTML = '<i class="fas fa-clock"></i>';
+            break;
+        case 'processing':
+            statusElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            break;
+        case 'success':
+            statusElement.innerHTML = '<i class="fas fa-check"></i>';
+            break;
+        case 'error':
+            statusElement.innerHTML = '<i class="fas fa-times"></i>';
+            break;
+    }
+}
+
+function mostrarResultados(resultado) {
+    const resultadosSection = document.getElementById('resultadosSection');
+    const sucessosCount = document.getElementById('sucessosCount');
+    const falhasCount = document.getElementById('falhasCount');
+    const enviadosCount = document.getElementById('enviadosCount');
+    
+    if (!resultadosSection || !sucessosCount || !falhasCount || !enviadosCount) return;
+    
+    resultadosSection.style.display = 'block';
+    sucessosCount.textContent = resultado.sucessos || 0;
+    falhasCount.textContent = resultado.falhas || 0;
+    enviadosCount.textContent = resultado.enviados || 0;
+    
+    mostrarNotificacao('Evidências processadas com sucesso!', 'success');
+}
+
+async function verificarStatusEvidencias() {
+    try {
+        const response = await fetch('/api/evidencias/status');
+        const status = await response.json();
+        
+        if (status.processado) {
+            await carregarEvidenciasProcessadas();
+            mostrarResultados(status);
+        }
+        
+    } catch (error) {
+        console.error('Erro ao verificar status:', error);
+    }
+}
+
+async function carregarEvidenciasProcessadas() {
+    try {
+        const response = await fetch('/api/evidencias/lista');
+        const evidencias = await response.json();
+        window.evidenciasProcessadas = evidencias;
+    } catch (error) {
+        console.error('Erro ao carregar evidências:', error);
+        window.evidenciasProcessadas = [];
+    }
+}
 
 // Função para visualizar evidências
 function visualizarEvidencias() {
@@ -279,7 +495,8 @@ async function limparEvidencias() {
             verificarStatusEvidencias();
             
             // Ocultar seção de resultados se não há mais evidências
-            document.getElementById('resultadosSection').style.display = 'none';
+            const resultadosSection = document.getElementById('resultadosSection');
+            if (resultadosSection) resultadosSection.style.display = 'none';
             
         } else {
             mostrarNotificacao('Erro ao limpar evidências: ' + resultado.erro, 'error');
@@ -291,96 +508,202 @@ async function limparEvidencias() {
     }
 }
 
+async function enviarEvidenciasJira() {
+    const btnEnviar = document.getElementById('btnEnviarEvidencias');
+    if (btnEnviar) btnEnviar.disabled = true;
+    
+    try {
+        // Extrair IDs únicos dos cards das evidências processadas
+        const cardIds = new Set();
+        if (window.evidenciasProcessadas && window.evidenciasProcessadas.length > 0) {
+            window.evidenciasProcessadas.forEach(ev => {
+                const match = ev.arquivo.match(/^([A-Z]+-\d+)/);
+                if (match) {
+                    cardIds.add(match[1]);
+                }
+            });
+        }
+        
+        if (cardIds.size === 0) {
+            mostrarNotificacao('Nenhum ID de card encontrado nas evidências', 'warning');
+            return;
+        }
+        
+        const cardIdsArray = Array.from(cardIds);
+        const confirmacao = confirm(`Enviar evidências para os seguintes cards?\n\n${cardIdsArray.join('\n')}\n\nConfirma o envio?`);
+        
+        if (!confirmacao) {
+            if (btnEnviar) btnEnviar.disabled = false;
+            return;
+        }
+        
+        const response = await fetch('/api/evidencias/enviar', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                issue_keys: cardIdsArray
+            })
+        });
+        
+        const resultado = await response.json();
+        
+        if (resultado.sucesso) {
+            mostrarNotificacao(`Evidências enviadas com sucesso para ${cardIdsArray.length} card(s)!`, 'success');
+            
+            // Atualizar contador de enviados
+            const enviadosCount = document.getElementById('enviadosCount');
+            if (enviadosCount) {
+                const atual = parseInt(enviadosCount.textContent) || 0;
+                enviadosCount.textContent = atual + cardIdsArray.length;
+            }
+            
+        } else {
+            mostrarNotificacao('Erro ao enviar evidências: ' + resultado.erro, 'error');
+        }
+        
+    } catch (error) {
+        console.error('Erro ao enviar evidências:', error);
+        mostrarNotificacao('Erro ao enviar evidências: ' + error.message, 'error');
+    } finally {
+        if (btnEnviar) btnEnviar.disabled = false;
+    }
+}
 
-
+function mostrarNotificacao(mensagem, tipo) {
+    const toast = document.getElementById('toast');
+    const toastIcon = document.getElementById('toastIcon');
+    const toastTitle = document.getElementById('toastTitle');
+    const toastBody = document.getElementById('toastBody');
+    
+    if (!toast || !toastIcon || !toastTitle || !toastBody) return;
+    
+    // Configurar ícone e título baseado no tipo
+    switch (tipo) {
+        case 'success':
+            toastIcon.className = 'fas fa-check-circle me-2 text-success';
+            toastTitle.textContent = 'Sucesso';
+            break;
+        case 'error':
+            toastIcon.className = 'fas fa-exclamation-circle me-2 text-danger';
+            toastTitle.textContent = 'Erro';
+            break;
+        case 'warning':
+            toastIcon.className = 'fas fa-exclamation-triangle me-2 text-warning';
+            toastTitle.textContent = 'Aviso';
+            break;
+        default:
+            toastIcon.className = 'fas fa-info-circle me-2 text-info';
+            toastTitle.textContent = 'Informação';
+    }
+    
+    toastBody.textContent = mensagem;
+    
+    const bootstrapToast = new bootstrap.Toast(toast);
+    bootstrapToast.show();
+}
 </script>
 {% endblock %}
 
 <style>
-/* Estilos para a página de evidências */
-.evidencias-page {
-    padding: 20px;
-}
-
-.evidencias-header {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    border-radius: 12px;
-    padding: 30px;
-    margin-bottom: 30px;
-}
-
-.evidencias-header-content {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.evidencias-header h2 {
-    margin: 0;
-    font-size: 2rem;
-    font-weight: 600;
-}
-
-.evidencias-header p {
-    margin: 10px 0 0 0;
-    opacity: 0.9;
-    font-size: 1.1rem;
-}
-
+/* Estilos para a página de evidências padronizada */
 .evidencias-container {
     max-width: 1200px;
     margin: 0 auto;
+    padding: 0 1rem;
+}
+
+.evidencias-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    background: linear-gradient(135deg, var(--neurotech-primary) 0%, var(--neurotech-secondary) 100%);
+    border-radius: var(--radius-lg);
+    color: white;
+    box-shadow: var(--neurotech-shadow-lg);
+}
+
+.evidencias-info h3 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.evidencias-info p {
+    margin: 0;
+    opacity: 0.9;
+    font-size: 0.95rem;
+}
+
+.evidencias-actions {
+    flex-shrink: 0;
 }
 
 .evidencias-section {
     background: white;
-    border-radius: 12px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-    margin-bottom: 30px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--neurotech-shadow);
+    margin-bottom: 2rem;
     overflow: hidden;
 }
 
-.evidencias-section-header {
-    background: #f8f9fa;
-    padding: 25px 30px;
-    border-bottom: 1px solid #e9ecef;
+.section-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--neurotech-border);
+    background: var(--neurotech-light);
 }
 
-.evidencias-section-header h3 {
+.section-title {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.section-title i {
+    color: var(--neurotech-accent);
+    font-size: 1.2rem;
+}
+
+.section-title h4 {
     margin: 0;
-    color: #495057;
+    font-size: 1.25rem;
     font-weight: 600;
-    font-size: 1.3rem;
+    color: var(--neurotech-primary);
 }
 
-.evidencias-section-header p {
-    margin: 8px 0 0 0;
-    color: #6c757d;
-    font-size: 0.95rem;
+.section-subtitle {
+    margin: 0;
+    color: var(--neurotech-gray);
+    font-size: 0.9rem;
+}
+
+.section-actions {
+    padding: 1.5rem;
+    border-top: 1px solid var(--neurotech-border);
+    background: var(--neurotech-light);
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
 }
 
 /* Upload Area */
 .upload-area {
-    padding: 60px 30px;
+    padding: 3rem 2rem;
     text-align: center;
-    border: 3px dashed #dee2e6;
-    border-radius: 12px;
-    margin: 30px;
-    transition: all 0.3s ease;
-    background: #f8f9fa;
-    cursor: pointer;
+    border: 2px dashed var(--neurotech-border);
+    border-radius: var(--radius-lg);
+    margin: 1.5rem;
+    transition: all var(--transition-normal);
+    background: var(--neurotech-light);
 }
 
-.upload-area:hover {
-    border-color: #007bff;
-    background: #f0f8ff;
-}
-
+.upload-area:hover,
 .upload-area.drag-over {
-    border-color: #007bff;
-    background: #e3f2fd;
-    transform: scale(1.02);
+    border-color: var(--neurotech-accent);
+    background: rgba(49, 130, 206, 0.05);
 }
 
 .upload-content {
@@ -389,46 +712,40 @@ async function limparEvidencias() {
 }
 
 .upload-icon {
-    font-size: 4rem;
-    color: #6c757d;
-    margin-bottom: 20px;
-    transition: color 0.3s ease;
+    font-size: 3rem;
+    color: var(--neurotech-accent);
+    margin-bottom: 1rem;
 }
 
-.upload-area:hover .upload-icon {
-    color: #007bff;
-}
-
-.upload-content h4 {
-    color: #495057;
-    margin-bottom: 10px;
+.upload-content h5 {
+    margin: 0 0 0.5rem 0;
+    color: var(--neurotech-primary);
     font-weight: 600;
 }
 
 .upload-text {
-    color: #6c757d;
-    margin-bottom: 25px;
-    font-size: 0.95rem;
+    color: var(--neurotech-gray);
+    margin-bottom: 1.5rem;
 }
 
 /* File Info */
 .file-info {
-    margin: 30px;
-    padding: 20px;
-    background: #e8f5e8;
-    border-radius: 8px;
-    border-left: 4px solid #28a745;
+    margin: 0 1.5rem 1.5rem 1.5rem;
+    padding: 1rem;
+    background: var(--neurotech-light);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--neurotech-border);
 }
 
 .file-info-content {
     display: flex;
     align-items: center;
-    gap: 15px;
+    gap: 1rem;
 }
 
 .file-icon {
-    font-size: 2rem;
-    color: #28a745;
+    font-size: 1.5rem;
+    color: var(--neurotech-accent);
 }
 
 .file-details {
@@ -438,69 +755,68 @@ async function limparEvidencias() {
 .file-name {
     display: block;
     font-weight: 600;
-    color: #155724;
-    margin-bottom: 5px;
+    color: var(--neurotech-primary);
+    margin-bottom: 0.25rem;
 }
 
 .file-size {
-    color: #6c757d;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
+    color: var(--neurotech-gray);
 }
 
 /* Processamento Steps */
 .processamento-steps {
-    padding: 30px;
+    padding: 1.5rem;
 }
 
 .step-item {
     display: flex;
     align-items: center;
-    padding: 20px;
-    margin-bottom: 15px;
-    border-radius: 8px;
-    background: #f8f9fa;
-    transition: all 0.3s ease;
+    gap: 1rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--neurotech-border);
+    transition: all var(--transition-normal);
 }
 
-.step-item.active {
-    background: #e3f2fd;
-    border-left: 4px solid #007bff;
+.step-item:hover {
+    box-shadow: var(--neurotech-shadow);
 }
 
-.step-item.completed {
-    background: #e8f5e8;
-    border-left: 4px solid #28a745;
+.step-item.success {
+    border-color: var(--neurotech-success);
+    background: rgba(56, 161, 105, 0.05);
 }
 
 .step-item.error {
-    background: #f8d7da;
-    border-left: 4px solid #dc3545;
+    border-color: var(--neurotech-danger);
+    background: rgba(229, 62, 62, 0.05);
+}
+
+.step-item.processing {
+    border-color: var(--neurotech-accent);
+    background: rgba(49, 130, 206, 0.05);
 }
 
 .step-icon {
-    width: 50px;
-    height: 50px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
-    background: #6c757d;
+    background: var(--neurotech-accent);
     color: white;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-right: 20px;
-    font-size: 1.2rem;
+    flex-shrink: 0;
 }
 
-.step-item.active .step-icon {
-    background: #007bff;
-    animation: pulse 1.5s infinite;
-}
-
-.step-item.completed .step-icon {
-    background: #28a745;
+.step-item.success .step-icon {
+    background: var(--neurotech-success);
 }
 
 .step-item.error .step-icon {
-    background: #dc3545;
+    background: var(--neurotech-danger);
 }
 
 .step-content {
@@ -508,77 +824,88 @@ async function limparEvidencias() {
 }
 
 .step-content h6 {
-    margin: 0;
+    margin: 0 0 0.25rem 0;
     font-weight: 600;
-    color: #495057;
+    color: var(--neurotech-primary);
 }
 
 .step-content p {
-    margin: 5px 0 0 0;
-    color: #6c757d;
-    font-size: 0.9rem;
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--neurotech-gray);
 }
 
 .step-status {
-    font-size: 1.2rem;
-    color: #6c757d;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
 }
 
-.step-item.active .step-status {
-    color: #007bff;
+.step-status i {
+    font-size: 1rem;
 }
 
-.step-item.completed .step-status {
-    color: #28a745;
+.step-item.success .step-status i {
+    color: var(--neurotech-success);
 }
 
-.step-item.error .step-status {
-    color: #dc3545;
+.step-item.error .step-status i {
+    color: var(--neurotech-danger);
 }
 
-/* Resultados */
+.step-item.processing .step-status i {
+    color: var(--neurotech-accent);
+}
+
+/* Resultados Stats */
 .resultados-stats {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 20px;
-    padding: 30px;
+    gap: 1.5rem;
+    padding: 1.5rem;
 }
 
 .stat-item {
     display: flex;
     align-items: center;
-    padding: 20px;
-    border-radius: 8px;
-    background: #f8f9fa;
-    transition: transform 0.3s ease;
+    gap: 1rem;
+    padding: 1.5rem;
+    background: var(--neurotech-light);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--neurotech-border);
+    transition: all var(--transition-normal);
 }
 
 .stat-item:hover {
+    box-shadow: var(--neurotech-shadow);
     transform: translateY(-2px);
 }
 
 .stat-icon {
-    width: 60px;
-    height: 60px;
+    width: 50px;
+    height: 50px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-right: 20px;
     font-size: 1.5rem;
     color: white;
+    flex-shrink: 0;
 }
 
 .stat-icon.success {
-    background: #28a745;
+    background: var(--neurotech-success);
 }
 
 .stat-icon.error {
-    background: #dc3545;
+    background: var(--neurotech-danger);
 }
 
 .stat-icon.info {
-    background: #17a2b8;
+    background: var(--neurotech-accent);
 }
 
 .stat-content {
@@ -589,22 +916,15 @@ async function limparEvidencias() {
     display: block;
     font-size: 2rem;
     font-weight: 700;
-    color: #495057;
+    color: var(--neurotech-primary);
     line-height: 1;
+    margin-bottom: 0.25rem;
 }
 
 .stat-label {
-    color: #6c757d;
     font-size: 0.9rem;
-    margin-top: 5px;
-}
-
-/* Ações */
-.processamento-actions,
-.resultados-actions {
-    padding: 30px;
-    text-align: center;
-    border-top: 1px solid #e9ecef;
+    color: var(--neurotech-gray);
+    font-weight: 500;
 }
 
 /* Modal de Evidências */
@@ -616,42 +936,46 @@ async function limparEvidencias() {
 .evidencia-item {
     display: flex;
     align-items: center;
-    padding: 15px;
-    margin-bottom: 10px;
-    border-radius: 8px;
-    background: #f8f9fa;
-    border-left: 4px solid #6c757d;
+    gap: 1rem;
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--neurotech-border);
+    transition: all var(--transition-normal);
+}
+
+.evidencia-item:hover {
+    box-shadow: var(--neurotech-shadow);
 }
 
 .evidencia-item.sucesso {
-    border-left-color: #28a745;
-    background: #e8f5e8;
+    border-color: var(--neurotech-success);
+    background: rgba(56, 161, 105, 0.05);
 }
 
 .evidencia-item.falha {
-    border-left-color: #dc3545;
-    background: #f8d7da;
+    border-color: var(--neurotech-danger);
+    background: rgba(229, 62, 62, 0.05);
 }
 
 .evidencia-icon {
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    background: #6c757d;
-    color: white;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-right: 15px;
-    font-size: 1rem;
+    flex-shrink: 0;
 }
 
 .evidencia-item.sucesso .evidencia-icon {
-    background: #28a745;
+    background: var(--neurotech-success);
+    color: white;
 }
 
 .evidencia-item.falha .evidencia-icon {
-    background: #dc3545;
+    background: var(--neurotech-danger);
+    color: white;
 }
 
 .evidencia-info {
@@ -659,63 +983,78 @@ async function limparEvidencias() {
 }
 
 .evidencia-info h6 {
-    margin: 0;
+    margin: 0 0 0.25rem 0;
     font-weight: 600;
-    color: #495057;
+    color: var(--neurotech-primary);
 }
 
 .evidencia-info p {
-    margin: 5px 0 0 0;
-    color: #6c757d;
-    font-size: 0.9rem;
-}
-
-/* Animações */
-@keyframes pulse {
-    0% {
-        transform: scale(1);
-    }
-    50% {
-        transform: scale(1.1);
-    }
-    100% {
-        transform: scale(1);
-    }
+    margin: 0 0 0.5rem 0;
+    font-size: 0.85rem;
+    color: var(--neurotech-gray);
 }
 
 /* Responsividade */
 @media (max-width: 768px) {
-    .evidencias-header-content {
+    .evidencias-header {
         flex-direction: column;
+        gap: 1rem;
         text-align: center;
-        gap: 20px;
     }
     
-    .evidencias-header h2 {
-        font-size: 1.5rem;
-    }
-    
-    .upload-area {
-        padding: 40px 20px;
-        margin: 20px;
-    }
-    
-    .upload-icon {
-        font-size: 3rem;
+    .evidencias-actions {
+        align-self: stretch;
     }
     
     .resultados-stats {
         grid-template-columns: 1fr;
     }
     
+    .section-actions {
+        flex-direction: column;
+    }
+    
+    .section-actions .btn {
+        width: 100%;
+    }
+    
     .step-item {
         flex-direction: column;
         text-align: center;
+        gap: 0.75rem;
     }
     
-    .step-icon {
-        margin-right: 0;
-        margin-bottom: 15px;
+    .stat-item {
+        flex-direction: column;
+        text-align: center;
+        gap: 0.75rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .evidencias-container {
+        padding: 0 0.5rem;
+    }
+    
+    .evidencias-header {
+        padding: 1rem;
+    }
+    
+    .section-header {
+        padding: 1rem;
+    }
+    
+    .upload-area {
+        padding: 2rem 1rem;
+        margin: 1rem;
+    }
+    
+    .processamento-steps {
+        padding: 1rem;
+    }
+    
+    .resultados-stats {
+        padding: 1rem;
     }
 }
 </style>
