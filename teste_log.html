@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Log de Testes - Demonstração</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-result { margin: 10px 0; padding: 10px; border-radius: 5px; }
+        .test-pass { background-color: #d4edda; border: 1px solid #c3e6cb; }
+        .test-fail { background-color: #f8d7da; border: 1px solid #f5c6cb; }
+        .test-header { font-weight: bold; margin-bottom: 5px; }
+        .test-details { font-size: 0.9em; color: #666; }
+    </style>
+</head>
+<body>
+    <h1>Relatório de Execução de Testes</h1>
+    <p>Data: 28/08/2025 - 10:45:00</p>
+    
+    <div class="test-result test-pass">
+        <div class="test-header">✅ Teste de Login - Usuário Válido</div>
+        <div class="test-details">Duração: 2.3s | Status: PASSED</div>
+    </div>
+    
+    <div class="test-result test-pass">
+        <div class="test-header">✅ Teste de Cadastro - Dados Completos</div>
+        <div class="test-details">Duração: 1.8s | Status: PASSED</div>
+    </div>
+    
+    <div class="test-result test-pass">
+        <div class="test-header">✅ Teste de Busca - Resultados Encontrados</div>
+        <div class="test-details">Duração: 3.1s | Status: PASSED</div>
+    </div>
+    
+    <div class="test-result test-pass">
+        <div class="test-header">✅ Teste de Filtros - Aplicação Correta</div>
+        <div class="test-details">Duração: 1.5s | Status: PASSED</div>
+    </div>
+    
+    <div class="test-result test-fail">
+        <div class="test-header">❌ Teste de Upload - Arquivo Grande</div>
+        <div class="test-details">Duração: 5.2s | Status: FAILED | Erro: Timeout</div>
+    </div>
+    
+    <div class="test-result test-pass">
+        <div class="test-header">✅ Teste de Exportação - PDF</div>
+        <div class="test-details">Duração: 4.7s | Status: PASSED</div>
+    </div>
+    
+    <div class="test-result test-pass">
+        <div class="test-header">✅ Teste de Validação - Campos Obrigatórios</div>
+        <div class="test-details">Duração: 0.9s | Status: PASSED</div>
+    </div>
+    
+    <div class="test-result test-fail">
+        <div class="test-header">❌ Teste de Performance - Carga Alta</div>
+        <div class="test-details">Duração: 12.3s | Status: FAILED | Erro: Memory Limit</div>
+    </div>
+    
+    <div class="test-result test-pass">
+        <div class="test-header">✅ Teste de Integração - API Externa</div>
+        <div class="test-details">Duração: 2.8s | Status: PASSED</div>
+    </div>
+    
+    <div class="test-result test-pass">
+        <div class="test-header">✅ Teste de Segurança - Autenticação</div>
+        <div class="test-details">Duração: 1.2s | Status: PASSED</div>
+    </div>
+    
+    <div class="test-result test-pass">
+        <div class="test-header">✅ Teste de Responsividade - Mobile</div>
+        <div class="test-details">Duração: 2.1s | Status: PASSED</div>
+    </div>
+    
+    <div class="test-result test-pass">
+        <div class="test-header">✅ Teste de Acessibilidade - Screen Reader</div>
+        <div class="test-details">Duração: 3.4s | Status: PASSED</div>
+    </div>
+    
+    <div class="test-result test-pass">
+        <div class="test-header">✅ Teste de Compatibilidade - Chrome</div>
+        <div class="test-details">Duração: 1.7s | Status: PASSED</div>
+    </div>
+    
+    <div class="test-result test-pass">
+        <div class="test-header">✅ Teste de Compatibilidade - Firefox</div>
+        <div class="test-details">Duração: 1.9s | Status: PASSED</div>
+    </div>
+    
+    <div class="test-result test-pass">
+        <div class="test-header">✅ Teste de Compatibilidade - Safari</div>
+        <div class="test-details">Duração: 2.0s | Status: PASSED</div>
+    </div>
+    
+    <div class="test-result test-pass">
+        <div class="test-header">✅ Teste de Banco de Dados - CRUD</div>
+        <div class="test-details">Duração: 2.5s | Status: PASSED</div>
+    </div>
+    
+    <div class="test-result test-pass">
+        <div class="test-header">✅ Teste de Cache - Redis</div>
+        <div class="test-details">Duração: 0.8s | Status: PASSED</div>
+    </div>
+    
+    <div class="test-result test-pass">
+        <div class="test-header">✅ Teste de Logs - Auditoria</div>
+        <div class="test-details">Duração: 1.3s | Status: PASSED</div>
+    </div>
+    
+    <div class="test-result test-pass">
+        <div class="test-header">✅ Teste de Backup - Restauração</div>
+        <div class="test-details">Duração: 6.2s | Status: PASSED</div>
+    </div>
+    
+    <div class="test-result test-pass">
+        <div class="test-header">✅ Teste de Notificações - Email</div>
+        <div class="test-details">Duração: 2.7s | Status: PASSED</div>
+    </div>
+    
+    <div class="test-result test-pass">
+        <div class="test-header">✅ Teste de Relatórios - Geração</div>
+        <div class="test-details">Duração: 4.1s | Status: PASSED</div>
+    </div>
+    
+    <hr>
+    <h2>Resumo da Execução</h2>
+    <p><strong>Total de Testes:</strong> 20</p>
+    <p><strong>Sucessos:</strong> 18</p>
+    <p><strong>Falhas:</strong> 2</p>
+    <p><strong>Taxa de Sucesso:</strong> 90%</p>
+    <p><strong>Tempo Total:</strong> 45.2s</p>
+</body>
+</html>

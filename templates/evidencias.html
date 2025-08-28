@@ -176,37 +176,7 @@
             </div>
         </div>
 
-        <!-- Seção de Histórico -->
-        <div class="evidencias-section">
-            <div class="evidencias-section-header">
-                <h3>
-                    <i class="fas fa-history me-2"></i>
-                    Histórico de Processamentos
-                </h3>
-                <p>Últimos processamentos realizados</p>
-            </div>
-            
-            <div class="historico-container">
-                <div class="historico-item">
-                    <div class="historico-icon">
-                        <i class="fas fa-file-code"></i>
-                    </div>
-                    <div class="historico-content">
-                        <h6>log.html</h6>
-                        <p>Processado em 25/08/2025 às 10:17</p>
-                        <div class="historico-stats">
-                            <span class="badge bg-success">14 sucessos</span>
-                            <span class="badge bg-danger">4 falhas</span>
-                        </div>
-                    </div>
-                    <div class="historico-actions">
-                        <button class="btn btn-sm btn-outline-primary">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
+
     </div>
 </div>
 {% endblock %}
@@ -214,278 +184,498 @@
 {% block extra_js %}
 <script>
 // Variáveis globais
-let uploadedFile = null;
+let arquivoSelecionado = null;
 
-// Inicialização quando a página carregar
+// Inicialização
 document.addEventListener('DOMContentLoaded', function() {
     configurarDragAndDrop();
     verificarStatusEvidencias();
 });
 
-// Função para configurar drag and drop
-function configurarDragAndDrop() {
-    const uploadArea = document.getElementById('uploadArea');
-    const fileInput = document.getElementById('logFileInput');
-    
-    // Drag and drop events
-    uploadArea.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        uploadArea.classList.add('dragover');
-    });
-    
-    uploadArea.addEventListener('dragleave', (e) => {
-        e.preventDefault();
-        uploadArea.classList.remove('dragover');
-    });
-    
-    uploadArea.addEventListener('drop', (e) => {
-        e.preventDefault();
-        uploadArea.classList.remove('dragover');
-        const files = e.dataTransfer.files;
-        if (files.length > 0) {
-            handleFileSelect(files[0]);
-        }
-    });
-    
-    // Click to select file
-    uploadArea.addEventListener('click', () => {
-        fileInput.click();
-    });
-    
-    // File input change
-    fileInput.addEventListener('change', (e) => {
-        if (e.target.files.length > 0) {
-            handleFileSelect(e.target.files[0]);
-        }
-    });
-}
 
-// Função para lidar com seleção de arquivo
-function handleFileSelect(file) {
-    if (file.type !== 'text/html' && !file.name.endsWith('.html')) {
-        mostrarNotificacao('Por favor, selecione um arquivo HTML válido', 'error');
-        return;
-    }
-    
-    uploadedFile = file;
-    mostrarInfoArquivo(file);
-    document.getElementById('processamentoSection').style.display = 'block';
-    document.getElementById('btnProcessarEvidencias').style.display = 'inline-block';
-}
 
-// Função para mostrar informações do arquivo
-function mostrarInfoArquivo(file) {
-    document.getElementById('uploadArea').style.display = 'none';
-    document.getElementById('fileInfo').style.display = 'block';
-    document.getElementById('fileName').textContent = file.name;
-    document.getElementById('fileSize').textContent = formatFileSize(file.size);
-}
 
-// Função para formatar tamanho do arquivo
-function formatFileSize(bytes) {
-    if (bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-}
 
-// Função para remover arquivo
-function removerArquivo() {
-    uploadedFile = null;
-    document.getElementById('uploadArea').style.display = 'block';
-    document.getElementById('fileInfo').style.display = 'none';
-    document.getElementById('processamentoSection').style.display = 'none';
-    document.getElementById('btnProcessarEvidencias').style.display = 'none';
-    document.getElementById('logFileInput').value = '';
-}
 
-// Função para processar evidências
-async function processarEvidencias() {
-    if (!uploadedFile) {
-        mostrarNotificacao('Por favor, selecione um arquivo primeiro', 'warning');
-        return;
-    }
-    
-    try {
-        // Resetar steps
-        resetarSteps();
-        
-        // Step 1: Extrair screenshots
-        await executarStep1();
-        
-        // Step 2: Organizar por status
-        await executarStep2();
-        
-        // Step 3: Preparar para envio
-        await executarStep3();
-        
-        // Mostrar resultados
-        mostrarResultados();
-        
-    } catch (error) {
-        console.error('Erro no processamento:', error);
-        mostrarNotificacao('Erro no processamento: ' + error.message, 'error');
-    }
-}
 
-// Função para resetar steps
-function resetarSteps() {
-    const steps = ['step1', 'step2', 'step3'];
-    steps.forEach(stepId => {
-        const step = document.getElementById(stepId);
-        const status = document.getElementById(stepId + 'Status');
-        step.className = 'step-item';
-        status.innerHTML = '<i class="fas fa-clock"></i>';
-    });
-}
 
-// Função para executar Step 1
-async function executarStep1() {
-    const step = document.getElementById('step1');
-    const status = document.getElementById('step1Status');
-    
-    step.classList.add('active');
-    status.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-    
-    try {
-        // Upload do arquivo
-        const formData = new FormData();
-        formData.append('log_file', uploadedFile);
-        
-        const response = await fetch('http://127.0.0.1:8081/api/evidencias/upload', {
-            method: 'POST',
-            body: formData
-        });
-        
-        if (!response.ok) {
-            throw new Error('Erro no upload do arquivo');
-        }
-        
-        const result = await response.json();
-        
-        step.classList.remove('active');
-        step.classList.add('completed');
-        status.innerHTML = '<i class="fas fa-check"></i>';
-        
-    } catch (error) {
-        step.classList.remove('active');
-        step.classList.add('error');
-        status.innerHTML = '<i class="fas fa-times"></i>';
-        throw error;
-    }
-}
 
-// Função para executar Step 2
-async function executarStep2() {
-    const step = document.getElementById('step2');
-    const status = document.getElementById('step2Status');
-    
-    step.classList.add('active');
-    status.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-    
-    try {
-        // Simular processamento
-        await new Promise(resolve => setTimeout(resolve, 1500));
-        
-        step.classList.remove('active');
-        step.classList.add('completed');
-        status.innerHTML = '<i class="fas fa-check"></i>';
-        
-    } catch (error) {
-        step.classList.remove('active');
-        step.classList.add('error');
-        status.innerHTML = '<i class="fas fa-times"></i>';
-        throw error;
-    }
-}
 
-// Função para executar Step 3
-async function executarStep3() {
-    const step = document.getElementById('step3');
-    const status = document.getElementById('step3Status');
-    
-    step.classList.add('active');
-    status.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-    
-    try {
-        // Simular processamento
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        step.classList.remove('active');
-        step.classList.add('completed');
-        status.innerHTML = '<i class="fas fa-check"></i>';
-        
-    } catch (error) {
-        step.classList.remove('active');
-        step.classList.add('error');
-        status.innerHTML = '<i class="fas fa-times"></i>';
-        throw error;
-    }
-}
 
-// Função para mostrar resultados
-function mostrarResultados() {
-    document.getElementById('resultadosSection').style.display = 'block';
-    
-    // Buscar estatísticas reais
-    verificarStatusEvidencias();
-}
 
-// Função para verificar status das evidências
-async function verificarStatusEvidencias() {
-    try {
-        const response = await fetch('http://127.0.0.1:8081/api/evidencias/status');
-        
-        if (response.ok) {
-            const data = await response.json();
-            
-            document.getElementById('sucessosCount').textContent = data.sucessos || 0;
-            document.getElementById('falhasCount').textContent = data.falhas || 0;
-            document.getElementById('enviadosCount').textContent = data.enviados || 0;
-            
-            if (data.processado) {
-                document.getElementById('resultadosSection').style.display = 'block';
-            }
-        }
-    } catch (error) {
-        console.error('Erro ao verificar status:', error);
-    }
-}
 
 // Função para visualizar evidências
 function visualizarEvidencias() {
-    mostrarNotificacao('Funcionalidade de visualização será implementada em breve', 'info');
-}
-
-// Função para enviar evidências ao Jira
-async function enviarEvidenciasJira() {
-    try {
-        mostrarNotificacao('Enviando evidências ao Jira...', 'info');
+    if (window.evidenciasProcessadas && window.evidenciasProcessadas.length > 0) {
+        // Criar modal com lista de evidências
+        const modal = document.createElement('div');
+        modal.className = 'modal fade';
+        modal.id = 'evidenciasModal';
+        modal.innerHTML = `
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Evidências Processadas</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="evidencias-lista">
+                            ${window.evidenciasProcessadas.map(ev => `
+                                <div class="evidencia-item ${ev.status}">
+                                    <div class="evidencia-icon">
+                                        <i class="fas fa-${ev.status === 'sucesso' ? 'check-circle' : 'times-circle'}"></i>
+                                    </div>
+                                    <div class="evidencia-info">
+                                        <h6>${ev.nome}</h6>
+                                        <p>Arquivo: ${ev.arquivo}</p>
+                                        <span class="badge bg-${ev.status === 'sucesso' ? 'success' : 'danger'}">${ev.status}</span>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
         
-        const response = await fetch('http://127.0.0.1:8081/api/evidencias/enviar', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' }
+        document.body.appendChild(modal);
+        const bootstrapModal = new bootstrap.Modal(modal);
+        bootstrapModal.show();
+        
+        // Remover modal do DOM após fechar
+        modal.addEventListener('hidden.bs.modal', function() {
+            document.body.removeChild(modal);
         });
-        
-        if (response.ok) {
-            const result = await response.json();
-            document.getElementById('enviadosCount').textContent = result.enviados || 0;
-            mostrarNotificacao('Evidências enviadas com sucesso!', 'success');
-        } else {
-            throw new Error('Erro ao enviar evidências');
-        }
-        
-    } catch (error) {
-        console.error('Erro:', error);
-        mostrarNotificacao('Erro ao enviar evidências: ' + error.message, 'error');
+    } else {
+        mostrarNotificacao('Nenhuma evidência processada encontrada', 'warning');
     }
 }
 
-// Função para mostrar notificações
-function mostrarNotificacao(mensagem, tipo) {
-    // Implementar sistema de notificações
-    console.log(`${tipo.toUpperCase()}: ${mensagem}`);
-}
+
+
 </script>
 {% endblock %}
+
+<style>
+/* Estilos para a página de evidências */
+.evidencias-page {
+    padding: 20px;
+}
+
+.evidencias-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 12px;
+    padding: 30px;
+    margin-bottom: 30px;
+}
+
+.evidencias-header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.evidencias-header h2 {
+    margin: 0;
+    font-size: 2rem;
+    font-weight: 600;
+}
+
+.evidencias-header p {
+    margin: 10px 0 0 0;
+    opacity: 0.9;
+    font-size: 1.1rem;
+}
+
+.evidencias-container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.evidencias-section {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    margin-bottom: 30px;
+    overflow: hidden;
+}
+
+.evidencias-section-header {
+    background: #f8f9fa;
+    padding: 25px 30px;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.evidencias-section-header h3 {
+    margin: 0;
+    color: #495057;
+    font-weight: 600;
+    font-size: 1.3rem;
+}
+
+.evidencias-section-header p {
+    margin: 8px 0 0 0;
+    color: #6c757d;
+    font-size: 0.95rem;
+}
+
+/* Upload Area */
+.upload-area {
+    padding: 60px 30px;
+    text-align: center;
+    border: 3px dashed #dee2e6;
+    border-radius: 12px;
+    margin: 30px;
+    transition: all 0.3s ease;
+    background: #f8f9fa;
+    cursor: pointer;
+}
+
+.upload-area:hover {
+    border-color: #007bff;
+    background: #f0f8ff;
+}
+
+.upload-area.drag-over {
+    border-color: #007bff;
+    background: #e3f2fd;
+    transform: scale(1.02);
+}
+
+.upload-content {
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.upload-icon {
+    font-size: 4rem;
+    color: #6c757d;
+    margin-bottom: 20px;
+    transition: color 0.3s ease;
+}
+
+.upload-area:hover .upload-icon {
+    color: #007bff;
+}
+
+.upload-content h4 {
+    color: #495057;
+    margin-bottom: 10px;
+    font-weight: 600;
+}
+
+.upload-text {
+    color: #6c757d;
+    margin-bottom: 25px;
+    font-size: 0.95rem;
+}
+
+/* File Info */
+.file-info {
+    margin: 30px;
+    padding: 20px;
+    background: #e8f5e8;
+    border-radius: 8px;
+    border-left: 4px solid #28a745;
+}
+
+.file-info-content {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.file-icon {
+    font-size: 2rem;
+    color: #28a745;
+}
+
+.file-details {
+    flex: 1;
+}
+
+.file-name {
+    display: block;
+    font-weight: 600;
+    color: #155724;
+    margin-bottom: 5px;
+}
+
+.file-size {
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+/* Processamento Steps */
+.processamento-steps {
+    padding: 30px;
+}
+
+.step-item {
+    display: flex;
+    align-items: center;
+    padding: 20px;
+    margin-bottom: 15px;
+    border-radius: 8px;
+    background: #f8f9fa;
+    transition: all 0.3s ease;
+}
+
+.step-item.active {
+    background: #e3f2fd;
+    border-left: 4px solid #007bff;
+}
+
+.step-item.completed {
+    background: #e8f5e8;
+    border-left: 4px solid #28a745;
+}
+
+.step-item.error {
+    background: #f8d7da;
+    border-left: 4px solid #dc3545;
+}
+
+.step-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: #6c757d;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 20px;
+    font-size: 1.2rem;
+}
+
+.step-item.active .step-icon {
+    background: #007bff;
+    animation: pulse 1.5s infinite;
+}
+
+.step-item.completed .step-icon {
+    background: #28a745;
+}
+
+.step-item.error .step-icon {
+    background: #dc3545;
+}
+
+.step-content {
+    flex: 1;
+}
+
+.step-content h6 {
+    margin: 0;
+    font-weight: 600;
+    color: #495057;
+}
+
+.step-content p {
+    margin: 5px 0 0 0;
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+.step-status {
+    font-size: 1.2rem;
+    color: #6c757d;
+}
+
+.step-item.active .step-status {
+    color: #007bff;
+}
+
+.step-item.completed .step-status {
+    color: #28a745;
+}
+
+.step-item.error .step-status {
+    color: #dc3545;
+}
+
+/* Resultados */
+.resultados-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    padding: 30px;
+}
+
+.stat-item {
+    display: flex;
+    align-items: center;
+    padding: 20px;
+    border-radius: 8px;
+    background: #f8f9fa;
+    transition: transform 0.3s ease;
+}
+
+.stat-item:hover {
+    transform: translateY(-2px);
+}
+
+.stat-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 20px;
+    font-size: 1.5rem;
+    color: white;
+}
+
+.stat-icon.success {
+    background: #28a745;
+}
+
+.stat-icon.error {
+    background: #dc3545;
+}
+
+.stat-icon.info {
+    background: #17a2b8;
+}
+
+.stat-content {
+    flex: 1;
+}
+
+.stat-number {
+    display: block;
+    font-size: 2rem;
+    font-weight: 700;
+    color: #495057;
+    line-height: 1;
+}
+
+.stat-label {
+    color: #6c757d;
+    font-size: 0.9rem;
+    margin-top: 5px;
+}
+
+/* Ações */
+.processamento-actions,
+.resultados-actions {
+    padding: 30px;
+    text-align: center;
+    border-top: 1px solid #e9ecef;
+}
+
+/* Modal de Evidências */
+.evidencias-lista {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.evidencia-item {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+    background: #f8f9fa;
+    border-left: 4px solid #6c757d;
+}
+
+.evidencia-item.sucesso {
+    border-left-color: #28a745;
+    background: #e8f5e8;
+}
+
+.evidencia-item.falha {
+    border-left-color: #dc3545;
+    background: #f8d7da;
+}
+
+.evidencia-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #6c757d;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 15px;
+    font-size: 1rem;
+}
+
+.evidencia-item.sucesso .evidencia-icon {
+    background: #28a745;
+}
+
+.evidencia-item.falha .evidencia-icon {
+    background: #dc3545;
+}
+
+.evidencia-info {
+    flex: 1;
+}
+
+.evidencia-info h6 {
+    margin: 0;
+    font-weight: 600;
+    color: #495057;
+}
+
+.evidencia-info p {
+    margin: 5px 0 0 0;
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+/* Animações */
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .evidencias-header-content {
+        flex-direction: column;
+        text-align: center;
+        gap: 20px;
+    }
+    
+    .evidencias-header h2 {
+        font-size: 1.5rem;
+    }
+    
+    .upload-area {
+        padding: 40px 20px;
+        margin: 20px;
+    }
+    
+    .upload-icon {
+        font-size: 3rem;
+    }
+    
+    .resultados-stats {
+        grid-template-columns: 1fr;
+    }
+    
+    .step-item {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .step-icon {
+        margin-right: 0;
+        margin-bottom: 15px;
+    }
+}
+</style>

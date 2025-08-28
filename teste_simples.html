@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Log de Testes - Exemplo</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 10px; }
+        .test-result { margin: 20px 0; padding: 15px; border-radius: 8px; border-left: 4px solid; }
+        .test-pass { background: #d4edda; border-left-color: #28a745; }
+        .test-fail { background: #f8d7da; border-left-color: #dc3545; }
+        .test-header { font-weight: bold; margin-bottom: 10px; }
+        .test-details { font-size: 0.9em; color: #666; }
+        .status { font-weight: bold; }
+        .status.pass { color: #28a745; }
+        .status.fail { color: #dc3545; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Relatório de Testes Automatizados</h1>
+        <p>Data: 28/08/2025 - 14:30:00</p>
+        
+        <div class="test-result test-pass">
+            <div class="test-header">BC-123: Login com credenciais válidas</div>
+            <div class="test-details">
+                <div class="status pass">✅ PASSED</div>
+                <div>Tempo de execução: 2.3s</div>
+                <div>Navegador: Chrome 120.0</div>
+            </div>
+        </div>
+        
+        <div class="test-result test-pass">
+            <div class="test-header">PROJ-456: Cadastro de usuário</div>
+            <div class="test-details">
+                <div class="status pass">✅ PASSED</div>
+                <div>Tempo de execução: 1.8s</div>
+                <div>Navegador: Chrome 120.0</div>
+            </div>
+        </div>
+        
+        <div class="test-result test-fail">
+            <div class="test-header">TEST-789: Validação de formulário</div>
+            <div class="test-details">
+                <div class="status fail">❌ FAILED</div>
+                <div>Erro: Campo obrigatório não preenchido</div>
+                <div>Tempo de execução: 0.5s</div>
+                <div>Navegador: Chrome 120.0</div>
+            </div>
+        </div>
+        
+        <div class="test-result test-pass">
+            <div class="test-header">BUG-101: Correção de bug crítico</div>
+            <div class="test-details">
+                <div class="status pass">✅ PASSED</div>
+                <div>Tempo de execução: 3.1s</div>
+                <div>Navegador: Chrome 120.0</div>
+            </div>
+        </div>
+        
+        <div class="test-result test-fail">
+            <div class="test-header">FEATURE-202: Nova funcionalidade</div>
+            <div class="test-details">
+                <div class="status fail">❌ FAILED</div>
+                <div>Erro: Timeout na execução</div>
+                <div>Tempo de execução: 30.0s</div>
+                <div>Navegador: Chrome 120.0</div>
+            </div>
+        </div>
+        
+        <div style="margin-top: 30px; padding: 15px; background: #e9ecef; border-radius: 8px;">
+            <h3>Resumo</h3>
+            <p><strong>Total de testes:</strong> 5</p>
+            <p><strong>Sucessos:</strong> 3</p>
+            <p><strong>Falhas:</strong> 2</p>
+            <p><strong>Taxa de sucesso:</strong> 60%</p>
+        </div>
+    </div>
+</body>
+</html>
