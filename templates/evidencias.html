@@ -681,56 +681,80 @@ function mostrarNotificacao(mensagem, tipo) {
     display: flex;
     justify-content: space-between;
     margin-bottom: 2rem;
+    gap: 1rem;
 }
 
 .step {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.75rem;
     flex: 1;
-    padding: 1rem;
+    padding: 1.5rem 1rem;
     border-radius: var(--radius-md);
+    border: 1px solid var(--neurotech-border);
+    background: var(--neurotech-light);
     transition: all var(--transition-normal);
+    position: relative;
 }
 
 .step i {
-    font-size: 1.5rem;
+    font-size: 1.8rem;
     color: var(--neurotech-gray);
+    transition: color var(--transition-normal);
 }
 
 .step span {
-    font-size: 0.85rem;
+    font-size: 0.9rem;
     color: var(--neurotech-gray);
     text-align: center;
+    font-weight: 500;
+    transition: color var(--transition-normal);
 }
 
 .step.processing {
     background: rgba(49, 130, 206, 0.1);
+    border-color: var(--neurotech-accent);
 }
 
-.step.processing i {
+.step.processing i,
+.step.processing span {
     color: var(--neurotech-accent);
 }
 
 .step.success {
     background: rgba(56, 161, 105, 0.1);
+    border-color: var(--neurotech-success);
 }
 
-.step.success i {
+.step.success i,
+.step.success span {
     color: var(--neurotech-success);
 }
 
 .step.error {
     background: rgba(229, 62, 62, 0.1);
+    border-color: var(--neurotech-danger);
 }
 
-.step.error i {
+.step.error i,
+.step.error span {
     color: var(--neurotech-danger);
 }
 
 .step-status {
-    font-size: 1rem;
+    font-size: 1.2rem;
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: white;
+    box-shadow: var(--neurotech-shadow);
 }
 
 .btn-process {
@@ -883,6 +907,12 @@ function mostrarNotificacao(mensagem, tipo) {
         flex-direction: row;
         justify-content: flex-start;
         text-align: left;
+        padding: 1rem;
+    }
+    
+    .step-status {
+        position: static;
+        margin-left: auto;
     }
     
     .results-stats {
