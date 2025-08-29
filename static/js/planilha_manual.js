@@ -6,7 +6,10 @@ let dadosProcessados = []; // Array para armazenar dados processados da importa�
 // Event Listeners
 document.addEventListener('DOMContentLoaded', function() {
     // Inicializar modal
-    exportModal = new bootstrap.Modal(document.getElementById('exportModal'));
+    exportModal = new bootstrap.Modal(document.getElementById('exportModal'), {
+        backdrop: 'static',
+        keyboard: false
+    });
     
     // Adicionar evento para garantir que o campo issuePai esteja habilitado quando o modal for exibido
     document.getElementById('exportModal').addEventListener('shown.bs.modal', function() {
@@ -561,13 +564,15 @@ function mostrarAjudaIssuePai() {
                     <h5 class="modal-title">
                         <i class="fas fa-question-circle me-2"></i>Ajuda - Issue Pai
                     </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
                 </div>
                 <div class="modal-body">
                     ${ajudaHTML}
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Entendi</button>
+                    <button type="button" class="btn btn-primary" data-dismiss="modal">Entendi</button>
                 </div>
             </div>
         </div>
@@ -1266,7 +1271,9 @@ function showExportResults(data) {
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title"><i class="fas fa-check-circle"></i> Resultado da Exportação</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
                 </div>
                 <div class="modal-body">
                     <div class="alert alert-success">
@@ -1297,7 +1304,7 @@ function showExportResults(data) {
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
                 </div>
             </div>
         </div>
@@ -1347,9 +1354,8 @@ function mostrarNotificacao(mensagem, tipo = 'info') {
     
     toastBody.textContent = mensagem;
     
-    // Mostrar toast
-    const bsToast = new bootstrap.Toast(toast);
-    bsToast.show();
+    // Mostrar toast usando Bootstrap 4
+    $('#toast').toast('show');
 }
 
 

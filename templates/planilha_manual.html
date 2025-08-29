@@ -4,38 +4,44 @@
 
 {% block page_title %}Planilha Manual de Casos de Teste{% endblock %}
 
-{% block page_actions %}
-<button type="button" class="btn btn-success me-2" id="btnAddRow">
-    <i class="fas fa-plus"></i> Adicionar Linha
-</button>
-<button type="button" class="btn btn-primary" id="btnExportJira">
-    <i class="fas fa-upload"></i> Exportar para Jira
-</button>
-{% endblock %}
-
 {% block content %}
 <!-- Seção de Busca -->
-<div class="search-section">
-    <div class="search-container">
-        <div class="search-box">
-            <div class="search-input">
-                <i class="fas fa-clipboard-list search-icon"></i>
-                <input type="text" id="requisitoPai" placeholder="Digite o ID do requisito (ex: REQ-123)" autocomplete="off" spellcheck="false">
-                <button class="search-btn" onclick="buscarRequisito()">
-                    <i class="fas fa-search"></i>
-                    Buscar
-                </button>
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">
+            <i class="fas fa-search fa-fw me-2"></i>Buscar Requisito
+        </h6>
+    </div>
+    <div class="card-body">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text">
+                            <i class="fas fa-clipboard-list"></i>
+                        </span>
+                    </div>
+                    <input type="text" class="form-control" id="requisitoPai" 
+                           placeholder="Digite o ID do requisito (ex: REQ-123)" 
+                           autocomplete="off" spellcheck="false">
+                    <div class="input-group-append">
+                        <button class="btn btn-primary" type="button" onclick="buscarRequisito()">
+                            <i class="fas fa-search"></i>
+                            Buscar
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
 <!-- Seção de Importação em Massa -->
-<div class="card mb-4">
-    <div class="card-header">
-        <h5 class="mb-0">
-            <i class="fas fa-paste"></i> Importação em Massa
-        </h5>
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">
+            <i class="fas fa-upload fa-fw me-2"></i>Importação em Massa
+        </h6>
     </div>
     <div class="card-body">
         <div class="importacao-massa" id="importacaoMassa">
@@ -54,11 +60,11 @@
             
             <!-- Área principal -->
             <div class="importacao-content">
-                <div class="row g-4">
+                <div class="row">
                     <!-- Área de entrada de dados -->
                     <div class="col-lg-8">
                         <div class="form-group">
-                            <label for="dadosTabela" class="form-label fw-semibold">
+                            <label for="dadosTabela" class="font-weight-bold">
                                 <i class="fas fa-table me-2"></i>Dados da Tabela
                             </label>
                             <textarea 
@@ -67,10 +73,10 @@
                                 rows="10" 
                                 placeholder="Cole aqui os dados da sua tabela (incluindo cabeçalhos se disponível)..."
                             ></textarea>
-                            <div class="form-text">
+                            <small class="form-text text-muted">
                                 <i class="fas fa-info-circle me-1"></i>
                                 Formato esperado: dados separados por tabulação (Tab) ou vírgula, com uma linha por caso de teste
-                            </div>
+                            </small>
                         </div>
                     </div>
                     
@@ -127,16 +133,24 @@
 </div>
 
 <!-- Planilha Container -->
-<div class="card">
-    <div class="card-header">
-        <h5 class="mb-0">
-            <i class="fas fa-table"></i> Planilha de Casos de Teste
-        </h5>
+<div class="card shadow mb-4">
+    <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+        <h6 class="m-0 font-weight-bold text-primary">
+            <i class="fas fa-table fa-fw me-2"></i>Planilha de Casos de Teste
+        </h6>
+        <div class="btn-group" role="group">
+            <button type="button" class="btn btn-success btn-sm" id="btnAddRow">
+                <i class="fas fa-plus me-1"></i>Adicionar Linha
+            </button>
+            <button type="button" class="btn btn-primary btn-sm" id="btnExportJira">
+                <i class="fas fa-upload me-1"></i>Exportar para Jira
+            </button>
+        </div>
     </div>
     <div class="card-body p-0">
         <div class="table-responsive" style="max-height: 70vh; overflow-y: auto;">
             <table class="table table-hover mb-0" id="planilhaTable">
-                <thead class="table-light">
+                <thead class="thead-light">
                     <tr>
                         <th style="width: 80px;">Ações</th>
                         <th style="width: 100px;">ID</th>
@@ -161,9 +175,13 @@
 </div>
 
 <!-- Instructions -->
-<div class="card mt-4">
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">
+            <i class="fas fa-info-circle fa-fw me-2"></i>Instruções
+        </h6>
+    </div>
     <div class="card-body">
-        <h5><i class="fas fa-info-circle"></i> Instruções</h5>
         <ol>
             <li><strong>Importação em Massa:</strong> Cole dados de uma tabela na seção superior para preencher automaticamente</li>
             <li><strong>Edição Manual:</strong> Preencha os dados diretamente na planilha ou adicione linhas individuais</li>
@@ -180,15 +198,24 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title"><i class="fas fa-upload"></i> Exportar para Jira</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <h5 class="modal-title">
+                    <i class="fas fa-upload me-2"></i>Exportar para Jira
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
             </div>
             <div class="modal-body">
                 <div class="form-group mb-3">
                     <label for="issuePai"><strong>Issue Pai (Requisito):</strong></label>
-                    <div class="search-input compact theme-minimal">
-                        <i class="fas fa-clipboard-list search-icon"></i>
-                        <input type="text" id="issuePai" placeholder="Digite o ID do requisito (ex: REQ-123)" 
+                    <div class="input-group">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text">
+                                <i class="fas fa-clipboard-list"></i>
+                            </span>
+                        </div>
+                        <input type="text" class="form-control" id="issuePai" 
+                               placeholder="Digite o ID do requisito (ex: REQ-123)" 
                                required autocomplete="off" spellcheck="false">
                     </div>
                     <small class="form-text text-muted">
@@ -202,14 +229,18 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
                 <button type="button" class="btn btn-primary" id="btnConfirmExport">
-                    <i class="fas fa-upload"></i> Exportar
+                    <i class="fas fa-upload me-1"></i>Exportar
                 </button>
             </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_css %}
+<link href="{{ url_for('static', filename='css/planilha_manual_sb_admin.css') }}" rel="stylesheet">
 {% endblock %}
 
 {% block extra_js %}

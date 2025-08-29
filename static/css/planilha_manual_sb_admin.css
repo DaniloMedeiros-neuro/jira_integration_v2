@@ -1,0 +1,283 @@
+/* ========================================
+   PLANILHA MANUAL - SB ADMIN 2 STYLES
+   ======================================== */
+
+/* Seção de importação em massa - SB Admin 2 */
+.importacao-massa {
+    background: #f8f9fc;
+    border: 2px dashed #d1d3e2;
+    border-radius: 0.35rem;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    transition: all 0.15s ease-in-out;
+}
+
+.importacao-massa:hover {
+    border-color: #4e73df;
+    background: #f0f8ff;
+}
+
+.importacao-massa.drag-over {
+    border-color: #1cc88a;
+    background: #f0fff4;
+}
+
+/* Header da importação */
+.importacao-header {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #d1d3e2;
+}
+
+.importacao-icon {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+    border-radius: 0.35rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.5rem;
+    box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+}
+
+.importacao-info {
+    flex: 1;
+}
+
+.importacao-title {
+    color: #4e73df;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+    font-size: 1.25rem;
+}
+
+.importacao-description {
+    color: #858796;
+    margin: 0;
+    line-height: 1.5;
+}
+
+/* Conteúdo da importação */
+.importacao-content {
+    margin-bottom: 1.5rem;
+}
+
+.importacao-textarea {
+    border: 2px solid #d1d3e2;
+    border-radius: 0.35rem;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: 13px;
+    line-height: 1.4;
+    transition: all 0.15s ease-in-out;
+}
+
+.importacao-textarea:focus {
+    border-color: #4e73df;
+    box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
+}
+
+/* Painel de ações */
+.importacao-actions {
+    background: white;
+    border: 1px solid #d1d3e2;
+    border-radius: 0.35rem;
+    padding: 1.5rem;
+    box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+}
+
+.importacao-actions-title {
+    color: #4e73df;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    font-size: 1rem;
+}
+
+.importacao-actions .btn {
+    font-weight: 500;
+    transition: all 0.15s ease-in-out;
+}
+
+.importacao-actions .btn-lg {
+    padding: 0.75rem 1.5rem;
+    font-size: 0.95rem;
+}
+
+.importacao-actions .btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+}
+
+/* Formato esperado */
+.importacao-format {
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid #d1d3e2;
+}
+
+.importacao-format-title {
+    color: #4e73df;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    font-size: 0.875rem;
+}
+
+.importacao-format-content {
+    background: #f8f9fc;
+    border: 1px solid #d1d3e2;
+    border-radius: 0.35rem;
+    padding: 0.75rem;
+}
+
+.importacao-format-content code {
+    color: #4e73df;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+/* Preview dos dados */
+.importacao-preview {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #d1d3e2;
+}
+
+.importacao-preview-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.importacao-preview-title {
+    color: #4e73df;
+    font-weight: 600;
+    margin: 0;
+    font-size: 1rem;
+}
+
+.importacao-preview-count {
+    background: #4e73df;
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 0.35rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.preview-table {
+    background: white;
+    border: 1px solid #d1d3e2;
+    border-radius: 0.35rem;
+    overflow: hidden;
+    box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+}
+
+.preview-table table {
+    margin: 0;
+}
+
+.preview-table th {
+    background: #f8f9fc;
+    border-bottom: 1px solid #d1d3e2;
+    font-weight: 600;
+    color: #4e73df;
+    font-size: 0.875rem;
+}
+
+.preview-table td {
+    border-bottom: 1px solid #d1d3e2;
+    font-size: 0.875rem;
+    padding: 0.5rem;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .importacao-header {
+        flex-direction: column;
+        text-align: center;
+        gap: 1rem;
+    }
+    
+    .importacao-icon {
+        width: 50px;
+        height: 50px;
+        font-size: 1.25rem;
+    }
+    
+    .importacao-actions {
+        margin-top: 1rem;
+    }
+    
+    .importacao-preview-header {
+        flex-direction: column;
+        gap: 0.5rem;
+        text-align: center;
+    }
+}
+
+/* Melhorias para tabela da planilha */
+#planilhaTable {
+    font-size: 0.875rem;
+}
+
+#planilhaTable th {
+    background: #f8f9fc;
+    border-bottom: 2px solid #d1d3e2;
+    font-weight: 600;
+    color: #4e73df;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+#planilhaTable td {
+    vertical-align: middle;
+    border-bottom: 1px solid #d1d3e2;
+}
+
+#planilhaTable tbody tr:hover {
+    background-color: #f8f9fc;
+}
+
+/* Botões de ação na tabela */
+.btn-action {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    margin: 0 0.125rem;
+}
+
+/* Inputs na tabela */
+.table-input {
+    border: 1px solid #d1d3e2;
+    border-radius: 0.25rem;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+    width: 100%;
+}
+
+.table-input:focus {
+    border-color: #4e73df;
+    box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
+    outline: none;
+}
+
+/* Selects na tabela */
+.table-select {
+    border: 1px solid #d1d3e2;
+    border-radius: 0.25rem;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+    width: 100%;
+    background: white;
+}
+
+.table-select:focus {
+    border-color: #4e73df;
+    box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
+    outline: none;
+}
