@@ -2,6 +2,189 @@
 let rowCounter = 0;
 let exportModal;
 let dadosProcessados = []; // Array para armazenar dados processados da importação em massa
+let requisitoAtual = null; // Armazenar dados do requisito atual
+
+// Função para buscar requisito na planilha manual
+async function buscarRequisito() {
+    const requisitoPaiElement = document.getElementById('requisitoPai');
+    if (!requisitoPaiElement) {
+        mostrarNotificacao('Campo de busca não encontrado', 'error');
+        return;
+    }
+    
+    const requisitoPai = requisitoPaiElement.value.trim();
+    
+    if (!requisitoPai) {
+        mostrarNotificacao('Por favor, digite o ID do requisito', 'warning');
+        return;
+    }
+    
+    // Validar formato do ID (ex: REQ-123, NEX-17, etc.)
+    const idPattern = /^[A-Z]+-\d+$/;
+    if (!idPattern.test(requisitoPai)) {
+        mostrarNotificacao('Formato inválido. Use o formato: REQ-123, NEX-17, etc.', 'warning');
+        return;
+    }
+    
+    try {
+        console.log('🔍 Buscando requisito:', requisitoPai);
+        
+        // Mostrar loading
+        const btnBuscar = document.querySelector('button[onclick="buscarRequisito()"]');
+        if (btnBuscar) {
+            btnBuscar.disabled = true;
+            btnBuscar.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Buscando...';
+        }
+        
+        // Fazer requisição para buscar o requisito
+        const response = await fetch(`/api/requisito/${requisitoPai}`);
+        const data = await response.json();
+        
+        if (response.ok && data.requisito) {
+            console.log('✅ Requisito encontrado:', data.requisito);
+            
+            // Armazenar dados do requisito
+            requisitoAtual = data.requisito;
+            
+            // Mostrar elementos ocultos
+            mostrarElementosAposBusca();
+            
+            // Exibir informações do requisito
+            exibirInformacoesRequisito(data.requisito);
+            
+            // Preencher automaticamente o campo issuePai no modal de exportação
+            const issuePaiElement = document.getElementById('issuePai');
+            if (issuePaiElement) {
+                issuePaiElement.value = requisitoPai;
+            }
+            
+            mostrarNotificacao(`Requisito ${requisitoPai} encontrado com sucesso!`, 'success');
+            
+        } else {
+            console.error('❌ Requisito não encontrado:', data);
+            requisitoAtual = null;
+            limparInformacoesRequisito();
+            mostrarNotificacao(data.erro || `Requisito ${requisitoPai} não encontrado`, 'error');
+        }
+        
+    } catch (error) {
+        console.error('❌ Erro ao buscar requisito:', error);
+        requisitoAtual = null;
+        limparInformacoesRequisito();
+        mostrarNotificacao(`Erro de conexão: ${error.message}`, 'error');
+    } finally {
+        // Restaurar botão
+        const btnBuscar = document.querySelector('button[onclick="buscarRequisito()"]');
+        if (btnBuscar) {
+            btnBuscar.disabled = false;
+            btnBuscar.innerHTML = '<i class="fas fa-search"></i> Buscar';
+        }
+    }
+}
+
+// Função para exibir informações do requisito
+function exibirInformacoesRequisito(requisito) {
+    // Criar ou atualizar seção de informações do requisito
+    let requisitoInfoSection = document.getElementById('requisitoInfoSection');
+    
+    if (!requisitoInfoSection) {
+        requisitoInfoSection = document.createElement('div');
+        requisitoInfoSection.id = 'requisitoInfoSection';
+        requisitoInfoSection.className = 'card shadow mb-4';
+        
+        // Inserir após a seção de busca
+        const searchSection = document.querySelector('.card.shadow.mb-4');
+        if (searchSection) {
+            searchSection.parentNode.insertBefore(requisitoInfoSection, searchSection.nextSibling);
+        }
+    }
+    
+    // Criar HTML das informações do requisito usando a estrutura que funciona perfeitamente
+    const requisitoHTML = `
+        <div class="requisito-info">
+            <div class="requisito-header">
+                <h4 class="requisito-titulo">
+                    <i class="fas fa-file-alt me-2"></i>
+                    ${requisito.titulo}
+                </h4>
+                <span class="requisito-id">${requisito.id}</span>
+            </div>
+            <div class="requisito-meta">
+                <span class="requisito-meta-item">
+                    <i class="fas fa-tag"></i>
+                    ${requisito.tipo}
+                </span>
+                <span class="requisito-meta-item">
+                    <i class="fas fa-project-diagram"></i>
+                    ${requisito.projeto}
+                </span>
+                <span class="requisito-meta-item">
+                    <i class="fas fa-info-circle"></i>
+                    ${requisito.status}
+                </span>
+                <span class="requisito-meta-item">
+                    <i class="fas fa-calendar-plus"></i>
+                    ${formatarData(requisito.criado_em)}
+                </span>
+            </div>
+            ${requisito.descricao ? `
+                <div class="requisito-descricao">
+                    <strong><i class="fas fa-align-left me-1"></i>Descrição:</strong><br>
+                    <div class="requisito-descricao-texto">${requisito.descricao.replace(/\n/g, '<br>')}</div>
+                </div>
+            ` : ''}
+        </div>
+    `;
+    
+    requisitoInfoSection.innerHTML = requisitoHTML;
+    requisitoInfoSection.style.display = 'block';
+}
+
+// Função para limpar informações do requisito
+function limparInformacoesRequisito() {
+    const requisitoInfoSection = document.getElementById('requisitoInfoSection');
+    if (requisitoInfoSection) {
+        requisitoInfoSection.style.display = 'none';
+    }
+}
+
+// Função para obter classe do badge de status
+function getStatusBadgeClass(status) {
+    const statusLower = status.toLowerCase();
+    if (statusLower.includes('to do') || statusLower.includes('open') || statusLower.includes('para ajustar')) {
+        return 'secondary';
+    } else if (statusLower.includes('in progress') || statusLower.includes('em progresso')) {
+        return 'warning';
+    } else if (statusLower.includes('done') || statusLower.includes('concluído') || statusLower.includes('resolved')) {
+        return 'success';
+    } else {
+        return 'info';
+    }
+}
+
+// Função para formatar data
+function formatarData(dataString) {
+    if (!dataString) return 'N/A';
+    
+    try {
+        const data = new Date(dataString);
+        return data.toLocaleDateString('pt-BR', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    } catch (error) {
+        return dataString;
+    }
+}
+
+// Função para gerar URL do Jira
+function getJiraUrl(issueKey) {
+    const jiraUrl = 'https://neurotech.atlassian.net';
+    return `${jiraUrl}/browse/${issueKey}`;
+}
 
 // Event Listeners
 document.addEventListener('DOMContentLoaded', function() {
@@ -1390,6 +1573,75 @@ function mostrarNotificacao(mensagem, tipo = 'info') {
     
     // Mostrar toast usando Bootstrap 4
     $('#toast').toast('show');
+}
+
+// Função para mostrar elementos após busca bem-sucedida
+function mostrarElementosAposBusca() {
+    // Mostrar seção de importação em massa
+    const importacaoSection = document.getElementById('importacaoMassaSection');
+    if (importacaoSection) {
+        importacaoSection.style.display = 'block';
+    }
+    
+    // Mostrar seção da planilha
+    const planilhaSection = document.getElementById('planilhaSection');
+    if (planilhaSection) {
+        planilhaSection.style.display = 'block';
+    }
+    
+    // Mostrar seção de instruções
+    const instructionsSection = document.getElementById('instructionsSection');
+    if (instructionsSection) {
+        instructionsSection.style.display = 'block';
+    }
+}
+
+// Função para ocultar elementos (reset)
+function ocultarElementos() {
+    // Ocultar seção de importação em massa
+    const importacaoSection = document.getElementById('importacaoMassaSection');
+    if (importacaoSection) {
+        importacaoSection.style.display = 'none';
+    }
+    
+    // Ocultar seção da planilha
+    const planilhaSection = document.getElementById('planilhaSection');
+    if (planilhaSection) {
+        planilhaSection.style.display = 'none';
+    }
+    
+    // Ocultar seção de instruções
+    const instructionsSection = document.getElementById('instructionsSection');
+    if (instructionsSection) {
+        instructionsSection.style.display = 'none';
+    }
+    
+    // Limpar informações do requisito
+    limparInformacoesRequisito();
+}
+
+// Função para mostrar toast
+function mostrarToast(mensagem, tipo = 'info') {
+    // Implementação simples de toast
+    console.log(`${tipo.toUpperCase()}: ${mensagem}`);
+    
+    // Se houver uma função de toast disponível, use-a
+    if (typeof mostrarNotificacao === 'function') {
+        mostrarNotificacao(mensagem, tipo);
+    }
+}
+
+// Função para obter cor da prioridade
+function getPriorityColor(prioridade) {
+    const prioridadeLower = prioridade.toLowerCase();
+    if (prioridadeLower.includes('high') || prioridadeLower.includes('alta')) {
+        return 'danger';
+    } else if (prioridadeLower.includes('medium') || prioridadeLower.includes('média') || prioridadeLower.includes('media')) {
+        return 'warning';
+    } else if (prioridadeLower.includes('low') || prioridadeLower.includes('baixa')) {
+        return 'info';
+    }
+    return 'secondary';
 }
 
 

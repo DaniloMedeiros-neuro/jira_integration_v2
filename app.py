@@ -145,6 +145,47 @@ def index():
     return render_template('index.html')
 
 
+@app.route('/api/requisito/<issue_key>')
+def buscar_requisito(issue_key):
+    """Busca informações de um requisito específico"""
+    try:
+        print(f"=== BUSCANDO REQUISITO {issue_key} ===")
+        
+        # Buscar a issue no Jira
+        url = f"{JIRA_BASE_URL}/rest/api/3/issue/{issue_key}"
+        response = requests.get(url, headers=HEADERS, auth=(JIRA_EMAIL, JIRA_API_TOKEN))
+        
+        if response.status_code != 200:
+            print(f"❌ Requisito {issue_key} não encontrado: {response.status_code}")
+            return jsonify({"erro": f"Requisito {issue_key} não encontrado"}), 404
+        
+        print(f"✅ Requisito {issue_key} encontrado")
+        
+        # Extrair informações da issue
+        issue_data = response.json()
+        issue_fields = issue_data.get("fields", {})
+        
+        requisito_info = {
+            "id": issue_key,
+            "titulo": issue_fields.get("summary", ""),
+            "descricao": extrair_texto_descricao(issue_fields.get("description")),
+            "status": issue_fields.get("status", {}).get("name", ""),
+            "tipo": issue_fields.get("issuetype", {}).get("name", ""),
+            "projeto": issue_fields.get("project", {}).get("key", ""),
+            "criado_em": issue_fields.get("created", ""),
+            "atualizado_em": issue_fields.get("updated", "")
+        }
+        
+        print(f"✅ Informações extraídas: {requisito_info['titulo']}")
+        
+        return jsonify({
+            "requisito": requisito_info
+        })
+        
+    except Exception as e:
+        print(f"❌ Erro ao buscar requisito {issue_key}: {e}")
+        return jsonify({"erro": f"Erro interno: {str(e)}"}), 500
+
 
 @app.route('/api/casos-teste/<issue_pai>')
 def buscar_casos_teste(issue_pai):

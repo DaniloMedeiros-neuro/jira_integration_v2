@@ -31,9 +31,11 @@
             <!-- Sidebar - Brand -->
             <a class="sidebar-brand d-flex align-items-center justify-content-center" href="/">
                 <div class="sidebar-brand-icon">
-                    <img src="{{ url_for('static', filename='images/neuro-logo.svg') }}" alt="Neurotech" style="height: 40px; filter: brightness(0) invert(1);">
+                    <img src="{{ url_for('static', filename='images/neuro-logo.svg') }}" alt="Neurotech" style="height: 100px; width: 100px; object-fit: contain; filter: brightness(0) invert(1);">
                 </div>
-                <div class="sidebar-brand-text mx-3">Neurotech</div>
+                <div class="sidebar-brand-text mx-3">
+                    <img src="{{ url_for('static', filename='images/nexus-logo.png') }}" alt="Nexus" style="height: 100px; width: 100px; object-fit: contain; max-width: 100%;">
+                </div>
             </a>
 
             <!-- Divider -->
