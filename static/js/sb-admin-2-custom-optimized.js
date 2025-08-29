@@ -112,53 +112,7 @@ $(document).ready(function() {
     }
     
     // Topbar Search Functionality - Versão Otimizada
-    function initTopbarSearch() {
-        
-        // Search desktop
-        $('#topbarSearchForm').on('submit', function(e) {
-            e.preventDefault();
-            var query = $('#topbarSearchInput').val().trim();
-            if (query) {
-                performSearch(query);
-            }
-        });
-        
-        // Search mobile
-        $('#mobileSearchForm').on('submit', function(e) {
-            e.preventDefault();
-            var query = $('#mobileSearchInput').val().trim();
-            if (query) {
-                performSearch(query);
-            }
-        });
-        
-        // Auto-complete para search (opcional)
-        $('#topbarSearchInput, #mobileSearchInput').on('input', function() {
-            var query = $(this).val().trim();
-            if (query.length >= 2) {
-                // Aqui você pode implementar auto-complete
-            }
-        });
-    }
-    
-    // Função para executar busca
-    function performSearch(query) {
-        
-        // Mostrar loading
-        SBAdmin2Utils.showLoading('Buscando...');
-        
-        // Simular busca (substitua por sua lógica real)
-        setTimeout(function() {
-            SBAdmin2Utils.hideLoading();
-            
-            // Redirecionar para página de busca ou mostrar resultados
-            if (query.toLowerCase().includes('caso') || query.toLowerCase().includes('teste')) {
-                window.location.href = '/?search=' + encodeURIComponent(query);
-            } else {
-                SBAdmin2Utils.showNotification('Nenhum resultado encontrado para: ' + query, 'warning');
-            }
-        }, 1000);
-    }
+
     
     // Notifications System - Versão Otimizada
     function initNotifications() {
@@ -218,7 +172,7 @@ $(document).ready(function() {
     highlightActivePage();
     initSidebarToggle();
     initDropdowns();
-    initTopbarSearch();
+    
     initNotifications();
     
     // Adicionar classes CSS para melhorar a aparência

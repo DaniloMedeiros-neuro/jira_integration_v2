@@ -1,16 +1,24 @@
 /* Customização do SB Admin 2 para Neurotech */
 
-/* Paleta de cores exata do SB Admin 2 */
+/* Paleta de cores da Neurotech */
 :root {
+    /* Neurotech Primary Colors */
+    --neurotech-primary: #1a365d;
+    --neurotech-secondary: #2d3748;
+    --neurotech-accent: #3182ce;
+    --neurotech-danger: #e53e3e;
+    --neurotech-gray: #718096;
+    --neurotech-border: #e2e8f0;
+    
     /* Primary Colors */
-    --primary: #4e73df;
-    --primary-dark: #2e59d9;
-    --primary-light: #858796;
+    --primary: #1a365d;
+    --primary-dark: #2d3748;
+    --primary-light: #3182ce;
 
     /* Secondary Colors */
-    --secondary: #858796;
-    --secondary-dark: #6e707e;
-    --secondary-light: #b7b9cc;
+    --secondary: #2d3748;
+    --secondary-dark: #1a365d;
+    --secondary-light: #718096;
 
     /* Success Colors */
     --success: #1cc88a;
@@ -18,8 +26,8 @@
     --success-light: #36e9b1;
 
     /* Info Colors */
-    --info: #36b9cc;
-    --info-dark: #2a96a5;
+    --info: #3182ce;
+    --info-dark: #1a365d;
     --info-light: #5ed3e8;
 
     /* Warning Colors */
@@ -28,7 +36,7 @@
     --warning-light: #f8d675;
 
     /* Danger Colors */
-    --danger: #e74a3b;
+    --danger: #e53e3e;
     --danger-dark: #be2617;
     --danger-light: #f1948a;
 
@@ -47,9 +55,9 @@
     --gray-900: #3a3b45;
 }
 
-/* Gradientes do SB Admin 2 */
+/* Gradientes da Neurotech */
 .bg-gradient-primary {
-    background: linear-gradient(180deg, #4e73df 10%, #224abe 100%) !important;
+    background: linear-gradient(180deg, #1a365d 10%, #2d3748 100%) !important;
 }
 
 .bg-gradient-success {
@@ -57,7 +65,7 @@
 }
 
 .bg-gradient-info {
-    background: linear-gradient(180deg, #36b9cc 10%, #258391 100%) !important;
+    background: linear-gradient(180deg, #3182ce 10%, #1a365d 100%) !important;
 }
 
 .bg-gradient-warning {
@@ -65,7 +73,7 @@
 }
 
 .bg-gradient-danger {
-    background: linear-gradient(180deg, #e74a3b 10%, #be2617 100%) !important;
+    background: linear-gradient(180deg, #e53e3e 10%, #be2617 100%) !important;
 }
 
 /* Sidebar Customizações - CORREÇÃO CRÍTICA COM MAIOR ESPECIFICIDADE */
@@ -81,8 +89,8 @@ body #wrapper .sidebar {
 }
 
 body #wrapper .sidebar-brand {
-    background: rgba(255, 255, 255, 0.1) !important;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+    background: linear-gradient(135deg, #1a365d 0%, #2d3748 100%) !important;
+    border-bottom: 1px solid #e2e8f0 !important;
     padding: 1rem !important;
 }
 
@@ -94,7 +102,7 @@ body #wrapper .sidebar-brand-text {
 }
 
 body #wrapper .sidebar-heading {
-    color: rgba(255, 255, 255, 0.7) !important;
+    color: #718096 !important;
     font-size: 0.75rem !important;
     font-weight: 600 !important;
     text-transform: uppercase !important;
@@ -125,6 +133,7 @@ body #wrapper .sidebar .nav-item .nav-link i {
     margin-right: 0.5rem !important;
     width: 1rem !important;
     text-align: center !important;
+    color: #3182ce !important;
 }
 
 /* Topbar Customizações */
@@ -133,6 +142,28 @@ body #wrapper .topbar {
     box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15) !important;
     height: 4.375rem !important;
     padding: 0 1rem !important;
+}
+
+/* Estilos específicos para elementos do topbar com cores da Neurotech */
+body #wrapper .topbar .navbar-nav .nav-link {
+    color: #2d3748 !important;
+}
+
+body #wrapper .topbar .navbar-nav .nav-link i {
+    color: #3182ce !important;
+}
+
+body #wrapper .topbar .badge-counter {
+    background-color: #e53e3e !important;
+}
+
+/* Título principal do sistema */
+body #wrapper .topbar h2 {
+    color: #1a365d !important;
+}
+
+body #wrapper .topbar p {
+    color: #2d3748 !important;
 }
 
 body #wrapper .topbar .navbar-search {

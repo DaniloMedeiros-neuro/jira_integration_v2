@@ -29,12 +29,9 @@
         <ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
 
             <!-- Sidebar - Brand -->
-            <a class="sidebar-brand d-flex align-items-center justify-content-center" href="/">
+            <a class="sidebar-brand d-flex align-items-center justify-content-center" href="/" style="background: linear-gradient(135deg, #1a365d 0%, #2d3748 100%); border-bottom: 1px solid #e2e8f0;">
                 <div class="sidebar-brand-icon">
-                    <img src="{{ url_for('static', filename='images/neuro-logo.svg') }}" alt="Neurotech" style="height: 100px; width: 100px; object-fit: contain; filter: brightness(0) invert(1);">
-                </div>
-                <div class="sidebar-brand-text mx-3">
-                    <img src="{{ url_for('static', filename='images/nexus-logo.png') }}" alt="Nexus" style="height: 100px; width: 100px; object-fit: contain; max-width: 100%;">
+                    <img src="{{ url_for('static', filename='images/nexus-logo.png') }}" alt="Nexus" style="height: 180px; width: 180px; object-fit: contain; max-width: 100%; filter: brightness(0) invert(1);">
                 </div>
             </a>
 
@@ -42,14 +39,14 @@
             <hr class="sidebar-divider">
 
             <!-- Heading -->
-            <div class="sidebar-heading">
+            <div class="sidebar-heading" style="color: #718096; font-weight: 600;">
                 Gerenciamento
             </div>
 
             <!-- Nav Item - Dashboard -->
             <li class="nav-item">
-                <a class="nav-link" href="/">
-                    <i class="fas fa-fw fa-search"></i>
+                <a class="nav-link" href="/" style="color: rgba(255, 255, 255, 0.8);">
+                    <i class="fas fa-fw fa-search" style="color: #3182ce;"></i>
                     <span>Buscar casos de teste</span>
                 </a>
             </li>
@@ -135,53 +132,29 @@
                         <i class="fa fa-bars"></i>
                     </button>
 
-                    <!-- Topbar Search -->
-                    <form class="d-none d-sm-inline-block form-inline mr-auto ml-md-3 my-2 my-md-0 mw-100 navbar-search" id="topbarSearchForm">
-                        <div class="input-group">
-                            <input type="text" class="form-control bg-light border-0 small" placeholder="Buscar casos de teste..."
-                                   aria-label="Search" aria-describedby="basic-addon2" id="topbarSearchInput">
-                            <div class="input-group-append">
-                                <button class="btn btn-primary" type="submit">
-                                    <i class="fas fa-search fa-sm"></i>
-                                </button>
-                            </div>
+                    <!-- System Logo (Left) -->
+                    <div class="d-flex align-items-center">
+                        <img src="{{ url_for('static', filename='images/neuro-logo.png') }}" alt="Neurotech" style="height: 200px; width: 200px; object-fit: contain;">
+                    </div>
+
+                    <!-- System Title (Center) -->
+                    <div class="d-flex align-items-center justify-content-center flex-grow-1">
+                        <div class="text-center">
+                            <h2 class="mb-1 font-weight-bold" style="font-size: 2.2rem; text-shadow: 2px 2px 4px rgba(0,0,0,0.1); letter-spacing: 1px; color: #1a365d;">JIRA INTEGRATION</h2>
+                            <p class="mb-0" style="font-size: 1rem; font-weight: 500; letter-spacing: 0.5px; color: #2d3748;">Sistema de Gerenciamento de Casos de Teste</p>
                         </div>
-                    </form>
+                    </div>
 
                     <!-- Topbar Navbar -->
                     <ul class="navbar-nav ml-auto">
 
-                        <!-- Nav Item - Search Dropdown (Visible Only XS) -->
-                        <li class="nav-item dropdown no-arrow d-sm-none">
-                            <a class="nav-link dropdown-toggle" href="#" id="searchDropdown" role="button"
-                                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <i class="fas fa-search fa-fw"></i>
-                            </a>
-                            <!-- Dropdown - Search -->
-                            <div class="dropdown-menu dropdown-menu-right p-3 shadow animated--grow-in"
-                                aria-labelledby="searchDropdown">
-                                <form class="form-inline mr-auto w-100 navbar-search" id="mobileSearchForm">
-                                    <div class="input-group">
-                                        <input type="text" class="form-control bg-light border-0 small"
-                                               placeholder="Buscar casos de teste..." aria-label="Search"
-                                               aria-describedby="basic-addon2" id="mobileSearchInput">
-                                        <div class="input-group-append">
-                                            <button class="btn btn-primary" type="submit">
-                                                <i class="fas fa-search fa-sm"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </form>
-                            </div>
-                        </li>
-
                         <!-- Nav Item - Alerts -->
                         <li class="nav-item dropdown no-arrow mx-1">
                             <a class="nav-link dropdown-toggle" href="#" id="alertsDropdown" role="button"
-                                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <i class="fas fa-bell fa-fw"></i>
+                                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="color: #2d3748;">
+                                <i class="fas fa-bell fa-fw" style="color: #3182ce;"></i>
                                 <!-- Counter - Alerts -->
-                                <span class="badge badge-danger badge-counter">3+</span>
+                                <span class="badge badge-danger badge-counter" style="background-color: #e53e3e;">3+</span>
                             </a>
                             <!-- Dropdown - Alerts -->
                             <div class="dropdown-list dropdown-menu dropdown-menu-right shadow animated--grow-in"
@@ -229,10 +202,10 @@
                         <!-- Nav Item - Messages -->
                         <li class="nav-item dropdown no-arrow mx-1">
                             <a class="nav-link dropdown-toggle" href="#" id="messagesDropdown" role="button"
-                                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <i class="fas fa-envelope fa-fw"></i>
+                                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="color: #2d3748;">
+                                <i class="fas fa-envelope fa-fw" style="color: #3182ce;"></i>
                                 <!-- Counter - Messages -->
-                                <span class="badge badge-danger badge-counter">7</span>
+                                <span class="badge badge-danger badge-counter" style="background-color: #e53e3e;">7</span>
                             </a>
                             <!-- Dropdown - Messages -->
                             <div class="dropdown-list dropdown-menu dropdown-menu-right shadow animated--grow-in"
@@ -297,8 +270,8 @@
                         <!-- Nav Item - User Information -->
                         <li class="nav-item dropdown no-arrow">
                             <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
-                                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <span class="mr-2 d-none d-lg-inline text-gray-600 small">Usuário Neurotech</span>
+                                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="color: #2d3748;">
+                                <span class="mr-2 d-none d-lg-inline small" style="color: #1a365d; font-weight: 600;">Usuário Neurotech</span>
                                 <img class="img-profile rounded-circle" src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMzAiIGN5PSIzMCIgcj0iMzAiIGZpbGw9IiM0ZTczZGYiLz4KPHN2ZyB4PSIxNSIgeT0iMTUiIHdpZHRoPSIzMCIgaGVpZ2h0PSIzMCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJ3aGl0ZSI+CjxwYXRoIGQ9Ik0xMiAxMmMyLjIxIDAgNC0xLjc5IDQtNHMtMS43OS00LTQtNC00IDEuNzktNCA0IDEuNzkgNCA0IDR6bTAgMmMtMi42NyAwLTggMS4zNC04IDR2MmgxNnYtMmMwLTIuNjYtNS4zMy00LTgtNHoiLz4KPC9zdmc+Cjwvc3ZnPgo=" alt="Usuário">
                             </a>
                             <!-- Dropdown - User Information -->

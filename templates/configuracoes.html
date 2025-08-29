@@ -4,224 +4,305 @@
 
 {% block page_title %}Configurações do Sistema{% endblock %}
 
-{% block page_actions %}
-<button type="button" class="btn btn-primary" id="btnEditar" onclick="toggleEditMode()">
-    <i class="fas fa-edit"></i> Editar Configurações
-</button>
-<button type="button" class="btn btn-success d-none" id="btnSalvar" onclick="salvarConfiguracoes()">
-    <i class="fas fa-save"></i> Salvar
-</button>
-<button type="button" class="btn btn-secondary d-none" id="btnCancelar" onclick="cancelarEdicao()">
-    <i class="fas fa-times"></i> Cancelar
-</button>
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/configuracoes.css') }}">
 {% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-12">
-        <!-- Status Geral das Configurações -->
-        <div class="card mb-4">
-            <div class="card-header">
-                <h5 class="mb-0">
-                    <i class="fas fa-cog"></i> Status das Configurações
-                </h5>
-            </div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-lg-3 col-md-6 col-sm-12 mb-3">
-                        <div class="config-status-item">
-                            <div class="status-icon {% if status.url_valida %}status-success{% else %}status-error{% endif %}">
-                                <i class="fas fa-link"></i>
-                            </div>
-                            <div class="status-info">
-                                <h6>URL do Jira</h6>
-                                <span class="status-text {% if status.url_valida %}text-success{% else %}text-danger{% endif %}">
-                                    {% if status.url_valida %}Configurado{% else %}Não configurado{% endif %}
-                                </span>
-                            </div>
+<div class="container-fluid">
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+                            <i class="fas fa-cog fa-fw mr-2"></i>
+            Configurações do Sistema
+        </h1>
+        <div class="d-flex gap-2 flex-wrap">
+            <button type="button" class="btn btn-primary" id="btnEditar" onclick="toggleEditMode()">
+                <i class="fas fa-edit fa-fw mr-1"></i>
+                Editar Configurações
+            </button>
+            <button type="button" class="btn btn-success d-none" id="btnSalvar" onclick="salvarConfiguracoes()">
+                <i class="fas fa-save fa-fw mr-1"></i>
+                Salvar
+            </button>
+            <button type="button" class="btn btn-secondary d-none" id="btnCancelar" onclick="cancelarEdicao()">
+                <i class="fas fa-times fa-fw mr-1"></i>
+                Cancelar
+            </button>
+            <button type="button" class="btn btn-info" onclick="testarConexao()">
+                <i class="fas fa-plug fa-fw mr-1"></i>
+                Testar Conexão
+            </button>
+        </div>
+    </div>
+
+    <!-- Status Geral das Configurações -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">
+                <i class="fas fa-chart-line fa-fw mr-2"></i>
+                Status das Configurações
+            </h6>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-lg-3 col-md-6 col-sm-12 mb-3">
+                    <div class="config-status-item">
+                        <div class="status-icon {% if status.url_valida %}status-success{% else %}status-error{% endif %}">
+                            <i class="fas fa-link"></i>
+                        </div>
+                        <div class="status-info">
+                            <h6>URL do Jira</h6>
+                            <span class="status-text {% if status.url_valida %}text-success{% else %}text-danger{% endif %}">
+                                {% if status.url_valida %}Configurado{% else %}Não configurado{% endif %}
+                            </span>
                         </div>
                     </div>
-                    <div class="col-lg-3 col-md-6 col-sm-12 mb-3">
-                        <div class="config-status-item">
-                            <div class="status-icon {% if status.email_valido %}status-success{% else %}status-error{% endif %}">
-                                <i class="fas fa-envelope"></i>
-                            </div>
-                            <div class="status-info">
-                                <h6>Email</h6>
-                                <span class="status-text {% if status.email_valido %}text-success{% else %}text-danger{% endif %}">
-                                    {% if status.email_valido %}Configurado{% else %}Não configurado{% endif %}
-                                </span>
-                            </div>
+                </div>
+                <div class="col-lg-3 col-md-6 col-sm-12 mb-3">
+                    <div class="config-status-item">
+                        <div class="status-icon {% if status.email_valido %}status-success{% else %}status-error{% endif %}">
+                            <i class="fas fa-envelope"></i>
+                        </div>
+                        <div class="status-info">
+                            <h6>Email</h6>
+                            <span class="status-text {% if status.email_valido %}text-success{% else %}text-danger{% endif %}">
+                                {% if status.email_valido %}Configurado{% else %}Não configurado{% endif %}
+                            </span>
                         </div>
                     </div>
-                    <div class="col-lg-3 col-md-6 col-sm-12 mb-3">
-                        <div class="config-status-item">
-                            <div class="status-icon {% if status.token_valido %}status-success{% else %}status-error{% endif %}">
-                                <i class="fas fa-key"></i>
-                            </div>
-                            <div class="status-info">
-                                <h6>API Token</h6>
-                                <span class="status-text {% if status.token_valido %}text-success{% else %}text-danger{% endif %}">
-                                    {% if status.token_valido %}Configurado{% else %}Não configurado{% endif %}
-                                </span>
-                            </div>
+                </div>
+                <div class="col-lg-3 col-md-6 col-sm-12 mb-3">
+                    <div class="config-status-item">
+                        <div class="status-icon {% if status.token_valido %}status-success{% else %}status-error{% endif %}">
+                            <i class="fas fa-key"></i>
+                        </div>
+                        <div class="status-info">
+                            <h6>API Token</h6>
+                            <span class="status-text {% if status.token_valido %}text-success{% else %}text-danger{% endif %}">
+                                {% if status.token_valido %}Configurado{% else %}Não configurado{% endif %}
+                            </span>
                         </div>
                     </div>
-                    <div class="col-lg-3 col-md-6 col-sm-12 mb-3">
-                        <div class="config-status-item">
-                            <div class="status-icon {% if status.auth_valida %}status-success{% else %}status-error{% endif %}">
-                                <i class="fas fa-shield-alt"></i>
-                            </div>
-                            <div class="status-info">
-                                <h6>Autenticação</h6>
-                                <span class="status-text {% if status.auth_valida %}text-success{% else %}text-danger{% endif %}">
-                                    {% if status.auth_valida %}Configurado{% else %}Não configurado{% endif %}
-                                </span>
-                            </div>
+                </div>
+                <div class="col-lg-3 col-md-6 col-sm-12 mb-3">
+                    <div class="config-status-item">
+                        <div class="status-icon {% if status.auth_valida %}status-success{% else %}status-error{% endif %}">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                        <div class="status-info">
+                            <h6>Autenticação</h6>
+                            <span class="status-text {% if status.auth_valida %}text-success{% else %}text-danger{% endif %}">
+                                {% if status.auth_valida %}Configurado{% else %}Não configurado{% endif %}
+                            </span>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
+    </div>
 
-        <!-- Formulário de Configurações -->
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">
-                    <i class="fas fa-info-circle"></i> Configurações do Jira
-                </h5>
-            </div>
-            <div class="card-body">
-                <form id="configForm">
-                    <div class="row">
-                        <div class="col-lg-6 col-md-12 mb-3">
-                            <div class="config-detail-item">
-                                <label class="config-label" for="jira_url">
-                                    <i class="fas fa-link"></i> JIRA_BASE_URL <span class="text-danger">*</span>
-                                </label>
-                                <div class="config-input-group">
-                                    <input type="url" 
-                                           class="form-control config-input" 
-                                           id="jira_url" 
-                                           name="JIRA_BASE_URL" 
-                                           value="{{ configuracoes.JIRA_BASE_URL }}"
-                                           placeholder="https://sua-empresa.atlassian.net"
-                                           required
-                                           disabled>
-                                    <button type="button" class="btn btn-outline-secondary config-copy-btn" onclick="copyToClipboard('{{ configuracoes.JIRA_BASE_URL }}')">
-                                        <i class="fas fa-copy"></i>
-                                    </button>
-                                </div>
-                                <small class="form-text text-muted">URL base do seu Jira (ex: https://neurotech.atlassian.net)</small>
-                            </div>
-                        </div>
-                        <div class="col-lg-6 col-md-12 mb-3">
-                            <div class="config-detail-item">
-                                <label class="config-label" for="jira_email">
-                                    <i class="fas fa-envelope"></i> JIRA_EMAIL <span class="text-danger">*</span>
-                                </label>
-                                <div class="config-input-group">
-                                    <input type="email" 
-                                           class="form-control config-input" 
-                                           id="jira_email" 
-                                           name="JIRA_EMAIL" 
-                                           value="{{ configuracoes.JIRA_EMAIL }}"
-                                           placeholder="seu-email@empresa.com"
-                                           required
-                                           disabled>
-                                    <button type="button" class="btn btn-outline-secondary config-copy-btn" onclick="copyToClipboard('{{ configuracoes.JIRA_EMAIL }}')">
-                                        <i class="fas fa-copy"></i>
-                                    </button>
-                                </div>
-                                <small class="form-text text-muted">Email da sua conta do Jira</small>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-lg-6 col-md-12 mb-3">
-                            <div class="config-detail-item">
-                                <label class="config-label" for="jira_token">
-                                    <i class="fas fa-key"></i> JIRA_API_TOKEN <span class="text-danger">*</span>
-                                </label>
-                                <div class="config-input-group">
-                                    <input type="password" 
-                                           class="form-control config-input" 
-                                           id="jira_token" 
-                                           name="JIRA_API_TOKEN" 
-                                           value="{{ configuracoes.JIRA_API_TOKEN }}"
-                                           placeholder="ATATT3xFfGF0..."
-                                           required
-                                           disabled>
-                                    <button type="button" class="btn btn-outline-secondary config-copy-btn" onclick="copyToClipboard('{{ configuracoes.JIRA_API_TOKEN }}')">
-                                        <i class="fas fa-copy"></i>
-                                    </button>
-                                    <button type="button" class="btn btn-outline-secondary config-toggle-btn" onclick="togglePasswordVisibility()">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                </div>
-                                <small class="form-text text-muted">
-                                    Token da API do Jira. 
-                                    <a href="https://id.atlassian.com/manage-profile/security/api-tokens" target="_blank" class="text-primary">
-                                        <i class="fas fa-external-link-alt"></i> Gerar token
-                                    </a>
-                                </small>
-                            </div>
-                        </div>
-                        <div class="col-lg-6 col-md-12 mb-3">
-                            <div class="config-detail-item">
-                                <label class="config-label" for="jira_auth">
-                                    <i class="fas fa-shield-alt"></i> JIRA_AUTH
-                                </label>
-                                <div class="config-input-group">
-                                    <input type="text" 
-                                           class="form-control config-input" 
-                                           id="jira_auth" 
-                                           name="JIRA_AUTH" 
-                                           value="{{ configuracoes.JIRA_AUTH }}"
-                                           placeholder="base64(email:token)"
-                                           disabled>
-                                    <button type="button" class="btn btn-outline-secondary config-copy-btn" onclick="copyToClipboard('{{ configuracoes.JIRA_AUTH }}')">
-                                        <i class="fas fa-copy"></i>
-                                    </button>
-                                </div>
-                                <small class="form-text text-muted">Autenticação base64 (opcional, será gerada automaticamente)</small>
-                            </div>
-                        </div>
-                    </div>
-                </form>
-            </div>
+    <!-- Formulário de Configurações -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">
+                <i class="fas fa-info-circle fa-fw mr-2"></i>
+                Configurações do Jira
+            </h6>
         </div>
-
-        <!-- Informações Adicionais -->
-        <div class="card mt-4">
-            <div class="card-header">
-                <h5 class="mb-0">
-                    <i class="fas fa-question-circle"></i> Informações Importantes
-                </h5>
-            </div>
-            <div class="card-body">
+        <div class="card-body">
+            <form id="configForm">
                 <div class="row">
                     <div class="col-lg-6 col-md-12 mb-3">
-                        <div class="alert alert-info">
-                            <h6><i class="fas fa-info-circle"></i> Sobre as Configurações</h6>
-                            <ul class="mb-0">
-                                <li>As configurações são salvas no arquivo <code>.env</code></li>
-                                <li>Campos marcados com <span class="text-danger">*</span> são obrigatórios</li>
-                                <li>Após salvar, reinicie o servidor para aplicar as mudanças</li>
-                                <li>O arquivo <code>.env</code> não deve ser commitado no repositório</li>
-                            </ul>
+                        <div class="config-detail-item">
+                            <label class="config-label" for="jira_url">
+                                <i class="fas fa-link"></i> JIRA_BASE_URL <span class="text-danger">*</span>
+                            </label>
+                            <div class="config-input-group">
+                                <input type="url" 
+                                       class="form-control config-input" 
+                                       id="jira_url" 
+                                       name="JIRA_BASE_URL" 
+                                       value="{{ configuracoes.JIRA_BASE_URL }}"
+                                       placeholder="https://sua-empresa.atlassian.net"
+                                       required
+                                       disabled>
+                                <button type="button" class="btn btn-outline-secondary config-copy-btn" onclick="copyToClipboard('{{ configuracoes.JIRA_BASE_URL }}')" title="Copiar URL">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </div>
+                            <small class="form-text text-muted">URL base do seu Jira (ex: https://neurotech.atlassian.net)</small>
+                            <div class="invalid-feedback" id="url-error"></div>
                         </div>
                     </div>
                     <div class="col-lg-6 col-md-12 mb-3">
-                        <div class="alert alert-warning">
-                            <h6><i class="fas fa-exclamation-triangle"></i> Segurança</h6>
-                            <ul class="mb-0">
-                                <li>Nunca compartilhe seu token de API</li>
-                                <li>Use sempre HTTPS para conexões com o Jira</li>
-                                <li>Mantenha o arquivo <code>.env</code> seguro</li>
-                                <li>Gere tokens específicos para esta aplicação</li>
-                            </ul>
+                        <div class="config-detail-item">
+                            <label class="config-label" for="jira_email">
+                                <i class="fas fa-envelope"></i> JIRA_EMAIL <span class="text-danger">*</span>
+                            </label>
+                            <div class="config-input-group">
+                                <input type="email" 
+                                       class="form-control config-input" 
+                                       id="jira_email" 
+                                       name="JIRA_EMAIL" 
+                                       value="{{ configuracoes.JIRA_EMAIL }}"
+                                       placeholder="seu-email@empresa.com"
+                                       required
+                                       disabled>
+                                <button type="button" class="btn btn-outline-secondary config-copy-btn" onclick="copyToClipboard('{{ configuracoes.JIRA_EMAIL }}')" title="Copiar Email">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </div>
+                            <small class="form-text text-muted">Email da sua conta do Jira</small>
+                            <div class="invalid-feedback" id="email-error"></div>
                         </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-lg-6 col-md-12 mb-3">
+                        <div class="config-detail-item">
+                            <label class="config-label" for="jira_token">
+                                <i class="fas fa-key"></i> JIRA_API_TOKEN <span class="text-danger">*</span>
+                            </label>
+                            <div class="config-input-group">
+                                <input type="password" 
+                                       class="form-control config-input" 
+                                       id="jira_token" 
+                                       name="JIRA_API_TOKEN" 
+                                       value="{{ configuracoes.JIRA_API_TOKEN }}"
+                                       placeholder="ATATT3xFfGF0..."
+                                       required
+                                       disabled>
+                                <button type="button" class="btn btn-outline-secondary config-copy-btn" onclick="copyToClipboard('{{ configuracoes.JIRA_API_TOKEN }}')" title="Copiar Token">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary config-toggle-btn" onclick="togglePasswordVisibility()" title="Mostrar/Ocultar Token">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                            <small class="form-text text-muted">
+                                Token da API do Jira. 
+                                <a href="https://id.atlassian.com/manage-profile/security/api-tokens" target="_blank" class="text-primary">
+                                    <i class="fas fa-external-link-alt"></i> Gerar token
+                                </a>
+                            </small>
+                            <div class="invalid-feedback" id="token-error"></div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6 col-md-12 mb-3">
+                        <div class="config-detail-item">
+                            <label class="config-label" for="jira_auth">
+                                <i class="fas fa-shield-alt"></i> JIRA_AUTH
+                            </label>
+                            <div class="config-input-group">
+                                <input type="text" 
+                                       class="form-control config-input" 
+                                       id="jira_auth" 
+                                       name="JIRA_AUTH" 
+                                       value="{{ configuracoes.JIRA_AUTH }}"
+                                       placeholder="base64(email:token)"
+                                       disabled>
+                                <button type="button" class="btn btn-outline-secondary config-copy-btn" onclick="copyToClipboard('{{ configuracoes.JIRA_AUTH }}')" title="Copiar Auth">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                                <button type="button" class="btn btn-outline-info config-generate-btn" onclick="gerarAuth()" title="Gerar Auth">
+                                    <i class="fas fa-magic"></i>
+                                </button>
+                            </div>
+                            <small class="form-text text-muted">Autenticação base64 (opcional, será gerada automaticamente)</small>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Configurações Avançadas -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">
+                <i class="fas fa-sliders-h fa-fw mr-2"></i>
+                Configurações Avançadas
+            </h6>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-lg-6 col-md-12 mb-3">
+                    <div class="config-detail-item">
+                        <label class="config-label" for="max_results">
+                            <i class="fas fa-list-ol"></i> Máximo de Resultados
+                        </label>
+                        <div class="config-input-group">
+                            <input type="number" 
+                                   class="form-control config-input" 
+                                   id="max_results" 
+                                   name="MAX_RESULTS" 
+                                   value="{{ configuracoes.MAX_RESULTS }}"
+                                   min="10"
+                                   max="1000"
+                                   disabled>
+                            <button type="button" class="btn btn-outline-secondary config-copy-btn" onclick="copyToClipboard('{{ configuracoes.MAX_RESULTS }}')" title="Copiar Valor">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>
+                        <small class="form-text text-muted">Número máximo de resultados por consulta (10-1000)</small>
+                    </div>
+                </div>
+                <div class="col-lg-6 col-md-12 mb-3">
+                    <div class="config-detail-item">
+                        <label class="config-label" for="timeout">
+                            <i class="fas fa-clock"></i> Timeout (segundos)
+                        </label>
+                        <div class="config-input-group">
+                            <input type="number" 
+                                   class="form-control config-input" 
+                                   id="timeout" 
+                                   name="TIMEOUT" 
+                                   value="{{ configuracoes.TIMEOUT }}"
+                                   min="5"
+                                   max="300"
+                                   disabled>
+                            <button type="button" class="btn btn-outline-secondary config-copy-btn" onclick="copyToClipboard('{{ configuracoes.TIMEOUT }}')" title="Copiar Valor">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>
+                        <small class="form-text text-muted">Tempo limite para requisições (5-300 segundos)</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Informações Adicionais -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">
+                <i class="fas fa-question-circle fa-fw mr-2"></i>
+                Informações Importantes
+            </h6>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-lg-6 col-md-12 mb-3">
+                    <div class="alert alert-info">
+                        <h6><i class="fas fa-info-circle"></i> Sobre as Configurações</h6>
+                        <ul class="mb-0">
+                            <li>As configurações são salvas no arquivo <code>.env</code></li>
+                            <li>Campos marcados com <span class="text-danger">*</span> são obrigatórios</li>
+                            <li>Após salvar, reinicie o servidor para aplicar as mudanças</li>
+                            <li>O arquivo <code>.env</code> não deve ser commitado no repositório</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-lg-6 col-md-12 mb-3">
+                    <div class="alert alert-warning">
+                        <h6><i class="fas fa-exclamation-triangle"></i> Segurança</h6>
+                        <ul class="mb-0">
+                            <li>Nunca compartilhe seu token de API</li>
+                            <li>Use sempre HTTPS para conexões com o Jira</li>
+                            <li>Mantenha o arquivo <code>.env</code> seguro</li>
+                            <li>Gere tokens específicos para esta aplicação</li>
+                        </ul>
                     </div>
                 </div>
             </div>
@@ -234,19 +315,56 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Confirmar Alterações</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <h5 class="modal-title">
+                    <i class="fas fa-question-circle mr-2"></i>
+                    Confirmar Alterações
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
             </div>
             <div class="modal-body">
                 <p>Tem certeza que deseja salvar as configurações? O servidor precisará ser reiniciado para aplicar as mudanças.</p>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
                 <button type="button" class="btn btn-primary" onclick="confirmarSalvamento()">Salvar</button>
             </div>
         </div>
     </div>
 </div>
+
+<!-- Modal de Teste de Conexão -->
+<div class="modal fade" id="testModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-plug mr-2"></i>
+                    Teste de Conexão
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="testResult">
+                    <div class="text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Testando...</span>
+                        </div>
+                        <p class="mt-2">Testando conexão com o Jira...</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
 
 <script>
 let editMode = false;
@@ -294,6 +412,25 @@ function cancelarEdicao() {
     toggleEditMode();
 }
 
+function validarConfiguracoes() {
+    const form = document.getElementById('configForm');
+    const formData = new FormData(form);
+    const data = {};
+    
+    for (let [key, value] of formData.entries()) {
+        data[key] = value;
+    }
+    
+    return fetch('/api/configuracoes/validar', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json());
+}
+
 function salvarConfiguracoes() {
     // Validar formulário
     const form = document.getElementById('configForm');
@@ -302,9 +439,19 @@ function salvarConfiguracoes() {
         return;
     }
     
-    // Mostrar modal de confirmação
-    const modal = new bootstrap.Modal(document.getElementById('confirmModal'));
-    modal.show();
+    // Validar configurações antes de salvar
+    validarConfiguracoes().then(result => {
+        if (!result.sucesso) {
+            showAlert('danger', result.erro);
+            return;
+        }
+        
+        // Mostrar modal de confirmação
+        $('#confirmModal').modal('show');
+    }).catch(error => {
+        console.error('Erro na validação:', error);
+        showAlert('danger', 'Erro ao validar configurações');
+    });
 }
 
 function confirmarSalvamento() {
@@ -317,12 +464,12 @@ function confirmarSalvamento() {
     }
     
     // Fechar modal
-    bootstrap.Modal.getInstance(document.getElementById('confirmModal')).hide();
+    $('#confirmModal').modal('hide');
     
     // Mostrar loading
     const btnSalvar = document.getElementById('btnSalvar');
     const originalText = btnSalvar.innerHTML;
-    btnSalvar.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Salvando...';
+            btnSalvar.innerHTML = '<i class="fas fa-spinner fa-spin fa-fw mr-1"></i> Salvando...';
     btnSalvar.disabled = true;
     
     fetch('/api/configuracoes/salvar', {
@@ -369,6 +516,79 @@ function togglePasswordVisibility() {
         btn.classList.add('fa-eye');
     }
 }
+
+function gerarAuth() {
+    const email = document.getElementById('jira_email').value;
+    const token = document.getElementById('jira_token').value;
+    
+    if (!email || !token) {
+        showAlert('warning', 'Preencha o email e token primeiro');
+        return;
+    }
+    
+    const auth = btoa(`${email}:${token}`);
+    document.getElementById('jira_auth').value = auth;
+    showAlert('success', 'Autenticação gerada automaticamente');
+}
+
+function testarConexao() {
+    $('#testModal').modal('show');
+    
+    fetch('/api/configuracoes/testar', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        const testResult = document.getElementById('testResult');
+        
+        if (data.sucesso) {
+            testResult.innerHTML = `
+                <div class="text-center">
+                    <i class="fas fa-check-circle text-success" style="font-size: 3rem;"></i>
+                    <h5 class="text-success mt-2">Conexão Bem-sucedida!</h5>
+                    <p class="text-muted">Conectado ao Jira com sucesso.</p>
+                    <div class="alert alert-info">
+                        <strong>Informações da Conexão:</strong><br>
+                        <small>URL: ${data.url}<br>
+                        Usuário: ${data.user}<br>
+                        Email: ${data.email}<br>
+                        Projetos: ${data.projects}</small>
+                    </div>
+                </div>
+            `;
+        } else {
+            testResult.innerHTML = `
+                <div class="text-center">
+                    <i class="fas fa-times-circle text-danger" style="font-size: 3rem;"></i>
+                    <h5 class="text-danger mt-2">Falha na Conexão</h5>
+                    <p class="text-muted">${data.erro}</p>
+                    <div class="alert alert-warning">
+                        <strong>Possíveis causas:</strong><br>
+                        <small>• URL do Jira incorreta<br>
+                        • Email ou token inválidos<br>
+                        • Problemas de rede<br>
+                        • Jira indisponível</small>
+                    </div>
+                </div>
+            `;
+        }
+    })
+    .catch(error => {
+        const testResult = document.getElementById('testResult');
+        testResult.innerHTML = `
+            <div class="text-center">
+                <i class="fas fa-exclamation-triangle text-warning" style="font-size: 3rem;"></i>
+                <h5 class="text-warning mt-2">Erro no Teste</h5>
+                <p class="text-muted">Erro interno: ${error.message}</p>
+            </div>
+        `;
+    });
+}
+
+
 
 function copyToClipboard(text) {
     if (!text || text === '') {
@@ -422,6 +642,8 @@ document.addEventListener('DOMContentLoaded', function() {
     var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
         return new bootstrap.Tooltip(tooltipTriggerEl);
     });
+    
+
 });
 </script>
 
@@ -434,6 +656,12 @@ document.addEventListener('DOMContentLoaded', function() {
     background-color: #f8f9fa;
     height: 100%;
     min-height: 80px;
+    transition: all 0.3s ease;
+}
+
+.config-status-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
 }
 
 .status-icon {
@@ -446,6 +674,7 @@ document.addEventListener('DOMContentLoaded', function() {
     margin-right: 1rem;
     font-size: 1.2rem;
     flex-shrink: 0;
+    transition: all 0.3s ease;
 }
 
 .status-success {
@@ -492,13 +721,21 @@ document.addEventListener('DOMContentLoaded', function() {
 }
 
 .config-copy-btn,
-.config-toggle-btn {
+.config-toggle-btn,
+.config-generate-btn {
     flex-shrink: 0;
     width: 40px;
     height: 38px;
     display: flex;
     align-items: center;
     justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.config-copy-btn:hover,
+.config-toggle-btn:hover,
+.config-generate-btn:hover {
+    transform: scale(1.05);
 }
 
 .alert ul {
@@ -529,7 +766,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     .config-copy-btn,
-    .config-toggle-btn {
+    .config-toggle-btn,
+    .config-generate-btn {
         width: 100%;
         height: 38px;
         margin-top: 0.5rem;
@@ -537,6 +775,10 @@ document.addEventListener('DOMContentLoaded', function() {
     
     .alert {
         margin-bottom: 1rem;
+    }
+    
+    .btn {
+        margin-bottom: 0.5rem;
     }
 }
 
@@ -572,18 +814,50 @@ document.addEventListener('DOMContentLoaded', function() {
     box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
 }
 
-.config-copy-btn:hover,
-.config-toggle-btn:hover {
-    transform: scale(1.05);
-    transition: transform 0.2s ease;
-}
-
 .status-icon {
     transition: all 0.3s ease;
 }
 
 .status-icon:hover {
     transform: scale(1.1);
+}
+
+/* Melhorias visuais */
+.card {
+    border: none;
+    box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+}
+
+.card-header {
+    background-color: #f8f9fc;
+    border-bottom: 1px solid #e3e6f0;
+}
+
+.btn {
+    border-radius: 0.35rem;
+    font-weight: 500;
+}
+
+.form-control {
+    border-radius: 0.35rem;
+}
+
+.alert {
+    border-radius: 0.35rem;
+    border: none;
+}
+
+/* Modal de backup */
+.table-responsive {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.table th {
+    position: sticky;
+    top: 0;
+    background-color: #f8f9fc;
+    z-index: 1;
 }
 </style>
 {% endblock %}

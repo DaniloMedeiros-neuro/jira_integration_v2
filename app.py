@@ -25,7 +25,7 @@ def after_request(response):
     return response
 
 # Configurações do Jira
-JIRA_BASE_URL = os.getenv("JIRA_URL")
+JIRA_BASE_URL = os.getenv("JIRA_URL") or os.getenv("JIRA_BASE_URL")
 JIRA_EMAIL = os.getenv("JIRA_EMAIL")
 JIRA_API_TOKEN = os.getenv("JIRA_API_TOKEN")
 
@@ -2934,16 +2934,52 @@ def servir_imagem_evidencia(diretorio, arquivo):
         print(f"Erro ao servir imagem: {e}")
         return jsonify({"erro": str(e)}), 500
 
+def ler_configuracoes_env():
+    """Lê as configurações diretamente do arquivo .env"""
+    configuracoes = {
+        'JIRA_BASE_URL': '',
+        'JIRA_EMAIL': '',
+        'JIRA_API_TOKEN': '',
+        'JIRA_AUTH': '',
+        'MAX_RESULTS': '100',
+        'TIMEOUT': '30'
+    }
+    
+    env_path = '.env'
+    if os.path.exists(env_path):
+        try:
+            with open(env_path, 'r', encoding='utf-8') as f:
+                for line in f:
+                    line = line.strip()
+                    if line and not line.startswith('#') and '=' in line:
+                        key, value = line.split('=', 1)
+                        key = key.strip()
+                        value = value.strip()
+                        
+                        if key == 'JIRA_URL':
+                            configuracoes['JIRA_BASE_URL'] = value
+                        elif key == 'JIRA_BASE_URL':
+                            configuracoes['JIRA_BASE_URL'] = value
+                        elif key == 'JIRA_EMAIL':
+                            configuracoes['JIRA_EMAIL'] = value
+                        elif key == 'JIRA_API_TOKEN':
+                            configuracoes['JIRA_API_TOKEN'] = value
+                        elif key == 'JIRA_AUTH':
+                            configuracoes['JIRA_AUTH'] = value
+                        elif key == 'MAX_RESULTS':
+                            configuracoes['MAX_RESULTS'] = value
+                        elif key == 'TIMEOUT':
+                            configuracoes['TIMEOUT'] = value
+        except Exception as e:
+            print(f"Erro ao ler arquivo .env: {e}")
+    
+    return configuracoes
+
 @app.route('/configuracoes')
 def configuracoes_page():
     """Página de configurações do sistema"""
-    # Obter configurações do Jira do arquivo .env
-    configuracoes = {
-        'JIRA_BASE_URL': os.getenv('JIRA_BASE_URL', ''),
-        'JIRA_EMAIL': os.getenv('JIRA_EMAIL', ''),
-        'JIRA_API_TOKEN': os.getenv('JIRA_API_TOKEN', ''),
-        'JIRA_AUTH': os.getenv('JIRA_AUTH', '')
-    }
+    # Obter configurações diretamente do arquivo .env
+    configuracoes = ler_configuracoes_env()
     
     # Verificar se as configurações estão válidas
     status_config = {
@@ -2954,6 +2990,8 @@ def configuracoes_page():
     }
     
     return render_template('configuracoes.html', configuracoes=configuracoes, status=status_config)
+
+
 
 @app.route('/api/configuracoes/salvar', methods=['POST'])
 def salvar_configuracoes():
@@ -2977,10 +3015,12 @@ def salvar_configuracoes():
         
         # Atualizar ou adicionar configurações
         config_updated = {
-            'JIRA_BASE_URL': data['JIRA_BASE_URL'],
+            'JIRA_URL': data['JIRA_BASE_URL'],  # Salvar como JIRA_URL para manter compatibilidade
             'JIRA_EMAIL': data['JIRA_EMAIL'],
             'JIRA_API_TOKEN': data['JIRA_API_TOKEN'],
-            'JIRA_AUTH': data.get('JIRA_AUTH', '')
+            'JIRA_AUTH': data.get('JIRA_AUTH', ''),
+            'MAX_RESULTS': data.get('MAX_RESULTS', '100'),
+            'TIMEOUT': data.get('TIMEOUT', '30')
         }
         
         # Processar linhas do arquivo .env
@@ -3014,12 +3054,9 @@ def salvar_configuracoes():
         with open(env_path, 'w', encoding='utf-8') as f:
             f.writelines(new_lines)
         
-        # Recarregar variáveis de ambiente
-        load_dotenv(override=True)
-        
         return jsonify({
             'sucesso': True,
-            'mensagem': 'Configurações salvas com sucesso! Reinicie o servidor para aplicar as mudanças.'
+            'mensagem': 'Configurações salvas com sucesso! As mudanças foram aplicadas.'
         })
         
     except Exception as e:
@@ -3403,6 +3440,119 @@ def metricas_casos_teste(epic_key):
         print(f"❌ Formato inválido: {epic_key}")
         # Se não for um formato válido, retornar 404
         return "Épico não encontrado", 404
+
+@app.route('/api/configuracoes/testar', methods=['POST'])
+def testar_conexao_jira():
+    """Testa a conexão com o Jira usando as configurações atuais"""
+    try:
+        # Obter configurações atuais
+        jira_url = os.getenv('JIRA_URL') or os.getenv('JIRA_BASE_URL', '')
+        jira_email = os.getenv('JIRA_EMAIL', '')
+        jira_token = os.getenv('JIRA_API_TOKEN', '')
+        
+        if not all([jira_url, jira_email, jira_token]):
+            return jsonify({
+                'sucesso': False,
+                'erro': 'Configurações incompletas. Preencha URL, email e token.'
+            })
+        
+        # Configurar headers de autenticação
+        headers = {
+            "Accept": "application/json",
+            "Authorization": f"Basic {base64.b64encode(f'{jira_email}:{jira_token}'.encode()).decode()}"
+        }
+        
+        # Testar conexão básica
+        test_url = f"{jira_url}/rest/api/3/myself"
+        response = requests.get(test_url, headers=headers, timeout=30)
+        
+        if response.status_code == 200:
+            user_data = response.json()
+            
+            # Buscar projetos para mostrar mais informações
+            projects_url = f"{jira_url}/rest/api/3/project"
+            projects_response = requests.get(projects_url, headers=headers, timeout=30)
+            
+            projects_count = 0
+            if projects_response.status_code == 200:
+                projects_data = projects_response.json()
+                projects_count = len(projects_data)
+            
+            return jsonify({
+                'sucesso': True,
+                'mensagem': 'Conexão estabelecida com sucesso!',
+                'url': jira_url,
+                'user': user_data.get('displayName', jira_email),
+                'email': user_data.get('emailAddress', jira_email),
+                'projects': projects_count
+            })
+        else:
+            error_msg = f"Erro {response.status_code}"
+            if response.status_code == 401:
+                error_msg = "Credenciais inválidas (email ou token incorretos)"
+            elif response.status_code == 403:
+                error_msg = "Acesso negado (verifique as permissões do token)"
+            elif response.status_code == 404:
+                error_msg = "URL do Jira não encontrada"
+            
+            return jsonify({
+                'sucesso': False,
+                'erro': error_msg
+            })
+            
+    except requests.exceptions.Timeout:
+        return jsonify({
+            'sucesso': False,
+            'erro': 'Timeout na conexão. Verifique a URL e sua conexão com a internet.'
+        })
+    except requests.exceptions.ConnectionError:
+        return jsonify({
+            'sucesso': False,
+            'erro': 'Erro de conexão. Verifique a URL do Jira e sua conexão com a internet.'
+        })
+    except Exception as e:
+        return jsonify({
+            'sucesso': False,
+            'erro': f'Erro inesperado: {str(e)}'
+        })
+
+@app.route('/api/configuracoes/validar', methods=['POST'])
+def validar_configuracoes():
+    """Valida as configurações fornecidas sem salvá-las"""
+    try:
+        data = request.get_json()
+        
+        # Validar dados obrigatórios
+        required_fields = ['JIRA_BASE_URL', 'JIRA_EMAIL', 'JIRA_API_TOKEN']
+        for field in required_fields:
+            if not data.get(field):
+                return jsonify({'erro': f'Campo {field} é obrigatório'}), 400
+        
+        # Validar formato da URL
+        url = data['JIRA_BASE_URL']
+        if not url.startswith(('http://', 'https://')):
+            return jsonify({'erro': 'URL deve começar com http:// ou https://'}), 400
+        
+        # Validar formato do email
+        import re
+        email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+        if not re.match(email_pattern, data['JIRA_EMAIL']):
+            return jsonify({'erro': 'Formato de email inválido'}), 400
+        
+        # Validar formato do token (deve começar com ATATT)
+        token = data['JIRA_API_TOKEN']
+        if not token.startswith('ATATT'):
+            return jsonify({'erro': 'Token deve começar com ATATT'}), 400
+        
+        return jsonify({
+            'sucesso': True,
+            'mensagem': 'Configurações válidas'
+        })
+        
+    except Exception as e:
+        return jsonify({'erro': f'Erro na validação: {str(e)}'}), 500
+
+
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=8081)

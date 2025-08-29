@@ -161,7 +161,7 @@ jira_integration_v2/
 │   │   ├── sb-admin-2-custom-optimized.js  # JS otimizado
 │   │   └── app.js                 # JS da aplicação
 │   └── images/
-│       └── neuro-logo.svg         # Logo da empresa
+│       └── nexus-logo.png         # Logo da empresa
 ├── templates/                      # Templates HTML
 │   ├── base_sb_admin.html         # Template base
 │   ├── index.html                 # Dashboard
