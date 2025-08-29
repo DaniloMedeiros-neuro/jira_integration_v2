@@ -126,7 +126,10 @@ async function carregarCasosTeste(requisitoPai) {
             console.log('✅ Requisito encontrado, exibindo casos de teste');
             exibirCasosTeste(data);
             // Mostrar botão de criar novo caso quando requisito é encontrado
-            document.getElementById('btnNovoCaso').style.display = 'inline-block';
+            const btnNovoCasoElement = document.getElementById('btnNovoCaso');
+            if (btnNovoCasoElement) {
+                btnNovoCasoElement.style.display = 'inline-block';
+            }
         } else {
             console.error('❌ Erro na resposta:', data);
             mostrarNotificacao(data.erro || 'Requisito não encontrado', 'error');
@@ -245,7 +248,8 @@ function exibirCasosTeste(data) {
     
     if (data.casos_teste.length === 0) {
         if (btnPlanilha) btnPlanilha.style.display = 'none';
-        if (document.getElementById('btnEvidencias')) document.getElementById('btnEvidencias').style.display = 'none';
+        const btnEvidenciasElement = document.getElementById('btnEvidencias');
+        if (btnEvidenciasElement) btnEvidenciasElement.style.display = 'none';
         const btnNovoCasoElement = document.getElementById('btnNovoCaso');
         if (btnNovoCasoElement) btnNovoCasoElement.style.display = 'inline-block'; // Mostrar botão para criar primeiro caso
         const emptyStateHTML = `
@@ -266,7 +270,8 @@ function exibirCasosTeste(data) {
     
     // Mostrar botões quando há casos de teste
     if (btnPlanilha) btnPlanilha.style.display = 'inline-block';
-    if (document.getElementById('btnEvidencias')) document.getElementById('btnEvidencias').style.display = 'inline-block';
+    const btnEvidenciasElement = document.getElementById('btnEvidencias');
+    if (btnEvidenciasElement) btnEvidenciasElement.style.display = 'inline-block';
     
     // Renderizar em ambos os formatos
     const casosListaHTML = data.casos_teste.map(caso => criarHTMLCasoTesteLista(caso)).join('');

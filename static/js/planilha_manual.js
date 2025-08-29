@@ -12,20 +12,33 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     // Adicionar evento para garantir que o campo issuePai esteja habilitado quando o modal for exibido
-    document.getElementById('exportModal').addEventListener('shown.bs.modal', function() {
-        habilitarCampoIssuePai();
-        monitorarCampoIssuePai();
-    });
+    const exportModalElement = document.getElementById('exportModal');
+    if (exportModalElement) {
+        exportModalElement.addEventListener('shown.bs.modal', function() {
+            habilitarCampoIssuePai();
+            monitorarCampoIssuePai();
+        });
+    }
     
     // Event listeners para planilha manual
-    document.getElementById('btnAddRow').addEventListener('click', addRow);
-    document.getElementById('btnExportJira').addEventListener('click', showExportModal);
-    document.getElementById('btnConfirmExport').addEventListener('click', exportToJira);
+    const btnAddRowElement = document.getElementById('btnAddRow');
+    if (btnAddRowElement) btnAddRowElement.addEventListener('click', addRow);
+    
+    const btnExportJiraElement = document.getElementById('btnExportJira');
+    if (btnExportJiraElement) btnExportJiraElement.addEventListener('click', showExportModal);
+    
+    const btnConfirmExportElement = document.getElementById('btnConfirmExport');
+    if (btnConfirmExportElement) btnConfirmExportElement.addEventListener('click', exportToJira);
     
     // Event listeners para importação em massa
-    document.getElementById('btnProcessarDados').addEventListener('click', processarDadosColados);
-    document.getElementById('btnLimparDados').addEventListener('click', limparDadosImportacao);
-    document.getElementById('btnPreencherPlanilha').addEventListener('click', preencherPlanilhaComDados);
+    const btnProcessarDadosElement = document.getElementById('btnProcessarDados');
+    if (btnProcessarDadosElement) btnProcessarDadosElement.addEventListener('click', processarDadosColados);
+    
+    const btnLimparDadosElement = document.getElementById('btnLimparDados');
+    if (btnLimparDadosElement) btnLimparDadosElement.addEventListener('click', limparDadosImportacao);
+    
+    const btnPreencherPlanilhaElement = document.getElementById('btnPreencherPlanilha');
+    if (btnPreencherPlanilhaElement) btnPreencherPlanilhaElement.addEventListener('click', preencherPlanilhaComDados);
     
     // Preencher issuePai automaticamente se disponível (versão silenciosa)
     preencherIssuePaiAutomaticamente(true);
@@ -594,7 +607,13 @@ function mostrarAjudaIssuePai() {
 
 // Função para processar dados colados
 function processarDadosColados() {
-    const dadosTabela = document.getElementById('dadosTabela').value.trim();
+    const dadosTabelaElement = document.getElementById('dadosTabela');
+    if (!dadosTabelaElement) {
+        mostrarNotificacao('Elemento de dados da tabela não encontrado', 'error');
+        return;
+    }
+    
+    const dadosTabela = dadosTabelaElement.value.trim();
     
     if (!dadosTabela) {
         mostrarNotificacao('Por favor, cole os dados da tabela primeiro', 'warning');
@@ -865,8 +884,14 @@ function mostrarPreviewDados() {
 
 // Função para limpar dados de importação
 function limparDadosImportacao() {
-    document.getElementById('dadosTabela').value = '';
-    document.getElementById('previewContainer').style.display = 'none';
+    const dadosTabelaElement = document.getElementById('dadosTabela');
+    if (dadosTabelaElement) {
+        dadosTabelaElement.value = '';
+    }
+    const previewContainerElement = document.getElementById('previewContainer');
+    if (previewContainerElement) {
+        previewContainerElement.style.display = 'none';
+    }
     dadosProcessados = [];
     mostrarNotificacao('Dados de importação limpos', 'info');
 }
@@ -1062,7 +1087,10 @@ function showExportModal() {
         return;
     }
     
-    document.getElementById('totalCasos').textContent = validRows.length;
+    const totalCasosElement = document.getElementById('totalCasos');
+    if (totalCasosElement) {
+        totalCasosElement.textContent = validRows.length;
+    }
     
     // Garantir que o campo issuePai esteja habilitado quando o modal abrir
     setTimeout(() => {
@@ -1148,7 +1176,13 @@ function getValidRows() {
 
 // Função para exportar para Jira
 async function exportToJira() {
-    const issuePai = document.getElementById('issuePai').value.trim();
+    const issuePaiElement = document.getElementById('issuePai');
+    if (!issuePaiElement) {
+        mostrarNotificacao('Elemento issue pai não encontrado', 'error');
+        return;
+    }
+    
+    const issuePai = issuePaiElement.value.trim();
     
     if (!issuePai) {
         mostrarNotificacao('Por favor, informe a Issue Pai', 'warning');
