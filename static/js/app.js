@@ -491,10 +491,25 @@ function abrirEdicaoTela() {
     
     // Limpar formulário
     casoTesteEditando = null;
-    document.getElementById('edicaoModalLabel').innerHTML = '<i class="fas fa-plus me-2"></i>Novo Caso de Teste';
-    document.getElementById('formCasoTesteTela').reset();
-    document.getElementById('issuePaiFormTela').value = issuePaiAtual;
-    document.getElementById('issueKeyTela').value = '';
+    const edicaoModalLabelElement = document.getElementById('edicaoModalLabel');
+    if (edicaoModalLabelElement) {
+        edicaoModalLabelElement.innerHTML = '<i class="fas fa-plus me-2"></i>Novo Caso de Teste';
+    }
+    
+    const formCasoTesteTelaElement = document.getElementById('formCasoTesteTela');
+    if (formCasoTesteTelaElement) {
+        formCasoTesteTelaElement.reset();
+    }
+    
+    const issuePaiFormTelaElement = document.getElementById('issuePaiFormTela');
+    if (issuePaiFormTelaElement) {
+        issuePaiFormTelaElement.value = issuePaiAtual;
+    }
+    
+    const issueKeyTelaElement = document.getElementById('issueKeyTela');
+    if (issueKeyTelaElement) {
+        issueKeyTelaElement.value = '';
+    }
     
     // Mostrar modal
     $('#edicaoModal').modal('show');
@@ -534,9 +549,20 @@ async function editarCasoTeste(issueKey) {
         }
         
         casoTesteEditando = issueKey;
-        document.getElementById('edicaoTelaTitle').innerHTML = '<i class="fas fa-edit me-2"></i>Editar Caso de Teste';
-        document.getElementById('issueKeyTela').value = issueKey;
-        document.getElementById('issuePaiFormTela').value = issuePaiAtual;
+        const edicaoTelaTitleElement = document.getElementById('edicaoTelaTitle');
+        if (edicaoTelaTitleElement) {
+            edicaoTelaTitleElement.innerHTML = '<i class="fas fa-edit me-2"></i>Editar Caso de Teste';
+        }
+        
+        const issueKeyTelaElement = document.getElementById('issueKeyTela');
+        if (issueKeyTelaElement) {
+            issueKeyTelaElement.value = issueKey;
+        }
+        
+        const issuePaiFormTelaElement = document.getElementById('issuePaiFormTela');
+        if (issuePaiFormTelaElement) {
+            issuePaiFormTelaElement.value = issuePaiAtual;
+        }
         
         console.log('Preenchendo formulário com dados:', {
             titulo: caso.titulo,
@@ -619,8 +645,10 @@ async function editarCasoTeste(issueKey) {
             
             // Verificar se os campos foram preenchidos
             setTimeout(() => {
-                const titulo = document.getElementById('tituloTela').value;
-                const descricao = document.getElementById('descricaoTela').value;
+                const tituloElement = document.getElementById('tituloTela');
+                const descricaoElement = document.getElementById('descricaoTela');
+                const titulo = tituloElement ? tituloElement.value : '';
+                const descricao = descricaoElement ? descricaoElement.value : '';
                 console.log('✅ Verificação dos campos:');
                 console.log('  - Título:', titulo);
                 console.log('  - Descrição:', descricao ? descricao.substring(0, 50) + '...' : 'vazia');
@@ -707,10 +735,16 @@ async function salvarCasoTesteTela() {
 // Função para excluir caso de teste
 function excluirCasoTeste(issueKey, titulo) {
     casoTesteEditando = issueKey;
-    document.getElementById('confirmacaoTexto').textContent = `${issueKey} - ${titulo}`;
+    const confirmacaoTextoElement = document.getElementById('confirmacaoTexto');
+    if (confirmacaoTextoElement) {
+        confirmacaoTextoElement.textContent = `${issueKey} - ${titulo}`;
+    }
     
-    const modal = new bootstrap.Modal(document.getElementById('modalConfirmacao'));
-    modal.show();
+    const modalConfirmacaoElement = document.getElementById('modalConfirmacao');
+    if (modalConfirmacaoElement) {
+        const modal = new bootstrap.Modal(modalConfirmacaoElement);
+        modal.show();
+    }
 }
 
 // Função para confirmar exclusão
@@ -1669,7 +1703,10 @@ function resetarModalEvidencias() {
     limparEvidenciasAnteriores();
     
     // Limpar input de arquivo
-    document.getElementById('logFileInput').value = '';
+    const logFileInputElement = document.getElementById('logFileInput');
+    if (logFileInputElement) {
+        logFileInputElement.value = '';
+    }
 }
 
 // Função para resetar steps de processamento
@@ -2056,9 +2093,20 @@ function mostrarResultados(resultado) {
 // Função para atualizar estatísticas com dados reais
 function atualizarEstatisticas(estatisticas) {
     if (estatisticas) {
-        document.getElementById('sucessosCount').textContent = estatisticas.sucessos || 0;
-        document.getElementById('falhasCount').textContent = estatisticas.falhas || 0;
-        document.getElementById('enviadosCount').textContent = estatisticas.enviados || 0;
+        const sucessosElement = document.getElementById('sucessosCount');
+        if (sucessosElement) {
+            sucessosElement.textContent = estatisticas.sucessos || 0;
+        }
+        
+        const falhasElement = document.getElementById('falhasCount');
+        if (falhasElement) {
+            falhasElement.textContent = estatisticas.falhas || 0;
+        }
+        
+        const enviadosElement = document.getElementById('enviadosCount');
+        if (enviadosElement) {
+            enviadosElement.textContent = estatisticas.enviados || 0;
+        }
     }
 }
 
@@ -2072,7 +2120,7 @@ async function verificarStatusEvidencias() {
         
         // Atualizar interface baseada no status
         const resultadosSection = document.getElementById('resultadosSection');
-        if (status.processado) {
+        if (status.processado && resultadosSection) {
             resultadosSection.style.display = 'block';
             
             // Carregar lista de evidências processadas
