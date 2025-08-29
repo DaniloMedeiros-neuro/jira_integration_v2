@@ -145,6 +145,18 @@ def index():
     return render_template('index.html')
 
 
+@app.route('/<issue_key>')
+def requisito_direto(issue_key):
+    """Rota para acessar diretamente um requisito via URL (ex: /NEX-17)"""
+    # Validar formato do issue_key (ex: NEX-17, BC-126, etc.)
+    import re
+    if re.match(r'^[A-Z]+-\d+$', issue_key):
+        return render_template('index.html', issue_key=issue_key)
+    else:
+        # Se não for um formato válido de issue, retornar 404
+        return "Not Found", 404
+
+
 @app.route('/api/requisito/<issue_key>')
 def buscar_requisito(issue_key):
     """Busca informações de um requisito específico"""

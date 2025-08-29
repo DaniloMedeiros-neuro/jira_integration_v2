@@ -135,16 +135,20 @@ async function carregarCasosTeste(requisitoPai) {
             mostrarNotificacao(data.erro || 'Requisito não encontrado', 'error');
             const resultadosElement = document.getElementById('resultados');
             const btnNovoCasoElement = document.getElementById('btnNovoCaso');
+            const requisitoInfoSection = document.getElementById('requisitoInfoSection');
             if (resultadosElement) resultadosElement.style.display = 'none';
             if (btnNovoCasoElement) btnNovoCasoElement.style.display = 'none';
+            if (requisitoInfoSection) requisitoInfoSection.style.display = 'none';
         }
     } catch (error) {
         console.error('❌ Erro capturado:', error);
         mostrarNotificacao(`Erro de conexão: ${error.message}`, 'error');
         const resultadosElement = document.getElementById('resultados');
         const btnNovoCasoElement = document.getElementById('btnNovoCaso');
+        const requisitoInfoSection = document.getElementById('requisitoInfoSection');
         if (resultadosElement) resultadosElement.style.display = 'none';
         if (btnNovoCasoElement) btnNovoCasoElement.style.display = 'none';
+        if (requisitoInfoSection) requisitoInfoSection.style.display = 'none';
     } finally {
         const loadingElement = document.getElementById('loading');
         if (loadingElement) loadingElement.style.display = 'none';
@@ -161,11 +165,21 @@ function verificarRequisitoNaURL() {
     if (requisitoMatch) {
         const requisitoPai = requisitoMatch[1];
         console.log('🔍 Requisito encontrado na URL:', requisitoPai);
+        
+        // Preencher o campo de busca
+        const requisitoPaiElement = document.getElementById('requisitoPai');
+        if (requisitoPaiElement) {
+            requisitoPaiElement.value = requisitoPai;
+        }
+        
+        // Buscar automaticamente
         carregarCasosTeste(requisitoPai);
     } else if (pathname === '/') {
         // Se estiver na home, limpar resultados
         const resultadosElement = document.getElementById('resultados');
+        const requisitoInfoSection = document.getElementById('requisitoInfoSection');
         if (resultadosElement) resultadosElement.style.display = 'none';
+        if (requisitoInfoSection) requisitoInfoSection.style.display = 'none';
         const requisitoPaiElement = document.getElementById('requisitoPai');
         if (requisitoPaiElement) {
             requisitoPaiElement.value = '';
@@ -226,21 +240,11 @@ function exibirCasosTeste(data) {
             </div>
         `;
         
-        // Inserir informações do requisito antes da lista de casos
-        const resultadosDiv = document.getElementById('resultados');
-        const requisitoContainer = document.createElement('div');
-        requisitoContainer.innerHTML = requisitoHTML;
-        requisitoContainer.className = 'mb-4';
-        
-        // Remover informações do requisito anteriores se existirem
-        const requisitoAnterior = resultadosDiv.querySelector('.requisito-info');
-        if (requisitoAnterior) {
-            requisitoAnterior.remove();
-        }
-        
-        // Inserir no início da seção de resultados
-        if (resultadosDiv) {
-            resultadosDiv.insertBefore(requisitoContainer, resultadosDiv.firstChild);
+        // Usar a nova estrutura requisitoInfoSection
+        const requisitoInfoSection = document.getElementById('requisitoInfoSection');
+        if (requisitoInfoSection) {
+            requisitoInfoSection.innerHTML = requisitoHTML;
+            requisitoInfoSection.style.display = 'block';
         }
     }
     
@@ -1006,8 +1010,14 @@ function visualizarPlanilha() {
         return;
     }
     
-    // Navegar para a página de visualização em planilha
-    window.open(`http://127.0.0.1:8081/planilha/${issuePaiAtual}`, '_blank');
+    // Navegar para a página de visualização em planilha na mesma aba
+    window.location.href = `/planilha/${issuePaiAtual}`;
+}
+
+// Função para voltar à visão padrão
+function voltarVisaoPadrao() {
+    // Voltar para a página principal
+    window.location.href = '/';
 }
 
 
