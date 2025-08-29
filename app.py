@@ -2855,6 +2855,32 @@ def limpar_evidencias():
             "erro": str(e)
         }), 500
 
+@app.route('/api/evidencias/imagem/<diretorio>/<arquivo>')
+def servir_imagem_evidencia(diretorio, arquivo):
+    """Serve as imagens das evidências processadas"""
+    try:
+        # Validar diretório
+        if diretorio not in ['sucessos', 'falhas']:
+            return jsonify({"erro": "Diretório inválido"}), 400
+        
+        # Construir caminho do arquivo
+        caminho_arquivo = os.path.join('prints_tests', diretorio, arquivo)
+        
+        # Verificar se o arquivo existe
+        if not os.path.exists(caminho_arquivo):
+            return jsonify({"erro": "Arquivo não encontrado"}), 404
+        
+        # Verificar se é um arquivo de imagem
+        if not arquivo.lower().endswith(('.png', '.jpg', '.jpeg', '.gif')):
+            return jsonify({"erro": "Tipo de arquivo não permitido"}), 400
+        
+        # Servir o arquivo
+        return send_file(caminho_arquivo, mimetype='image/png')
+        
+    except Exception as e:
+        print(f"Erro ao servir imagem: {e}")
+        return jsonify({"erro": str(e)}), 500
+
 @app.route('/configuracoes')
 def configuracoes_page():
     """Página de configurações do sistema"""

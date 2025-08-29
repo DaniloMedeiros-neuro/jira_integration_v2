@@ -57,6 +57,14 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
+    // Inicializar sistema de evidências
+    if (typeof configurarDragAndDrop === 'function') {
+        configurarDragAndDrop();
+    }
+    if (typeof verificarStatusEvidencias === 'function') {
+        verificarStatusEvidencias();
+    }
+    
     console.log('✅ Aplicação inicializada com sucesso');
 });
 
@@ -467,6 +475,7 @@ function formatarData(dataString) {
 // NOVA FUNÇÃO PARA ABRIR EDIÇÃO EM TELA
 function abrirEdicaoTela() {
     console.log('=== ABRINDO EDIÇÃO EM TELA ===');
+    console.log('Stack trace:', new Error().stack);
     
     if (!issuePaiAtual) {
         mostrarNotificacao('Primeiro busque uma issue pai para criar casos de teste', 'warning');
@@ -477,49 +486,29 @@ function abrirEdicaoTela() {
     
     // Limpar formulário
     casoTesteEditando = null;
-    document.getElementById('edicaoTelaTitle').innerHTML = '<i class="fas fa-plus me-2"></i>Novo Caso de Teste';
+    document.getElementById('edicaoModalLabel').innerHTML = '<i class="fas fa-plus me-2"></i>Novo Caso de Teste';
     document.getElementById('formCasoTesteTela').reset();
     document.getElementById('issuePaiFormTela').value = issuePaiAtual;
     document.getElementById('issueKeyTela').value = '';
     
-
+    // Mostrar modal
+    $('#edicaoModal').modal('show');
+    console.log('✅ Modal de edição aberto com sucesso');
     
-    // Mostrar edição em tela
-    const edicaoTela = document.getElementById('edicaoTela');
-    if (edicaoTela) {
-        edicaoTela.style.display = 'flex';
-        document.body.classList.add('edicao-ativa');
-        console.log('✅ Edição em tela aberta com sucesso');
-        
-        // Focar no primeiro campo e inicializar editor BDD
-        setTimeout(() => {
-            const tituloField = document.getElementById('tituloTela');
-            if (tituloField) {
-                tituloField.focus();
-                console.log('✅ Campo título focado');
-            }
-            
-            // Inicializar editor BDD
-            initBDDEditorTela();
-            updateBDDPreviewTela();
-        }, 100);
-    } else {
-        console.error('❌ Seção de edição em tela não encontrada');
-    }
+    // Focar no primeiro campo
+    setTimeout(() => {
+        const tituloField = document.getElementById('tituloTela');
+        if (tituloField) {
+            tituloField.focus();
+            console.log('✅ Campo título focado');
+        }
+    }, 500);
 }
 
 // Função para fechar edição em tela
 function fecharEdicaoTela() {
-    const edicaoTela = document.getElementById('edicaoTela');
-    if (edicaoTela) {
-        edicaoTela.classList.add('slide-out');
-        setTimeout(() => {
-            edicaoTela.style.display = 'none';
-            edicaoTela.classList.remove('slide-out');
-            document.body.classList.remove('edicao-ativa');
-            console.log('✅ Edição em tela fechada');
-        }, 300);
-    }
+    $('#edicaoModal').modal('hide');
+    console.log('✅ Modal de edição fechado');
 }
 
 // Função para editar caso de teste
@@ -755,30 +744,36 @@ function mostrarNotificacao(mensagem, tipo = 'info') {
     const toastTitle = document.getElementById('toastTitle');
     const toastBody = document.getElementById('toastBody');
     
+    // Verificar se os elementos existem
+    if (!toast || !toastIcon || !toastTitle || !toastBody) {
+        console.warn('Elementos de toast não encontrados, usando alert como fallback');
+        alert(`${tipo.toUpperCase()}: ${mensagem}`);
+        return;
+    }
+    
     // Configurar ícone e título baseado no tipo
     switch (tipo) {
         case 'success':
-            toastIcon.className = 'fas fa-check-circle me-2 text-success';
+            toastIcon.className = 'fas fa-check-circle mr-2 text-success';
             toastTitle.textContent = 'Sucesso';
             break;
         case 'error':
-            toastIcon.className = 'fas fa-exclamation-circle me-2 text-danger';
+            toastIcon.className = 'fas fa-exclamation-circle mr-2 text-danger';
             toastTitle.textContent = 'Erro';
             break;
         case 'warning':
-            toastIcon.className = 'fas fa-exclamation-triangle me-2 text-warning';
+            toastIcon.className = 'fas fa-exclamation-triangle mr-2 text-warning';
             toastTitle.textContent = 'Atenção';
             break;
         default:
-            toastIcon.className = 'fas fa-info-circle me-2 text-info';
+            toastIcon.className = 'fas fa-info-circle mr-2 text-info';
             toastTitle.textContent = 'Informação';
     }
     
     toastBody.textContent = mensagem;
     
-    // Mostrar toast
-    const bsToast = new bootstrap.Toast(toast);
-    bsToast.show();
+    // Mostrar toast usando Bootstrap 4
+    $('#toast').toast('show');
 }
 
 // Função auxiliar para buscar elementos por texto
@@ -1658,17 +1653,15 @@ function resetarModalEvidencias() {
     const uploadArea = document.getElementById('uploadArea');
     const fileInfo = document.getElementById('fileInfo');
     const processamentoSection = document.getElementById('processamentoSection');
-    const resultadosSection = document.getElementById('resultadosSection');
     const btnProcessarEvidencias = document.getElementById('btnProcessarEvidencias');
     
     if (uploadArea) uploadArea.style.display = 'block';
     if (fileInfo) fileInfo.style.display = 'none';
     if (processamentoSection) processamentoSection.style.display = 'none';
-    if (resultadosSection) resultadosSection.style.display = 'none';
     if (btnProcessarEvidencias) btnProcessarEvidencias.style.display = 'none';
     
-    // Resetar steps
-    resetarSteps();
+    // Limpar evidências anteriores
+    limparEvidenciasAnteriores();
     
     // Limpar input de arquivo
     document.getElementById('logFileInput').value = '';
@@ -1682,8 +1675,47 @@ function resetarSteps() {
         const status = document.getElementById(stepId + 'Status');
         
         if (step) step.classList.remove('active', 'completed', 'error');
-        if (status) status.innerHTML = '<i class="fas fa-clock"></i>';
+        if (status) status.innerHTML = 'Aguardando...';
     });
+}
+
+// Função para limpar evidências anteriores
+function limparEvidenciasAnteriores() {
+    console.log('🧹 Limpando evidências anteriores...');
+    
+    // Limpar seção de resultados
+    const resultadosSection = document.getElementById('resultadosSection');
+    if (resultadosSection) {
+        resultadosSection.style.display = 'none';
+        
+        // Limpar conteúdo das evidências
+        const evidenciasContainer = resultadosSection.querySelector('.evidencias-container');
+        if (evidenciasContainer) {
+            evidenciasContainer.innerHTML = '';
+        }
+        
+        // Limpar estatísticas
+        const estatisticasContainer = resultadosSection.querySelector('.estatisticas-container');
+        if (estatisticasContainer) {
+            estatisticasContainer.innerHTML = '';
+        }
+    }
+    
+    // Limpar variáveis globais
+    if (window.estatisticasEvidencias) {
+        delete window.estatisticasEvidencias;
+    }
+    if (window.nomesEvidencias) {
+        delete window.nomesEvidencias;
+    }
+    
+    // Resetar steps
+    resetarSteps();
+    
+    // Resetar barra de progresso
+    atualizarProgresso(0);
+    
+    console.log('✅ Evidências anteriores limpas');
 }
 
 // Função para configurar drag and drop
@@ -1762,6 +1794,9 @@ function processarArquivo(file) {
         return;
     }
     
+    // Limpar evidências anteriores quando selecionar novo arquivo
+    limparEvidenciasAnteriores();
+    
     // Salvar arquivo selecionado
     uploadedFile = file;
     
@@ -1824,9 +1859,14 @@ async function processarEvidencias() {
         return;
     }
     
+    // Limpar evidências anteriores antes de iniciar novo processamento
+    limparEvidenciasAnteriores();
+    
     processamentoEmAndamento = true;
     
     try {
+        console.log('🚀 Iniciando processamento de evidências...');
+        
         // Mostrar loading
         const btnProcessar = document.getElementById('btnProcessarEvidencias');
         if (btnProcessar) {
@@ -1834,22 +1874,70 @@ async function processarEvidencias() {
             btnProcessar.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processando...';
         }
         
-        // Executar steps
-        await executarStep1();
-        await executarStep2();
-        await executarStep3();
+        // Inicializar progresso
+        console.log('📊 Inicializando progresso...');
+        atualizarProgresso(0);
+        
+        // Atualizar interface para mostrar processamento
+        console.log('🔄 Atualizando steps...');
+        atualizarStepStatus('step1', 'processing');
+        atualizarStepStatus('step2', 'waiting');
+        atualizarStepStatus('step3', 'waiting');
+        atualizarProgresso(10);
+        
+        console.log('📤 Iniciando upload do arquivo...');
+        atualizarProgresso(25);
         
         // Fazer upload e processamento real
-        await fazerUploadArquivo();
+        const resultado = await fazerUploadArquivo();
         
-        // Mostrar resultados
-        mostrarResultados();
+        console.log('✅ Upload concluído, processando resultado...');
+        atualizarProgresso(50);
+        
+        if (resultado.sucesso) {
+            console.log('✅ Processamento bem-sucedido, atualizando interface...');
+            
+            // Atualizar steps com sucesso
+            atualizarStepStatus('step1', 'success');
+            atualizarProgresso(70);
+            
+            console.log('📂 Organizando evidências...');
+            atualizarStepStatus('step2', 'success');
+            atualizarProgresso(85);
+            
+            console.log('📤 Preparando para envio...');
+            atualizarStepStatus('step3', 'success');
+            atualizarProgresso(100);
+            
+            console.log('📋 Carregando evidências processadas...');
+            // Carregar evidências processadas
+            await carregarEvidenciasProcessadas();
+            
+            // Mostrar resultados
+            setTimeout(() => {
+                mostrarResultados(resultado);
+            }, 1000);
+            
+        } else {
+            console.log('❌ Erro no processamento...');
+            // Atualizar steps com erro
+            atualizarStepStatus('step1', 'error');
+            atualizarStepStatus('step2', 'error');
+            atualizarStepStatus('step3', 'error');
+            
+            throw new Error(resultado.erro || 'Erro no processamento');
+        }
         
         mostrarNotificacao('Evidências processadas com sucesso!', 'success');
         
     } catch (error) {
         console.error('Erro no processamento:', error);
         mostrarNotificacao('Erro no processamento: ' + error.message, 'error');
+        
+        // Atualizar steps com erro
+        atualizarStepStatus('step1', 'error');
+        atualizarStepStatus('step2', 'error');
+        atualizarStepStatus('step3', 'error');
     } finally {
         processamentoEmAndamento = false;
         
@@ -1885,95 +1973,79 @@ async function fazerUploadArquivo() {
     // Salvar estatísticas para exibição posterior
     window.estatisticasEvidencias = resultado.estatisticas;
     window.nomesEvidencias = resultado.nomes_evidencias;
+    
+    return resultado;
+}
+
+// Função para atualizar status dos steps
+function atualizarStepStatus(stepId, status) {
+    const step = document.getElementById(stepId);
+    const statusElement = document.getElementById(stepId + 'Status');
+    
+    if (!step || !statusElement) return;
+    
+    // Remover classes anteriores
+    step.classList.remove('success', 'error', 'processing');
+    statusElement.innerHTML = '';
+    
+    // Adicionar nova classe e ícone
+    step.classList.add(status);
+    
+    switch (status) {
+        case 'waiting':
+            statusElement.innerHTML = 'Aguardando...';
+            break;
+        case 'processing':
+            statusElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            break;
+        case 'success':
+            statusElement.innerHTML = '<i class="fas fa-check"></i>';
+            break;
+        case 'error':
+            statusElement.innerHTML = '<i class="fas fa-times"></i>';
+            break;
+    }
+}
+
+// Função para atualizar progresso
+function atualizarProgresso(percentual) {
+    const progressFill = document.getElementById('progressFill');
+    const progressText = document.getElementById('progressText');
+    
+    if (progressFill) {
+        progressFill.style.width = percentual + '%';
+    }
+    
+    if (progressText) {
+        progressText.textContent = Math.round(percentual) + '%';
+    }
+    
+    console.log(`📊 Progresso atualizado: ${percentual}%`);
 }
 
 // Função para executar Step 1
-async function executarStep1() {
-    const step = document.getElementById('step1');
-    const status = document.getElementById('step1Status');
-    
-    if (step && status) {
-        step.classList.add('active');
-        status.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-        
-        try {
-            // Simular processamento
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            
-            step.classList.remove('active');
-            step.classList.add('completed');
-            status.innerHTML = '<i class="fas fa-check"></i>';
-            
-        } catch (error) {
-            step.classList.remove('active');
-            step.classList.add('error');
-            status.innerHTML = '<i class="fas fa-times"></i>';
-            throw error;
-        }
-    }
-}
 
-// Função para executar Step 2
-async function executarStep2() {
-    const step = document.getElementById('step2');
-    const status = document.getElementById('step2Status');
-    
-    if (step && status) {
-        step.classList.add('active');
-        status.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-        
-        try {
-            // Simular processamento
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            
-            step.classList.remove('active');
-            step.classList.add('completed');
-            status.innerHTML = '<i class="fas fa-check"></i>';
-            
-        } catch (error) {
-            step.classList.remove('active');
-            step.classList.add('error');
-            status.innerHTML = '<i class="fas fa-times"></i>';
-            throw error;
-        }
-    }
-}
-
-// Função para executar Step 3
-async function executarStep3() {
-    const step = document.getElementById('step3');
-    const status = document.getElementById('step3Status');
-    
-    if (step && status) {
-        step.classList.add('active');
-        status.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-        
-        try {
-            // Simular processamento
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            
-            step.classList.remove('active');
-            step.classList.add('completed');
-            status.innerHTML = '<i class="fas fa-check"></i>';
-            
-        } catch (error) {
-            step.classList.remove('active');
-            step.classList.add('error');
-            status.innerHTML = '<i class="fas fa-times"></i>';
-            throw error;
-        }
-    }
-}
 
 // Função para mostrar resultados
-function mostrarResultados() {
+function mostrarResultados(resultado) {
     const resultadosSection = document.getElementById('resultadosSection');
-    if (resultadosSection) {
-        resultadosSection.style.display = 'block';
-    }
+    const sucessosCount = document.getElementById('sucessosCount');
+    const falhasCount = document.getElementById('falhasCount');
+    const enviadosCount = document.getElementById('enviadosCount');
     
-    // Buscar estatísticas reais
-    verificarStatusEvidencias();
+    if (!resultadosSection || !sucessosCount || !falhasCount || !enviadosCount) return;
+    
+    resultadosSection.style.display = 'block';
+    
+    // Usar dados do resultado se disponíveis, senão buscar via API
+    if (resultado && resultado.estatisticas) {
+        sucessosCount.textContent = resultado.estatisticas.sucessos || 0;
+        falhasCount.textContent = resultado.estatisticas.falhas || 0;
+        enviadosCount.textContent = resultado.estatisticas.enviados || 0;
+    } else {
+        // Buscar estatísticas reais via API
+        verificarStatusEvidencias();
+    }
 }
 
 // Função para atualizar estatísticas com dados reais
@@ -2220,10 +2292,314 @@ function mostrarDetalhesEnvio(resultado) {
 }
 
 // Inicializar sistema de evidências quando a página carregar
-document.addEventListener('DOMContentLoaded', function() {
-    configurarDragAndDrop();
-    verificarStatusEvidencias();
-});
+// Movido para o listener principal para evitar conflitos
+
+// Função para visualizar evidências processadas
+async function visualizarEvidencias() {
+    try {
+        console.log('🔍 Iniciando visualização de evidências...');
+        
+        // Mostrar loading
+        mostrarNotificacao('Carregando evidências...', 'info');
+        
+        // Fazer requisição para listar evidências
+        const response = await fetch('/api/evidencias/lista');
+        const data = await response.json();
+        
+        if (!data.sucesso) {
+            throw new Error(data.erro || 'Erro ao carregar evidências');
+        }
+        
+        if (data.total === 0) {
+            mostrarNotificacao('Nenhuma evidência encontrada para visualizar', 'warning');
+            return;
+        }
+        
+        console.log(`✅ Encontradas ${data.total} evidências`);
+        
+        // Criar modal de visualização
+        criarModalVisualizacaoEvidencias(data.evidencias);
+        
+    } catch (error) {
+        console.error('❌ Erro ao visualizar evidências:', error);
+        mostrarNotificacao(`Erro ao visualizar evidências: ${error.message}`, 'error');
+    }
+}
+
+// Função para criar modal de visualização de evidências
+function criarModalVisualizacaoEvidencias(evidencias) {
+    // Remover modal anterior se existir
+    const modalAnterior = document.getElementById('modalVisualizacaoEvidencias');
+    if (modalAnterior) {
+        modalAnterior.remove();
+    }
+    
+    // Criar HTML do modal
+    const modalHtml = `
+        <div class="modal fade" id="modalVisualizacaoEvidencias" tabindex="-1" role="dialog" aria-labelledby="modalVisualizacaoEvidenciasLabel" aria-hidden="true">
+            <div class="modal-dialog modal-xl" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="modalVisualizacaoEvidenciasLabel">
+                            <i class="fas fa-images me-2"></i>Visualizar Evidências (${evidencias.length})
+                        </h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row">
+                            ${evidencias.map(evidencia => `
+                                <div class="col-md-6 col-lg-4 mb-3">
+                                    <div class="card h-100">
+                                        <div class="card-header p-2">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <span class="badge badge-${evidencia.status === 'sucesso' ? 'success' : 'danger'}">
+                                                    ${evidencia.status === 'sucesso' ? 'Sucesso' : 'Falha'}
+                                                </span>
+                                                <small class="text-muted">${evidencia.nome}</small>
+                                            </div>
+                                        </div>
+                                        <div class="card-body p-2">
+                                            <img src="/api/evidencias/imagem/${evidencia.diretorio}/${evidencia.arquivo}" 
+                                                 class="img-fluid rounded" 
+                                                 alt="Evidência ${evidencia.nome}"
+                                                 style="cursor: pointer;"
+                                                 onclick="ampliarImagem(this.src, '${evidencia.nome}')"
+                                                 title="Clique para ampliar">
+                                        </div>
+                                        <div class="card-footer p-2">
+                                            <div class="btn-group btn-group-sm w-100" role="group">
+                                                <button type="button" class="btn btn-outline-primary btn-sm" 
+                                                        onclick="ampliarImagem('/api/evidencias/imagem/${evidencia.diretorio}/${evidencia.arquivo}', '${evidencia.nome}')">
+                                                    <i class="fas fa-expand"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-outline-info btn-sm" 
+                                                        onclick="copiarNomeEvidencia('${evidencia.nome}')">
+                                                    <i class="fas fa-copy"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-outline-secondary btn-sm" 
+                                                        onclick="baixarEvidencia('${evidencia.diretorio}/${evidencia.arquivo}', '${evidencia.nome}')">
+                                                    <i class="fas fa-download"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+                        <button type="button" class="btn btn-primary" onclick="exportarEvidencias()">
+                            <i class="fas fa-file-export me-1"></i>Exportar Lista
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Adicionar modal ao DOM
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    
+    // Mostrar modal
+    $('#modalVisualizacaoEvidencias').modal('show');
+}
+
+// Função para ampliar imagem
+function ampliarImagem(src, nome) {
+    // Remover modal anterior se existir
+    const modalAnterior = document.getElementById('modalImagemAmpliada');
+    if (modalAnterior) {
+        modalAnterior.remove();
+    }
+    
+    // Criar modal de imagem ampliada
+    const modalHtml = `
+        <div class="modal fade" id="modalImagemAmpliada" tabindex="-1" role="dialog" aria-labelledby="modalImagemAmpliadaLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="modalImagemAmpliadaLabel">
+                            <i class="fas fa-image me-2"></i>${nome}
+                        </h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body text-center">
+                        <img src="${src}" class="img-fluid" alt="${nome}">
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+                        <button type="button" class="btn btn-primary" onclick="baixarEvidencia('${src.replace('/api/evidencias/imagem/', '')}', '${nome}')">
+                            <i class="fas fa-download me-1"></i>Baixar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Adicionar modal ao DOM
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    
+    // Mostrar modal
+    $('#modalImagemAmpliada').modal('show');
+}
+
+// Função para copiar nome da evidência
+function copiarNomeEvidencia(nome) {
+    navigator.clipboard.writeText(nome).then(() => {
+        mostrarNotificacao(`Nome "${nome}" copiado para a área de transferência`, 'success');
+    }).catch(() => {
+        mostrarNotificacao('Erro ao copiar nome', 'error');
+    });
+}
+
+// Função para baixar evidência
+function baixarEvidencia(caminho, nome) {
+    const link = document.createElement('a');
+    link.href = `/api/evidencias/imagem/${caminho}`;
+    link.download = `${nome}.png`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    mostrarNotificacao(`Evidência "${nome}" baixada com sucesso`, 'success');
+}
+
+// Função para exportar lista de evidências
+function exportarEvidencias() {
+    // Implementar exportação para Excel/CSV se necessário
+    mostrarNotificacao('Funcionalidade de exportação será implementada em breve', 'info');
+}
+
+// Função para limpar evidências
+async function limparEvidencias() {
+    try {
+        console.log('🧹 Iniciando limpeza de evidências...');
+        
+        // Mostrar modal de confirmação
+        const confirmacao = await mostrarConfirmacao(
+            'Limpar Evidências',
+            'Tem certeza que deseja limpar todas as evidências processadas? Esta ação não pode ser desfeita.',
+            'Limpar',
+            'btn-danger'
+        );
+        
+        if (!confirmacao) {
+            console.log('❌ Limpeza cancelada pelo usuário');
+            return;
+        }
+        
+        // Mostrar loading
+        mostrarNotificacao('Limpando evidências...', 'info');
+        
+        // Fazer requisição para limpar evidências
+        const response = await fetch('/api/evidencias/limpar', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (!data.sucesso) {
+            throw new Error(data.erro || 'Erro ao limpar evidências');
+        }
+        
+        console.log(`✅ Limpeza concluída: ${data.arquivos_removidos} arquivos removidos`);
+        
+        // Atualizar contadores na interface
+        atualizarContadoresEvidencias(0, 0, 0, 0);
+        
+        // Ocultar seção de resultados
+        const resultadosSection = document.getElementById('resultadosSection');
+        if (resultadosSection) {
+            resultadosSection.style.display = 'none';
+        }
+        
+        // Mostrar sucesso
+        mostrarNotificacao(`Limpeza concluída com sucesso! ${data.arquivos_removidos} arquivos removidos`, 'success');
+        
+    } catch (error) {
+        console.error('❌ Erro ao limpar evidências:', error);
+        mostrarNotificacao(`Erro ao limpar evidências: ${error.message}`, 'error');
+    }
+}
+
+// Função para mostrar confirmação
+function mostrarConfirmacao(titulo, mensagem, textoConfirmar, classeBotao = 'btn-primary') {
+    return new Promise((resolve) => {
+        // Remover modal anterior se existir
+        const modalAnterior = document.getElementById('modalConfirmacao');
+        if (modalAnterior) {
+            modalAnterior.remove();
+        }
+        
+        // Criar modal de confirmação
+        const modalHtml = `
+            <div class="modal fade" id="modalConfirmacao" tabindex="-1" role="dialog" aria-labelledby="modalConfirmacaoLabel" aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="modalConfirmacaoLabel">
+                                <i class="fas fa-question-circle text-warning me-2"></i>${titulo}
+                            </h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <p>${mensagem}</p>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                            <button type="button" class="btn ${classeBotao}" id="btnConfirmar">${textoConfirmar}</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // Adicionar modal ao DOM
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+        
+        // Configurar eventos
+        const modal = document.getElementById('modalConfirmacao');
+        const btnConfirmar = document.getElementById('btnConfirmar');
+        
+        btnConfirmar.addEventListener('click', () => {
+            $('#modalConfirmacao').modal('hide');
+            resolve(true);
+        });
+        
+        modal.addEventListener('hidden.bs.modal', () => {
+            resolve(false);
+        });
+        
+        // Mostrar modal
+        $('#modalConfirmacao').modal('show');
+    });
+}
+
+// Função para atualizar contadores de evidências
+function atualizarContadoresEvidencias(sucessos, falhas, enviados, total) {
+    const elementos = {
+        sucessos: document.getElementById('sucessosCount'),
+        falhas: document.getElementById('falhasCount'),
+        enviados: document.getElementById('enviadosCount'),
+        total: document.getElementById('totalCount')
+    };
+    
+    if (elementos.sucessos) elementos.sucessos.textContent = sucessos;
+    if (elementos.falhas) elementos.falhas.textContent = falhas;
+    if (elementos.enviados) elementos.enviados.textContent = enviados;
+    if (elementos.total) elementos.total.textContent = total;
+}
 
 
 

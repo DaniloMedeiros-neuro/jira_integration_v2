@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste Fase 5 - Páginas Específicas</title>
+    
+    <!-- Bootstrap 4 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <!-- SB Admin 2 CSS -->
+    <link href="static/css/sb-admin-2.min.css" rel="stylesheet">
+    <!-- SB Admin 2 Custom CSS -->
+    <link href="static/css/sb-admin-2-custom.css" rel="stylesheet">
+    
+    <style>
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 2px solid #4e73df;
+            border-radius: 8px;
+            background: #f8f9fc;
+        }
+        
+        .page-demo {
+            margin: 15px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background: white;
+        }
+        
+        .demo-nav {
+            background: #4e73df;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body id="page-top">
+
+    <!-- Page Wrapper -->
+    <div id="wrapper">
+
+        <!-- Sidebar -->
+        <ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
+
+            <!-- Sidebar - Brand -->
+            <a class="sidebar-brand d-flex align-items-center justify-content-center" href="/">
+                <div class="sidebar-brand-icon">
+                    <i class="fas fa-brain fa-2x text-white"></i>
+                </div>
+                <div class="sidebar-brand-text mx-3">Neurotech</div>
+            </a>
+
+            <!-- Divider -->
+            <hr class="sidebar-divider">
+
+            <!-- Heading -->
+            <div class="sidebar-heading">
+                Teste Fase 5
+            </div>
+
+            <!-- Nav Item -->
+            <li class="nav-item">
+                <a class="nav-link" href="#dashboard">
+                    <i class="fas fa-fw fa-tachometer-alt"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+
+            <li class="nav-item">
+                <a class="nav-link" href="#evidencias">
+                    <i class="fas fa-fw fa-camera"></i>
+                    <span>Evidências</span>
+                </a>
+            </li>
+
+            <li class="nav-item">
+                <a class="nav-link" href="#metricas">
+                    <i class="fas fa-fw fa-chart-bar"></i>
+                    <span>Métricas</span>
+                </a>
+            </li>
+
+            <!-- Divider -->
+            <hr class="sidebar-divider d-none d-md-block">
+
+            <!-- Sidebar Toggler (Sidebar) -->
+            <div class="text-center d-none d-md-inline">
+                <button class="rounded-circle border-0" id="sidebarToggle">
+                    <i class="fas fa-angle-left"></i>
+                </button>
+            </div>
+
+        </ul>
+        <!-- End of Sidebar -->
+
+        <!-- Content Wrapper -->
+        <div id="content-wrapper" class="d-flex flex-column">
+
+            <!-- Main Content -->
+            <div id="content">
+
+                <!-- Topbar -->
+                <nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow">
+
+                    <!-- Sidebar Toggle (Topbar) -->
+                    <button id="sidebarToggleTop" class="btn btn-link d-md-none rounded-circle mr-3">
+                        <i class="fa fa-bars"></i>
+                    </button>
+
+                    <!-- Topbar Search -->
+                    <form class="d-none d-sm-inline-block form-inline mr-auto ml-md-3 my-2 my-md-0 mw-100 navbar-search">
+                        <div class="input-group">
+                            <input type="text" class="form-control bg-light border-0 small" placeholder="Buscar..."
+                                   aria-label="Search" aria-describedby="basic-addon2">
+                            <div class="input-group-append">
+                                <button class="btn btn-primary" type="submit">
+                                    <i class="fas fa-search fa-sm"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+
+                    <!-- Topbar Navbar -->
+                    <ul class="navbar-nav ml-auto">
+                        <div class="topbar-divider d-none d-sm-block"></div>
+                        <li class="nav-item dropdown no-arrow">
+                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
+                                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <span class="mr-2 d-none d-lg-inline text-gray-600 small">Usuário</span>
+                                <img class="img-profile rounded-circle" src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMzAiIGN5PSIzMCIgcj0iMzAiIGZpbGw9IiM0ZTczZGYiLz4KPHN2ZyB4PSIxNSIgeT0iMTUiIHdpZHRoPSIzMCIgaGVpZ2h0PSIzMCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJ3aGl0ZSI+CjxwYXRoIGQ9Ik0xMiAxMmMyLjIxIDAgNC0xLjc5IDQtNHMtMS43OS00LTQtNC00IDEuNzktNCA0IDEuNzkgNCA0IDR6bTAgMmMtMi42NyAwLTggMS4zNC04IDR2MmgxNnYtMmMwLTIuNjYtNS4zMy00LTgtNHoiLz4KPC9zdmc+Cjwvc3ZnPgo=" alt="Usuário">
+                            </a>
+                            <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in"
+                                aria-labelledby="userDropdown">
+                                <a class="dropdown-item" href="#">
+                                    <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
+                                    Perfil
+                                </a>
+                                <div class="dropdown-divider"></div>
+                                <a class="dropdown-item" href="#" data-toggle="modal" data-target="#logoutModal">
+                                    <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
+                                    Logout
+                                </a>
+                            </div>
+                        </li>
+                    </ul>
+
+                </nav>
+                <!-- End of Topbar -->
+
+                <!-- Begin Page Content -->
+                <div class="container-fluid">
+
+                    <!-- Page Heading -->
+                    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                        <h1 class="h3 mb-0 text-gray-800">Teste Fase 5 - Páginas Específicas</h1>
+                    </div>
+
+                    <!-- 5.1 Dashboard (index.html) -->
+                    <div class="test-section" id="dashboard">
+                        <h4>📊 5.1 Dashboard (index.html)</h4>
+                        
+                        <div class="page-demo">
+                            <div class="demo-nav">
+                                <strong>Página Principal - Busca de Casos de Teste</strong>
+                            </div>
+                            
+                            <!-- Search Section -->
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3">
+                                    <h6 class="m-0 font-weight-bold text-primary">
+                                        <i class="fas fa-search mr-2"></i>Buscar Casos de Teste
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-8">
+                                            <div class="input-group">
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text">
+                                                        <i class="fas fa-clipboard-list"></i>
+                                                    </span>
+                                                </div>
+                                                <input type="text" class="form-control" placeholder="Digite o ID do requisito (ex: REQ-123)" 
+                                                       id="requisitoPai" autocomplete="off" spellcheck="false">
+                                                <div class="input-group-append">
+                                                    <button class="btn btn-primary" type="button" onclick="buscarRequisito()">
+                                                        <i class="fas fa-search mr-1"></i>Buscar
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="text-right">
+                                                <button class="btn btn-outline-primary btn-sm">
+                                                    <i class="fas fa-history mr-1"></i>Histórico
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Results Section -->
+                            <div class="card shadow mb-4" id="resultados" style="display: none;">
+                                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                                    <h6 class="m-0 font-weight-bold text-primary">
+                                        <i class="fas fa-list mr-2"></i>Casos de Teste
+                                    </h6>
+                                    <div class="dropdown no-arrow">
+                                        <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink"
+                                            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                            <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+                                        </a>
+                                        <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in"
+                                            aria-labelledby="dropdownMenuLink">
+                                            <div class="dropdown-header">Ações:</div>
+                                            <a class="dropdown-item" href="#">
+                                                <i class="fas fa-plus fa-sm fa-fw mr-2 text-gray-400"></i>Novo Caso
+                                            </a>
+                                            <a class="dropdown-item" href="#">
+                                                <i class="fas fa-table fa-sm fa-fw mr-2 text-gray-400"></i>Ver Planilha
+                                            </a>
+                                            <div class="dropdown-divider"></div>
+                                            <a class="dropdown-item" href="#">
+                                                <i class="fas fa-download fa-sm fa-fw mr-2 text-gray-400"></i>Exportar
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <span class="badge badge-primary badge-pill" id="totalCasos">0 casos encontrados</span>
+                                        </div>
+                                        <div class="col-md-6 text-right">
+                                            <div class="btn-group btn-group-sm" role="group">
+                                                <button type="button" class="btn btn-outline-primary active" id="btnListView">
+                                                    <i class="fas fa-list"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-outline-primary" id="btnCardView">
+                                                    <i class="fas fa-th-large"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div id="loading" class="text-center py-4" style="display: none;">
+                                        <div class="spinner-border text-primary" role="status">
+                                            <span class="sr-only">Carregando...</span>
+                                        </div>
+                                        <p class="mt-2 text-gray-600">Carregando casos de teste...</p>
+                                    </div>
+                                    
+                                    <div id="listaCasos" class="active">
+                                        <!-- Lista de casos aqui -->
+                                    </div>
+                                    <div id="cardsCasos" style="display: none;">
+                                        <!-- Cards de casos aqui -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 5.2 Página de Evidências -->
+                    <div class="test-section" id="evidencias">
+                        <h4>📸 5.2 Página de Evidências</h4>
+                        
+                        <div class="page-demo">
+                            <div class="demo-nav">
+                                <strong>Extração de Evidências</strong>
+                            </div>
+                            
+                            <!-- Upload Section -->
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3">
+                                    <h6 class="m-0 font-weight-bold text-primary">
+                                        <i class="fas fa-upload mr-2"></i>Upload de Evidências
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="epicKey">Epic Key</label>
+                                                <input type="text" class="form-control" id="epicKey" placeholder="Ex: BC-8">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="pastaEvidencias">Pasta de Evidências</label>
+                                                <input type="text" class="form-control" id="pastaEvidencias" placeholder="Caminho da pasta">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="row">
+                                        <div class="col-12">
+                                            <div class="form-group">
+                                                <label>Arquivos de Evidência</label>
+                                                <div class="custom-file">
+                                                    <input type="file" class="custom-file-input" id="evidenciasFiles" multiple>
+                                                    <label class="custom-file-label" for="evidenciasFiles">Escolher arquivos...</label>
+                                                </div>
+                                                <small class="form-text text-muted">Selecione as imagens de evidência (.png, .jpg, .jpeg)</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="row">
+                                        <div class="col-12">
+                                            <button class="btn btn-primary" onclick="processarEvidencias()">
+                                                <i class="fas fa-cog mr-1"></i>Processar Evidências
+                                            </button>
+                                            <button class="btn btn-outline-secondary ml-2">
+                                                <i class="fas fa-eye mr-1"></i>Visualizar
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Progress Section -->
+                            <div class="card shadow mb-4" id="progressSection" style="display: none;">
+                                <div class="card-header py-3">
+                                    <h6 class="m-0 font-weight-bold text-primary">
+                                        <i class="fas fa-tasks mr-2"></i>Progresso do Processamento
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="progress mb-3">
+                                        <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                                             role="progressbar" style="width: 0%" id="progressBar">0%</div>
+                                    </div>
+                                    <div id="progressText" class="text-muted">Aguardando início...</div>
+                                </div>
+                            </div>
+
+                            <!-- Results Section -->
+                            <div class="card shadow mb-4" id="resultsSection" style="display: none;">
+                                <div class="card-header py-3">
+                                    <h6 class="m-0 font-weight-bold text-primary">
+                                        <i class="fas fa-check-circle mr-2"></i>Resultados
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-3">
+                                            <div class="card border-left-success shadow h-100 py-2">
+                                                <div class="card-body">
+                                                    <div class="row no-gutters align-items-center">
+                                                        <div class="col mr-2">
+                                                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                                                Sucessos
+                                                            </div>
+                                                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="sucessosCount">0</div>
+                                                        </div>
+                                                        <div class="col-auto">
+                                                            <i class="fas fa-check fa-2x text-gray-300"></i>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="card border-left-danger shadow h-100 py-2">
+                                                <div class="card-body">
+                                                    <div class="row no-gutters align-items-center">
+                                                        <div class="col mr-2">
+                                                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
+                                                                Falhas
+                                                            </div>
+                                                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="falhasCount">0</div>
+                                                        </div>
+                                                        <div class="col-auto">
+                                                            <i class="fas fa-times fa-2x text-gray-300"></i>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="card border-left-warning shadow h-100 py-2">
+                                                <div class="card-body">
+                                                    <div class="row no-gutters align-items-center">
+                                                        <div class="col mr-2">
+                                                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                                                Pendentes
+                                                            </div>
+                                                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="pendentesCount">0</div>
+                                                        </div>
+                                                        <div class="col-auto">
+                                                            <i class="fas fa-clock fa-2x text-gray-300"></i>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="card border-left-info shadow h-100 py-2">
+                                                <div class="card-body">
+                                                    <div class="row no-gutters align-items-center">
+                                                        <div class="col mr-2">
+                                                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                                                Total
+                                                            </div>
+                                                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="totalCount">0</div>
+                                                        </div>
+                                                        <div class="col-auto">
+                                                            <i class="fas fa-images fa-2x text-gray-300"></i>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 5.3 Página de Métricas -->
+                    <div class="test-section" id="metricas">
+                        <h4>📈 5.3 Página de Métricas</h4>
+                        
+                        <div class="page-demo">
+                            <div class="demo-nav">
+                                <strong>Métricas e Relatórios</strong>
+                            </div>
+                            
+                            <!-- Filters Section -->
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3">
+                                    <h6 class="m-0 font-weight-bold text-primary">
+                                        <i class="fas fa-filter mr-2"></i>Filtros
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-3">
+                                            <div class="form-group">
+                                                <label for="projetoSelect">Projeto</label>
+                                                <select class="form-control" id="projetoSelect">
+                                                    <option value="">Todos os projetos</option>
+                                                    <option value="BC">BC - Backend</option>
+                                                    <option value="FE">FE - Frontend</option>
+                                                    <option value="MO">MO - Mobile</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="form-group">
+                                                <label for="periodoSelect">Período</label>
+                                                <select class="form-control" id="periodoSelect">
+                                                    <option value="7">Últimos 7 dias</option>
+                                                    <option value="30" selected>Últimos 30 dias</option>
+                                                    <option value="90">Últimos 90 dias</option>
+                                                    <option value="365">Último ano</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="form-group">
+                                                <label for="statusSelect">Status</label>
+                                                <select class="form-control" id="statusSelect">
+                                                    <option value="">Todos os status</option>
+                                                    <option value="success">Sucesso</option>
+                                                    <option value="failure">Falha</option>
+                                                    <option value="pending">Pendente</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="form-group">
+                                                <label>&nbsp;</label>
+                                                <div>
+                                                    <button class="btn btn-primary" onclick="aplicarFiltros()">
+                                                        <i class="fas fa-search mr-1"></i>Aplicar
+                                                    </button>
+                                                    <button class="btn btn-outline-secondary ml-2" onclick="limparFiltros()">
+                                                        <i class="fas fa-times mr-1"></i>Limpar
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Charts Section -->
+                            <div class="row">
+                                <div class="col-xl-8 col-lg-7">
+                                    <div class="card shadow mb-4">
+                                        <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                                            <h6 class="m-0 font-weight-bold text-primary">
+                                                <i class="fas fa-chart-line mr-2"></i>Evolução dos Casos de Teste
+                                            </h6>
+                                            <div class="dropdown no-arrow">
+                                                <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink"
+                                                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                    <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+                                                </a>
+                                                <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in"
+                                                    aria-labelledby="dropdownMenuLink">
+                                                    <div class="dropdown-header">Opções:</div>
+                                                    <a class="dropdown-item" href="#">
+                                                        <i class="fas fa-download fa-sm fa-fw mr-2 text-gray-400"></i>Exportar
+                                                    </a>
+                                                    <a class="dropdown-item" href="#">
+                                                        <i class="fas fa-print fa-sm fa-fw mr-2 text-gray-400"></i>Imprimir
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="chart-area" style="height: 300px; background: #f8f9fc; border-radius: 5px; display: flex; align-items: center; justify-content: center;">
+                                                <div class="text-center text-gray-600">
+                                                    <i class="fas fa-chart-line fa-3x mb-3"></i>
+                                                    <p>Gráfico de evolução seria exibido aqui</p>
+                                                    <small>Integração com Chart.js ou similar</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-xl-4 col-lg-5">
+                                    <div class="card shadow mb-4">
+                                        <div class="card-header py-3">
+                                            <h6 class="m-0 font-weight-bold text-primary">
+                                                <i class="fas fa-chart-pie mr-2"></i>Distribuição por Status
+                                            </h6>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="chart-pie" style="height: 200px; background: #f8f9fc; border-radius: 5px; display: flex; align-items: center; justify-content: center;">
+                                                <div class="text-center text-gray-600">
+                                                    <i class="fas fa-chart-pie fa-2x mb-2"></i>
+                                                    <p>Gráfico de pizza seria exibido aqui</p>
+                                                </div>
+                                            </div>
+                                            <div class="mt-4 text-center small">
+                                                <span class="mr-2">
+                                                    <i class="fas fa-circle text-success"></i> Sucesso
+                                                </span>
+                                                <span class="mr-2">
+                                                    <i class="fas fa-circle text-danger"></i> Falha
+                                                </span>
+                                                <span class="mr-2">
+                                                    <i class="fas fa-circle text-warning"></i> Pendente
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Table Section -->
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3">
+                                    <h6 class="m-0 font-weight-bold text-primary">
+                                        <i class="fas fa-table mr-2"></i>Dados Detalhados
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                                            <thead>
+                                                <tr>
+                                                    <th>Projeto</th>
+                                                    <th>Total Casos</th>
+                                                    <th>Sucessos</th>
+                                                    <th>Falhas</th>
+                                                    <th>Taxa Sucesso</th>
+                                                    <th>Última Execução</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td>BC - Backend</td>
+                                                    <td>156</td>
+                                                    <td>142</td>
+                                                    <td>14</td>
+                                                    <td>
+                                                        <div class="progress" style="height: 20px;">
+                                                            <div class="progress-bar bg-success" style="width: 91%">91%</div>
+                                                        </div>
+                                                    </td>
+                                                    <td>2024-01-15</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>FE - Frontend</td>
+                                                    <td>89</td>
+                                                    <td>78</td>
+                                                    <td>11</td>
+                                                    <td>
+                                                        <div class="progress" style="height: 20px;">
+                                                            <div class="progress-bar bg-success" style="width: 88%">88%</div>
+                                                        </div>
+                                                    </td>
+                                                    <td>2024-01-14</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>MO - Mobile</td>
+                                                    <td>67</td>
+                                                    <td>58</td>
+                                                    <td>9</td>
+                                                    <td>
+                                                        <div class="progress" style="height: 20px;">
+                                                            <div class="progress-bar bg-success" style="width: 87%">87%</div>
+                                                        </div>
+                                                    </td>
+                                                    <td>2024-01-13</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+                <!-- /.container-fluid -->
+
+            </div>
+            <!-- End of Main Content -->
+
+        </div>
+        <!-- End of Content Wrapper -->
+
+    </div>
+    <!-- End of Page Wrapper -->
+
+    <!-- Logout Modal-->
+    <div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Pronto para sair?</h5>
+                    <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body">Selecione "Logout" abaixo se você estiver pronto para encerrar sua sessão atual.</div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancelar</button>
+                    <a class="btn btn-primary" href="login.html">Logout</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap core JavaScript-->
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Core plugin JavaScript-->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-easing/1.4.1/jquery.easing.min.js"></script>
+    <!-- SB Admin 2 JavaScript -->
+    <script src="static/js/sb-admin-2.min.js"></script>
+    <!-- SB Admin 2 Custom JavaScript -->
+    <script src="static/js/sb-admin-2-custom.js"></script>
+    
+    <script>
+        $(document).ready(function() {
+            console.log('=== TESTE FASE 5 - PÁGINAS ESPECÍFICAS ===');
+            
+            // Simular funcionalidades das páginas
+            $('#requisitoPai').on('keypress', function(e) {
+                if (e.which === 13) {
+                    buscarRequisito();
+                }
+            });
+            
+            // Toggle view buttons
+            $('#btnListView, #btnCardView').on('click', function() {
+                $('#btnListView, #btnCardView').removeClass('active');
+                $(this).addClass('active');
+                
+                if ($(this).attr('id') === 'btnListView') {
+                    $('#listaCasos').show();
+                    $('#cardsCasos').hide();
+                } else {
+                    $('#listaCasos').hide();
+                    $('#cardsCasos').show();
+                }
+            });
+            
+            // File input change
+            $('.custom-file-input').on('change', function() {
+                var fileName = $(this).val().split('\\').pop();
+                $(this).next('.custom-file-label').html(fileName);
+            });
+            
+            // Progress simulation
+            function simularProgresso() {
+                $('#progressSection').show();
+                let progress = 0;
+                const interval = setInterval(function() {
+                    progress += 10;
+                    $('#progressBar').css('width', progress + '%').text(progress + '%');
+                    $('#progressText').text('Processando evidência ' + Math.floor(progress/10) + ' de 10...');
+                    
+                    if (progress >= 100) {
+                        clearInterval(interval);
+                        $('#progressText').text('Processamento concluído!');
+                        $('#resultsSection').show();
+                        $('#sucessosCount').text('8');
+                        $('#falhasCount').text('2');
+                        $('#pendentesCount').text('0');
+                        $('#totalCount').text('10');
+                    }
+                }, 500);
+            }
+            
+            // Bind functions to window for onclick
+            window.buscarRequisito = function() {
+                const requisito = $('#requisitoPai').val();
+                if (requisito.trim()) {
+                    $('#resultados').show();
+                    $('#loading').show();
+                    setTimeout(function() {
+                        $('#loading').hide();
+                        $('#totalCasos').text('15 casos encontrados');
+                    }, 2000);
+                }
+            };
+            
+            window.processarEvidencias = function() {
+                const epicKey = $('#epicKey').val();
+                const pasta = $('#pastaEvidencias').val();
+                
+                if (epicKey && pasta) {
+                    simularProgresso();
+                } else {
+                    alert('Preencha o Epic Key e a pasta de evidências');
+                }
+            };
+            
+            window.aplicarFiltros = function() {
+                console.log('Filtros aplicados');
+                // Aqui seria feita a requisição para atualizar os dados
+            };
+            
+            window.limparFiltros = function() {
+                $('#projetoSelect, #periodoSelect, #statusSelect').val('');
+                console.log('Filtros limpos');
+            };
+        });
+    </script>
+
+</body>
+</html>

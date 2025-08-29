@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste Toggle Sidebar</title>
+    
+    <!-- Bootstrap 4 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <!-- SB Admin 2 CSS -->
+    <link href="static/css/sb-admin-2.min.css" rel="stylesheet">
+    <!-- SB Admin 2 Custom CSS -->
+    <link href="static/css/sb-admin-2-custom.css" rel="stylesheet">
+    
+    <style>
+        /* Debug styles */
+        .debug-info {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            z-index: 9999;
+        }
+        
+        .sidebar-debug {
+            background: rgba(255,0,0,0.1);
+            border: 2px solid red;
+        }
+        
+        .content-debug {
+            background: rgba(0,255,0,0.1);
+            border: 2px solid green;
+        }
+    </style>
+</head>
+<body id="page-top">
+
+    <!-- Debug Info -->
+    <div class="debug-info">
+        <div>Sidebar Width: <span id="sidebar-width">-</span></div>
+        <div>Content Margin: <span id="content-margin">-</span></div>
+        <div>Body Classes: <span id="body-classes">-</span></div>
+        <div>Sidebar Classes: <span id="sidebar-classes">-</span></div>
+    </div>
+
+    <!-- Page Wrapper -->
+    <div id="wrapper">
+
+        <!-- Sidebar -->
+        <ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion sidebar-debug" id="accordionSidebar">
+
+            <!-- Sidebar - Brand -->
+            <a class="sidebar-brand d-flex align-items-center justify-content-center" href="/">
+                <div class="sidebar-brand-icon">
+                    <i class="fas fa-brain fa-2x text-white"></i>
+                </div>
+                <div class="sidebar-brand-text mx-3">Neurotech</div>
+            </a>
+
+            <!-- Divider -->
+            <hr class="sidebar-divider">
+
+            <!-- Heading -->
+            <div class="sidebar-heading">
+                Gerenciamento
+            </div>
+
+            <!-- Nav Item - Dashboard -->
+            <li class="nav-item">
+                <a class="nav-link" href="/">
+                    <i class="fas fa-fw fa-search"></i>
+                    <span>Buscar casos de teste</span>
+                </a>
+            </li>
+
+            <!-- Nav Item - Planilha -->
+            <li class="nav-item">
+                <a class="nav-link" href="/planilha-manual">
+                    <i class="fas fa-fw fa-file-import"></i>
+                    <span>Importar de planilha</span>
+                </a>
+            </li>
+
+            <!-- Divider -->
+            <hr class="sidebar-divider d-none d-md-block">
+
+            <!-- Sidebar Toggler (Sidebar) -->
+            <div class="text-center d-none d-md-inline">
+                <button class="rounded-circle border-0" id="sidebarToggle">
+                    <i class="fas fa-angle-left"></i>
+                </button>
+            </div>
+
+        </ul>
+        <!-- End of Sidebar -->
+
+        <!-- Content Wrapper -->
+        <div id="content-wrapper" class="d-flex flex-column content-debug">
+
+            <!-- Main Content -->
+            <div id="content">
+
+                <!-- Topbar -->
+                <nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow">
+
+                    <!-- Sidebar Toggle (Topbar) -->
+                    <button id="sidebarToggleTop" class="btn btn-link d-md-none rounded-circle mr-3">
+                        <i class="fa fa-bars"></i>
+                    </button>
+
+                    <!-- Topbar Search -->
+                    <form class="d-none d-sm-inline-block form-inline mr-auto ml-md-3 my-2 my-md-0 mw-100 navbar-search">
+                        <div class="input-group">
+                            <input type="text" class="form-control bg-light border-0 small" placeholder="Buscar por..."
+                                   aria-label="Search" aria-describedby="basic-addon2">
+                            <div class="input-group-append">
+                                <button class="btn btn-primary" type="button">
+                                    <i class="fas fa-search fa-sm"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+
+                </nav>
+                <!-- End of Topbar -->
+
+                <!-- Begin Page Content -->
+                <div class="container-fluid">
+
+                    <!-- Page Heading -->
+                    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                        <h1 class="h3 mb-0 text-gray-800">Teste do Toggle Sidebar</h1>
+                    </div>
+
+                    <!-- Content -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5>Teste do Toggle</h5>
+                                </div>
+                                <div class="card-body">
+                                    <p>Clique nos botões abaixo para testar o toggle do sidebar:</p>
+                                    
+                                    <button id="test-toggle-bottom" class="btn btn-primary mr-2">
+                                        Toggle Bottom Button
+                                    </button>
+                                    
+                                    <button id="test-toggle-top" class="btn btn-success mr-2">
+                                        Toggle Top Button
+                                    </button>
+                                    
+                                    <button id="test-toggle-js" class="btn btn-warning">
+                                        Toggle via JavaScript
+                                    </button>
+                                    
+                                    <hr>
+                                    
+                                    <h6>Estado Atual:</h6>
+                                    <ul>
+                                        <li>Sidebar Width: <span id="current-sidebar-width">-</span></li>
+                                        <li>Content Margin: <span id="current-content-margin">-</span></li>
+                                        <li>Body Classes: <span id="current-body-classes">-</span></li>
+                                        <li>Sidebar Classes: <span id="current-sidebar-classes">-</span></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+                <!-- /.container-fluid -->
+
+            </div>
+            <!-- End of Main Content -->
+
+        </div>
+        <!-- End of Content Wrapper -->
+
+    </div>
+    <!-- End of Page Wrapper -->
+
+    <!-- Bootstrap core JavaScript-->
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Core plugin JavaScript-->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-easing/1.4.1/jquery.easing.min.js"></script>
+    <!-- SB Admin 2 JavaScript -->
+    <script src="static/js/sb-admin-2.min.js"></script>
+    <!-- SB Admin 2 Custom JavaScript -->
+    <script src="static/js/sb-admin-2-custom.js"></script>
+    
+    <script>
+        $(document).ready(function() {
+            console.log('=== TESTE TOGGLE SIDEBAR ===');
+            console.log('jQuery version:', $.fn.jquery);
+            console.log('Bootstrap version:', typeof bootstrap !== 'undefined' ? 'Loaded' : 'Not loaded');
+            
+            // Função para atualizar debug info
+            function updateDebugInfo() {
+                var sidebarWidth = $('.sidebar').width();
+                var contentMargin = $('#content-wrapper').css('margin-left');
+                var bodyClasses = $('body').attr('class') || '';
+                var sidebarClasses = $('.sidebar').attr('class') || '';
+                
+                $('#sidebar-width').text(sidebarWidth + 'px');
+                $('#content-margin').text(contentMargin);
+                $('#body-classes').text(bodyClasses);
+                $('#sidebar-classes').text(sidebarClasses);
+                
+                $('#current-sidebar-width').text(sidebarWidth + 'px');
+                $('#current-content-margin').text(contentMargin);
+                $('#current-body-classes').text(bodyClasses);
+                $('#current-sidebar-classes').text(sidebarClasses);
+                
+                console.log('Debug Info Updated:', {
+                    sidebarWidth: sidebarWidth,
+                    contentMargin: contentMargin,
+                    bodyClasses: bodyClasses,
+                    sidebarClasses: sidebarClasses
+                });
+            }
+            
+            // Atualizar debug info inicial
+            updateDebugInfo();
+            
+            // Teste do botão bottom
+            $('#test-toggle-bottom').on('click', function() {
+                console.log('Teste toggle bottom clicked');
+                $('#sidebarToggle').click();
+                setTimeout(updateDebugInfo, 100);
+            });
+            
+            // Teste do botão top
+            $('#test-toggle-top').on('click', function() {
+                console.log('Teste toggle top clicked');
+                $('#sidebarToggleTop').click();
+                setTimeout(updateDebugInfo, 100);
+            });
+            
+            // Teste via JavaScript direto
+            $('#test-toggle-js').on('click', function() {
+                console.log('Teste toggle via JS clicked');
+                $('body').toggleClass('sidebar-toggled');
+                $('.sidebar').toggleClass('toggled');
+                setTimeout(updateDebugInfo, 100);
+            });
+            
+            // Monitorar mudanças no sidebar
+            $('.sidebar').on('click', function() {
+                console.log('Sidebar clicked');
+                setTimeout(updateDebugInfo, 100);
+            });
+            
+            // Atualizar debug info periodicamente
+            setInterval(updateDebugInfo, 1000);
+            
+            // Verificar se os botões existem
+            console.log('Botões encontrados:', {
+                'sidebarToggle': $('#sidebarToggle').length,
+                'sidebarToggleTop': $('#sidebarToggleTop').length
+            });
+            
+            // Verificar eventos
+            console.log('Eventos registrados:', {
+                'sidebarToggle click': $('#sidebarToggle').data('events'),
+                'sidebarToggleTop click': $('#sidebarToggleTop').data('events')
+            });
+        });
+    </script>
+
+</body>
+</html>

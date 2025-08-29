@@ -1,10 +1,8 @@
-{% extends "base.html" %}
+{% extends "base_sb_admin.html" %}
 
 {% block title %}Neurotech - Métricas de Casos de Teste{% endblock %}
 
 {% block page_title %}Métricas de Casos de Teste{% endblock %}
-
-{% block page_subtitle %}Análise detalhada de casos de teste do épico {{ epic_key }}{% endblock %}
 
 {{ debug_html if debug_html else '<!-- DEBUG: epic_key não fornecido -->' }}
 <!-- DEBUG: Verificando se epic_key foi passado -->

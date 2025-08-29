@@ -1,946 +1,430 @@
-{% extends "base.html" %}
+{% extends "base_sb_admin.html" %}
 
 {% block title %}Neurotech - Extração de Evidências{% endblock %}
 
 {% block page_title %}Extração de Evidências{% endblock %}
 
-{% block page_subtitle %}Processe e envie evidências de testes automaticamente{% endblock %}
-
 {% block content %}
-<div class="evidencias-container">
-    <!-- Upload Section -->
-    <div class="upload-section">
-        <div class="upload-area" id="uploadArea">
-            <div class="upload-content">
-                <i class="fas fa-cloud-upload-alt upload-icon"></i>
-                <h4>Arraste o arquivo log.html aqui</h4>
-                <p>ou clique para selecionar</p>
-                <input type="file" id="logFileInput" accept=".html" style="display: none;">
-                <button type="button" class="btn btn-primary" onclick="document.getElementById('logFileInput').click()">
-                    <i class="fas fa-folder-open me-1"></i>
-                    Selecionar Arquivo
-                </button>
-            </div>
-        </div>
-        
-        <div id="fileInfo" class="file-info" style="display: none;">
-            <div class="file-info-content">
-                <i class="fas fa-file-code"></i>
-                <span id="fileName"></span>
-                <span id="fileSize"></span>
-                <button type="button" class="btn btn-sm btn-outline-danger" onclick="removerArquivo()">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-        </div>
+<!-- Upload Section -->
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">
+            <i class="fas fa-cloud-upload-alt fa-fw me-2"></i>Upload de Arquivo
+        </h6>
     </div>
-
-    <!-- Processing Section -->
-    <div class="processing-section" id="processamentoSection" style="display: none;">
-        <div class="processing-header">
-            <h4>Processando Evidências</h4>
-            <div class="progress-bar">
-                <div class="progress-fill" id="progressFill"></div>
-            </div>
-        </div>
-        
-        <div class="processing-steps">
-            <div class="step" id="step1">
-                <i class="fas fa-camera"></i>
-                <span>Extraindo Screenshots</span>
-                <div class="step-status" id="step1Status"></div>
-            </div>
-            <div class="step" id="step2">
-                <i class="fas fa-folder-open"></i>
-                <span>Organizando por Status</span>
-                <div class="step-status" id="step2Status"></div>
-            </div>
-            <div class="step" id="step3">
-                <i class="fas fa-paper-plane"></i>
-                <span>Preparando para Envio</span>
-                <div class="step-status" id="step3Status"></div>
-            </div>
-        </div>
-        
-        <button type="button" class="btn btn-primary btn-process" id="btnProcessarEvidencias" onclick="processarEvidencias()" style="display: none;">
-            <i class="fas fa-play me-1"></i>
-            Processar
-        </button>
-    </div>
-
-    <!-- Results Section -->
-    <div class="results-section" id="resultadosSection" style="display: none;">
-        <div class="results-header">
-            <h4>Resultados</h4>
-            <div class="results-stats">
-                <div class="stat">
-                    <span class="stat-number" id="sucessosCount">0</span>
-                    <span class="stat-label">Sucessos</span>
+    <div class="card-body">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <!-- Upload Area -->
+                <div class="upload-area border-2 border-dashed border-primary rounded p-5 text-center" id="uploadArea" 
+                     style="border-style: dashed; border-width: 2px; border-color: #4e73df; background-color: #f8f9fc;">
+                    <div class="upload-content">
+                        <i class="fas fa-cloud-upload-alt fa-3x text-primary mb-3"></i>
+                        <h4 class="text-gray-800 mb-2">Arraste o arquivo log.html aqui</h4>
+                        <p class="text-gray-600 mb-3">ou clique para selecionar</p>
+                        <input type="file" id="logFileInput" accept=".html" style="display: none;">
+                        <button type="button" class="btn btn-primary" onclick="document.getElementById('logFileInput').click()">
+                            <i class="fas fa-folder-open me-1"></i>
+                            Selecionar Arquivo
+                        </button>
+                    </div>
                 </div>
-                <div class="stat">
-                    <span class="stat-number" id="falhasCount">0</span>
-                    <span class="stat-label">Falhas</span>
-                </div>
-                <div class="stat">
-                    <span class="stat-number" id="enviadosCount">0</span>
-                    <span class="stat-label">Enviados</span>
+                
+                <!-- File Info -->
+                <div id="fileInfo" class="mt-3" style="display: none;">
+                    <div class="alert alert-info d-flex align-items-center">
+                        <i class="fas fa-file-code me-2"></i>
+                        <div class="flex-grow-1">
+                            <span id="fileName" class="font-weight-bold"></span>
+                            <span id="fileSize" class="text-muted ms-2"></span>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="removerArquivo()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
-        </div>
-        
-        <div class="results-actions">
-            <button type="button" class="btn btn-outline-primary" onclick="visualizarEvidencias()">
-                <i class="fas fa-eye me-1"></i>
-                Visualizar
-            </button>
-            <button type="button" class="btn btn-primary" id="btnEnviarEvidencias" onclick="enviarEvidenciasJira()">
-                <i class="fas fa-paper-plane me-1"></i>
-                Enviar ao Jira
-            </button>
-            <button type="button" class="btn btn-outline-danger" onclick="limparEvidencias()">
-                <i class="fas fa-trash me-1"></i>
-                Limpar
-            </button>
         </div>
     </div>
 </div>
-{% endblock %}
 
-{% block extra_js %}
-<script>
-// Variáveis globais
-let arquivoSelecionado = null;
-
-// Inicialização
-document.addEventListener('DOMContentLoaded', function() {
-    configurarDragAndDrop();
-    verificarStatusEvidencias();
-});
-
-// Função para configurar drag and drop
-function configurarDragAndDrop() {
-    const uploadArea = document.getElementById('uploadArea');
-    const fileInput = document.getElementById('logFileInput');
-    
-    if (!uploadArea || !fileInput) return;
-    
-    // Prevenir comportamento padrão do navegador
-    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-        uploadArea.addEventListener(eventName, preventDefaults, false);
-        document.body.addEventListener(eventName, preventDefaults, false);
-    });
-    
-    // Destacar área de upload
-    ['dragenter', 'dragover'].forEach(eventName => {
-        uploadArea.addEventListener(eventName, highlight, false);
-    });
-    
-    ['dragleave', 'drop'].forEach(eventName => {
-        uploadArea.addEventListener(eventName, unhighlight, false);
-    });
-    
-    // Processar arquivo solto
-    uploadArea.addEventListener('drop', handleDrop, false);
-    
-    // Processar arquivo selecionado
-    fileInput.addEventListener('change', handleFileSelect);
-}
-
-function preventDefaults(e) {
-    e.preventDefault();
-    e.stopPropagation();
-}
-
-function highlight(e) {
-    const uploadArea = document.getElementById('uploadArea');
-    if (uploadArea) uploadArea.classList.add('drag-over');
-}
-
-function unhighlight(e) {
-    const uploadArea = document.getElementById('uploadArea');
-    if (uploadArea) uploadArea.classList.remove('drag-over');
-}
-
-function handleDrop(e) {
-    const dt = e.dataTransfer;
-    const files = dt.files;
-    handleFiles(files);
-}
-
-function handleFileSelect(e) {
-    const files = e.target.files;
-    handleFiles(files);
-}
-
-function handleFiles(files) {
-    if (files.length > 0) {
-        const file = files[0];
-        if (file.name.toLowerCase().endsWith('.html')) {
-            arquivoSelecionado = file;
-            mostrarInfoArquivo(file);
-            mostrarSecaoProcessamento();
-        } else {
-            mostrarNotificacao('Por favor, selecione apenas arquivos HTML (.html)', 'error');
-        }
-    }
-}
-
-function mostrarInfoArquivo(file) {
-    const fileInfo = document.getElementById('fileInfo');
-    const fileName = document.getElementById('fileName');
-    const fileSize = document.getElementById('fileSize');
-    
-    if (!fileInfo || !fileName || !fileSize) return;
-    
-    fileName.textContent = file.name;
-    fileSize.textContent = formatarTamanhoArquivo(file.size);
-    fileInfo.style.display = 'block';
-}
-
-function formatarTamanhoArquivo(bytes) {
-    if (bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-}
-
-function mostrarSecaoProcessamento() {
-    const processamentoSection = document.getElementById('processamentoSection');
-    const btnProcessar = document.getElementById('btnProcessarEvidencias');
-    
-    if (!processamentoSection || !btnProcessar) return;
-    
-    processamentoSection.style.display = 'block';
-    btnProcessar.style.display = 'inline-block';
-}
-
-function removerArquivo() {
-    arquivoSelecionado = null;
-    const fileInfo = document.getElementById('fileInfo');
-    const fileInput = document.getElementById('logFileInput');
-    const processamentoSection = document.getElementById('processamentoSection');
-    
-    if (!fileInfo || !fileInput || !processamentoSection) return;
-    
-    fileInfo.style.display = 'none';
-    fileInput.value = '';
-    processamentoSection.style.display = 'none';
-}
-
-async function processarEvidencias() {
-    if (!arquivoSelecionado) {
-        mostrarNotificacao('Nenhum arquivo selecionado', 'error');
-        return;
-    }
-    
-    const btnProcessar = document.getElementById('btnProcessarEvidencias');
-    if (btnProcessar) {
-        btnProcessar.disabled = true;
-        btnProcessar.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Processando...';
-    }
-    
-    const formData = new FormData();
-    formData.append('log_file', arquivoSelecionado);
-    
-    try {
-        // Atualizar interface para mostrar processamento
-        atualizarStepStatus('step1', 'processing');
-        atualizarStepStatus('step2', 'waiting');
-        atualizarStepStatus('step3', 'waiting');
-        atualizarProgresso(33);
+<!-- Processing Section -->
+<div class="card shadow mb-4" id="processamentoSection" style="display: none;">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">
+            <i class="fas fa-cogs fa-fw me-2"></i>Processamento de Evidências
+        </h6>
+    </div>
+    <div class="card-body">
+        <!-- Progress Bar -->
+        <div class="mb-4">
+            <div class="progress" style="height: 20px;">
+                <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                     id="progressFill" role="progressbar" style="width: 0%">
+                    <span id="progressText">0%</span>
+                </div>
+            </div>
+        </div>
         
-        const response = await fetch('/api/evidencias/upload', {
-            method: 'POST',
-            body: formData
-        });
-        
-        const resultado = await response.json();
-        
-        if (resultado.sucesso) {
-            // Atualizar steps com sucesso
-            atualizarStepStatus('step1', 'success');
-            atualizarProgresso(66);
-            atualizarStepStatus('step2', 'success');
-            atualizarProgresso(100);
-            atualizarStepStatus('step3', 'success');
-            
-            // Carregar evidências processadas
-            await carregarEvidenciasProcessadas();
-            
-            // Mostrar resultados
-            setTimeout(() => {
-                mostrarResultados(resultado);
-            }, 1000);
-            
-        } else {
-            // Atualizar steps com erro
-            atualizarStepStatus('step1', 'error');
-            atualizarStepStatus('step2', 'error');
-            atualizarStepStatus('step3', 'error');
-            
-            mostrarNotificacao('Erro ao processar evidências: ' + resultado.erro, 'error');
-        }
-        
-    } catch (error) {
-        console.error('Erro ao processar evidências:', error);
-        mostrarNotificacao('Erro ao processar evidências: ' + error.message, 'error');
-        
-        // Atualizar steps com erro
-        atualizarStepStatus('step1', 'error');
-        atualizarStepStatus('step2', 'error');
-        atualizarStepStatus('step3', 'error');
-    } finally {
-        // Restaurar botão
-        if (btnProcessar) {
-            btnProcessar.disabled = false;
-            btnProcessar.innerHTML = '<i class="fas fa-play me-1"></i>Processar';
-        }
-    }
-}
-
-function atualizarStepStatus(stepId, status) {
-    const step = document.getElementById(stepId);
-    const statusElement = document.getElementById(stepId + 'Status');
-    
-    if (!step || !statusElement) return;
-    
-    // Remover classes anteriores
-    step.classList.remove('success', 'error', 'processing');
-    statusElement.innerHTML = '';
-    
-    // Adicionar nova classe e ícone
-    step.classList.add(status);
-    
-    switch (status) {
-        case 'waiting':
-            statusElement.innerHTML = '<i class="fas fa-clock"></i>';
-            break;
-        case 'processing':
-            statusElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-            break;
-        case 'success':
-            statusElement.innerHTML = '<i class="fas fa-check"></i>';
-            break;
-        case 'error':
-            statusElement.innerHTML = '<i class="fas fa-times"></i>';
-            break;
-    }
-}
-
-function atualizarProgresso(percentual) {
-    const progressFill = document.getElementById('progressFill');
-    if (progressFill) {
-        progressFill.style.width = percentual + '%';
-    }
-}
-
-function mostrarResultados(resultado) {
-    const resultadosSection = document.getElementById('resultadosSection');
-    const sucessosCount = document.getElementById('sucessosCount');
-    const falhasCount = document.getElementById('falhasCount');
-    const enviadosCount = document.getElementById('enviadosCount');
-    
-    if (!resultadosSection || !sucessosCount || !falhasCount || !enviadosCount) return;
-    
-    resultadosSection.style.display = 'block';
-    sucessosCount.textContent = resultado.sucessos || 0;
-    falhasCount.textContent = resultado.falhas || 0;
-    enviadosCount.textContent = resultado.enviados || 0;
-    
-    mostrarNotificacao('Evidências processadas com sucesso!', 'success');
-}
-
-async function verificarStatusEvidencias() {
-    try {
-        const response = await fetch('/api/evidencias/status');
-        const status = await response.json();
-        
-        if (status.processado) {
-            await carregarEvidenciasProcessadas();
-            mostrarResultados(status);
-        }
-        
-    } catch (error) {
-        console.error('Erro ao verificar status:', error);
-    }
-}
-
-async function carregarEvidenciasProcessadas() {
-    try {
-        const response = await fetch('/api/evidencias/lista');
-        const evidencias = await response.json();
-        window.evidenciasProcessadas = evidencias;
-    } catch (error) {
-        console.error('Erro ao carregar evidências:', error);
-        window.evidenciasProcessadas = [];
-    }
-}
-
-// Função para visualizar evidências
-function visualizarEvidencias() {
-    if (window.evidenciasProcessadas && window.evidenciasProcessadas.length > 0) {
-        // Criar modal com lista de evidências
-        const modal = document.createElement('div');
-        modal.className = 'modal fade';
-        modal.id = 'evidenciasModal';
-        modal.innerHTML = `
-            <div class="modal-dialog modal-lg">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Evidências Processadas</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                    </div>
-                    <div class="modal-body">
-                        <div class="evidencias-lista">
-                            ${window.evidenciasProcessadas.map(ev => `
-                                <div class="evidencia-item ${ev.status}">
-                                    <div class="evidencia-icon">
-                                        <i class="fas fa-${ev.status === 'sucesso' ? 'check-circle' : 'times-circle'}"></i>
-                                    </div>
-                                    <div class="evidencia-info">
-                                        <h6>${ev.nome}</h6>
-                                        <p>Arquivo: ${ev.arquivo}</p>
-                                        <span class="badge bg-${ev.status === 'sucesso' ? 'success' : 'danger'}">${ev.status}</span>
-                                    </div>
-                                </div>
-                            `).join('')}
+        <!-- Processing Steps -->
+        <div class="row mb-4 processing-steps">
+            <div class="col-md-4 mb-3">
+                <div class="card border-left-primary shadow h-100" id="step1">
+                    <div class="card-body p-3">
+                        <div class="text-center">
+                            <div class="mb-2">
+                                <i class="fas fa-camera fa-2x text-primary"></i>
+                            </div>
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Extraindo Screenshots
+                            </div>
+                            <div class="text-muted" id="step1Status">
+                                Aguardando...
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-        `;
+            
+            <div class="col-md-4 mb-3">
+                <div class="card border-left-success shadow h-100" id="step2">
+                    <div class="card-body p-3">
+                        <div class="text-center">
+                            <div class="mb-2">
+                                <i class="fas fa-folder-open fa-2x text-success"></i>
+                            </div>
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Organizando por Status
+                            </div>
+                            <div class="text-muted" id="step2Status">
+                                Aguardando...
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4 mb-3">
+                <div class="card border-left-info shadow h-100" id="step3">
+                    <div class="card-body p-3">
+                        <div class="text-center">
+                            <div class="mb-2">
+                                <i class="fas fa-paper-plane fa-2x text-info"></i>
+                            </div>
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Preparando para Envio
+                            </div>
+                            <div class="text-muted" id="step3Status">
+                                Aguardando...
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
         
-        document.body.appendChild(modal);
-        const bootstrapModal = new bootstrap.Modal(modal);
-        bootstrapModal.show();
-        
-        // Remover modal do DOM após fechar
-        modal.addEventListener('hidden.bs.modal', function() {
-            document.body.removeChild(modal);
-        });
-    } else {
-        mostrarNotificacao('Nenhuma evidência processada encontrada', 'warning');
-    }
-}
+        <!-- Process Button -->
+        <div class="text-center mt-4">
+            <button type="button" class="btn btn-primary btn-lg" id="btnProcessarEvidencias" onclick="processarEvidencias()" style="display: none;">
+                <i class="fas fa-play me-2"></i>
+                Processar Evidências
+            </button>
+        </div>
+    </div>
+</div>
 
-// Função para limpar evidências
-async function limparEvidencias() {
-    if (!confirm('Tem certeza que deseja limpar todas as evidências processadas? Esta ação não pode ser desfeita.')) {
-        return;
-    }
-    
-    try {
-        const response = await fetch('/api/evidencias/limpar', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
-        
-        const resultado = await response.json();
-        
-        if (resultado.sucesso) {
-            mostrarNotificacao(`Limpeza concluída! ${resultado.arquivos_removidos} arquivos removidos.`, 'success');
-            
-            // Atualizar interface
-            window.evidenciasProcessadas = [];
-            verificarStatusEvidencias();
-            
-            // Ocultar seção de resultados se não há mais evidências
-            const resultadosSection = document.getElementById('resultadosSection');
-            if (resultadosSection) resultadosSection.style.display = 'none';
-            
-        } else {
-            mostrarNotificacao('Erro ao limpar evidências: ' + resultado.erro, 'error');
-        }
-        
-    } catch (error) {
-        console.error('Erro ao limpar evidências:', error);
-        mostrarNotificacao('Erro ao limpar evidências: ' + error.message, 'error');
-    }
-}
+<!-- Results Section -->
+<div class="card shadow mb-4" id="resultadosSection" style="display: none;">
+    <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+        <h6 class="m-0 font-weight-bold text-primary">
+            <i class="fas fa-chart-bar fa-fw me-2"></i>Resultados do Processamento
+        </h6>
+        <div class="dropdown no-arrow">
+            <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+            </a>
+            <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in" aria-labelledby="dropdownMenuLink">
+                <div class="dropdown-header">Ações:</div>
+                <a class="dropdown-item" href="#" onclick="visualizarEvidencias()">
+                    <i class="fas fa-eye fa-sm fa-fw mr-2 text-gray-400"></i>Visualizar
+                </a>
+                <a class="dropdown-item" href="#" onclick="enviarEvidenciasJira()">
+                    <i class="fas fa-paper-plane fa-sm fa-fw mr-2 text-gray-400"></i>Enviar ao Jira
+                </a>
+                <div class="dropdown-divider"></div>
+                <a class="dropdown-item" href="#" onclick="limparEvidencias()">
+                    <i class="fas fa-trash fa-sm fa-fw mr-2 text-gray-400"></i>Limpar
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        <!-- Statistics Cards -->
+        <div class="row mb-4">
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card border-left-success shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                    Sucessos
+                                </div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800" id="sucessosCount">0</div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="fas fa-check-circle fa-2x text-success"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-async function enviarEvidenciasJira() {
-    const btnEnviar = document.getElementById('btnEnviarEvidencias');
-    if (btnEnviar) btnEnviar.disabled = true;
-    
-    try {
-        // Extrair IDs únicos dos cards das evidências processadas
-        const cardIds = new Set();
-        if (window.evidenciasProcessadas && window.evidenciasProcessadas.length > 0) {
-            window.evidenciasProcessadas.forEach(ev => {
-                const match = ev.arquivo.match(/^([A-Z]+-\d+)/);
-                if (match) {
-                    cardIds.add(match[1]);
-                }
-            });
-        }
-        
-        if (cardIds.size === 0) {
-            mostrarNotificacao('Nenhum ID de card encontrado nas evidências', 'warning');
-            return;
-        }
-        
-        const cardIdsArray = Array.from(cardIds);
-        const confirmacao = confirm(`Enviar evidências para os seguintes cards?\n\n${cardIdsArray.join('\n')}\n\nConfirma o envio?`);
-        
-        if (!confirmacao) {
-            if (btnEnviar) btnEnviar.disabled = false;
-            return;
-        }
-        
-        const response = await fetch('/api/evidencias/enviar', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                issue_keys: cardIdsArray
-            })
-        });
-        
-        const resultado = await response.json();
-        
-        if (resultado.sucesso) {
-            mostrarNotificacao(`Evidências enviadas com sucesso para ${cardIdsArray.length} card(s)!`, 'success');
-            
-            // Atualizar contador de enviados
-            const enviadosCount = document.getElementById('enviadosCount');
-            if (enviadosCount) {
-                const atual = parseInt(enviadosCount.textContent) || 0;
-                enviadosCount.textContent = atual + cardIdsArray.length;
-            }
-            
-        } else {
-            mostrarNotificacao('Erro ao enviar evidências: ' + resultado.erro, 'error');
-        }
-        
-    } catch (error) {
-        console.error('Erro ao enviar evidências:', error);
-        mostrarNotificacao('Erro ao enviar evidências: ' + error.message, 'error');
-    } finally {
-        if (btnEnviar) btnEnviar.disabled = false;
-    }
-}
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card border-left-danger shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
+                                    Falhas
+                                </div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800" id="falhasCount">0</div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="fas fa-times-circle fa-2x text-danger"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-function mostrarNotificacao(mensagem, tipo) {
-    const toast = document.getElementById('toast');
-    const toastIcon = document.getElementById('toastIcon');
-    const toastTitle = document.getElementById('toastTitle');
-    const toastBody = document.getElementById('toastBody');
-    
-    if (!toast || !toastIcon || !toastTitle || !toastBody) return;
-    
-    // Configurar ícone e título baseado no tipo
-    switch (tipo) {
-        case 'success':
-            toastIcon.className = 'fas fa-check-circle me-2 text-success';
-            toastTitle.textContent = 'Sucesso';
-            break;
-        case 'error':
-            toastIcon.className = 'fas fa-exclamation-circle me-2 text-danger';
-            toastTitle.textContent = 'Erro';
-            break;
-        case 'warning':
-            toastIcon.className = 'fas fa-exclamation-triangle me-2 text-warning';
-            toastTitle.textContent = 'Aviso';
-            break;
-        default:
-            toastIcon.className = 'fas fa-info-circle me-2 text-info';
-            toastTitle.textContent = 'Informação';
-    }
-    
-    toastBody.textContent = mensagem;
-    
-    const bootstrapToast = new bootstrap.Toast(toast);
-    bootstrapToast.show();
-}
-</script>
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card border-left-info shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                    Enviados
+                                </div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800" id="enviadosCount">0</div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="fas fa-paper-plane fa-2x text-info"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card border-left-warning shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                    Total
+                                </div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800" id="totalCount">0</div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="fas fa-list fa-2x text-warning"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="row">
+            <div class="col-12">
+                <div class="btn-group" role="group">
+                    <button type="button" class="btn btn-outline-primary" onclick="visualizarEvidencias()">
+                        <i class="fas fa-eye me-1"></i>
+                        Visualizar
+                    </button>
+                    <button type="button" class="btn btn-primary" id="btnEnviarEvidencias" onclick="enviarEvidenciasJira()">
+                        <i class="fas fa-paper-plane me-1"></i>
+                        Enviar ao Jira
+                    </button>
+                    <button type="button" class="btn btn-outline-danger" onclick="limparEvidencias()">
+                        <i class="fas fa-trash me-1"></i>
+                        Limpar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Loading Modal -->
+<div class="modal fade" id="loadingModal" tabindex="-1" role="dialog" aria-labelledby="loadingModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="loadingModalLabel">
+                    <i class="fas fa-spinner fa-spin me-2"></i>Processando...
+                </h5>
+            </div>
+            <div class="modal-body text-center">
+                <div class="spinner-border text-primary mb-3" role="status">
+                    <span class="sr-only">Carregando...</span>
+                </div>
+                <p class="mb-0">Processando evidências, aguarde...</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Success Modal -->
+<div class="modal fade" id="successModal" tabindex="-1" role="dialog" aria-labelledby="successModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="successModalLabel">
+                    <i class="fas fa-check-circle text-success me-2"></i>Sucesso!
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>Evidências processadas com sucesso!</p>
+                <div class="alert alert-success">
+                    <strong>Resumo:</strong>
+                    <ul class="mb-0 mt-2">
+                        <li>Sucessos: <span id="modalSucessos">0</span></li>
+                        <li>Falhas: <span id="modalFalhas">0</span></li>
+                        <li>Total: <span id="modalTotal">0</span></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+                <button type="button" class="btn btn-primary" onclick="visualizarEvidencias()">
+                    <i class="fas fa-eye me-1"></i>Visualizar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Error Modal -->
+<div class="modal fade" id="errorModal" tabindex="-1" role="dialog" aria-labelledby="errorModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="errorModalLabel">
+                    <i class="fas fa-exclamation-triangle text-danger me-2"></i>Erro
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p id="errorMessage">Ocorreu um erro durante o processamento.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Confirmation Modal -->
+<div class="modal fade" id="confirmationModal" tabindex="-1" role="dialog" aria-labelledby="confirmationModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmationModalLabel">
+                    <i class="fas fa-question-circle text-warning me-2"></i>Confirmação
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p id="confirmationMessage">Tem certeza que deseja continuar?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="confirmButton">Confirmar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 {% endblock %}
 
+{% block extra_css %}
 <style>
-/* Estilos clean e minimalistas para a tela de evidências */
-.evidencias-container {
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 2rem 1rem;
+/* Estilos específicos para a página de evidências */
+.processing-steps .card {
+    transition: all 0.3s ease;
+    border-left-width: 4px !important;
+    min-height: 140px;
 }
 
-/* Upload Section */
-.upload-section {
-    margin-bottom: 2rem;
+.processing-steps .card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
 }
 
-.upload-area {
-    border: 2px dashed var(--neurotech-border);
-    border-radius: var(--radius-lg);
-    padding: 3rem 2rem;
-    text-align: center;
-    background: var(--neurotech-light);
-    transition: all var(--transition-normal);
-    cursor: pointer;
-}
-
-.upload-area:hover,
-.upload-area.drag-over {
-    border-color: var(--neurotech-accent);
-    background: rgba(49, 130, 206, 0.05);
-}
-
-.upload-content {
-    max-width: 400px;
-    margin: 0 auto;
-}
-
-.upload-icon {
-    font-size: 3rem;
-    color: var(--neurotech-accent);
-    margin-bottom: 1rem;
-}
-
-.upload-content h4 {
-    margin: 0 0 0.5rem 0;
-    color: var(--neurotech-primary);
-    font-weight: 600;
-}
-
-.upload-content p {
-    color: var(--neurotech-gray);
-    margin-bottom: 1.5rem;
-}
-
-/* File Info */
-.file-info {
-    margin-top: 1rem;
-    padding: 1rem;
-    background: white;
-    border-radius: var(--radius-md);
-    border: 1px solid var(--neurotech-border);
-    box-shadow: var(--neurotech-shadow);
-}
-
-.file-info-content {
+.processing-steps .card .text-center {
+    height: 100%;
     display: flex;
-    align-items: center;
-    gap: 0.75rem;
+    flex-direction: column;
+    justify-content: center;
 }
 
-.file-info-content i {
-    color: var(--neurotech-accent);
-    font-size: 1.2rem;
-}
-
-.file-info-content span {
-    color: var(--neurotech-primary);
-    font-weight: 500;
-}
-
-.file-info-content span:last-of-type {
-    color: var(--neurotech-gray);
-    font-size: 0.9rem;
-    margin-left: auto;
-}
-
-/* Processing Section */
-.processing-section {
-    background: white;
-    border-radius: var(--radius-lg);
-    padding: 2rem;
-    margin-bottom: 2rem;
-    box-shadow: var(--neurotech-shadow);
-}
-
-.processing-header {
-    text-align: center;
-    margin-bottom: 2rem;
-}
-
-.processing-header h4 {
-    margin: 0 0 1rem 0;
-    color: var(--neurotech-primary);
-    font-weight: 600;
-}
-
-.progress-bar {
-    width: 100%;
-    height: 8px;
-    background: var(--neurotech-border);
-    border-radius: 4px;
+.progress {
+    border-radius: 0.5rem;
     overflow: hidden;
 }
 
-.progress-fill {
-    height: 100%;
-    background: var(--neurotech-accent);
-    width: 0%;
-    transition: width 0.3s ease;
+.progress-bar {
+    transition: width 0.6s ease;
 }
 
-.processing-steps {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 2rem;
-    gap: 1rem;
+.upload-area {
+    transition: all 0.3s ease;
+    cursor: pointer;
 }
 
-.step {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.75rem;
-    flex: 1;
-    padding: 1.5rem 1rem;
-    border-radius: var(--radius-md);
-    border: 1px solid var(--neurotech-border);
-    background: var(--neurotech-light);
-    transition: all var(--transition-normal);
+.upload-area:hover {
+    background-color: #e3f2fd !important;
+    border-color: #2196f3 !important;
+}
+
+/* Garantir que não haja sobreposição */
+.card-body {
     position: relative;
+    z-index: 1;
 }
 
-.step i {
-    font-size: 1.8rem;
-    color: var(--neurotech-gray);
-    transition: color var(--transition-normal);
+.row {
+    margin-left: -0.75rem;
+    margin-right: -0.75rem;
 }
 
-.step span {
-    font-size: 0.9rem;
-    color: var(--neurotech-gray);
-    text-align: center;
-    font-weight: 500;
-    transition: color var(--transition-normal);
-}
-
-.step.processing {
-    background: rgba(49, 130, 206, 0.1);
-    border-color: var(--neurotech-accent);
-}
-
-.step.processing i,
-.step.processing span {
-    color: var(--neurotech-accent);
-}
-
-.step.success {
-    background: rgba(56, 161, 105, 0.1);
-    border-color: var(--neurotech-success);
-}
-
-.step.success i,
-.step.success span {
-    color: var(--neurotech-success);
-}
-
-.step.error {
-    background: rgba(229, 62, 62, 0.1);
-    border-color: var(--neurotech-danger);
-}
-
-.step.error i,
-.step.error span {
-    color: var(--neurotech-danger);
-}
-
-.step-status {
-    font-size: 1.2rem;
-    position: absolute;
-    top: 0.5rem;
-    right: 0.5rem;
-    width: 24px;
-    height: 24px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-    background: white;
-    box-shadow: var(--neurotech-shadow);
-}
-
-.btn-process {
-    width: 100%;
-    padding: 1rem;
-    font-size: 1.1rem;
-}
-
-/* Results Section */
-.results-section {
-    background: white;
-    border-radius: var(--radius-lg);
-    padding: 1.5rem;
-    box-shadow: var(--neurotech-shadow);
-}
-
-.results-header {
-    text-align: center;
-    margin-bottom: 1.5rem;
-}
-
-.results-header h4 {
-    margin: 0 0 1rem 0;
-    color: var(--neurotech-primary);
-    font-weight: 600;
-}
-
-.results-stats {
-    display: flex;
-    justify-content: center;
-    gap: 2rem;
-    max-width: 400px;
-    margin: 0 auto;
-}
-
-.stat {
-    text-align: center;
-    flex: 0 0 auto;
-}
-
-.stat-number {
-    display: block;
-    font-size: 1.8rem;
-    font-weight: 700;
-    color: var(--neurotech-primary);
-    line-height: 1;
-    margin-bottom: 0.25rem;
-}
-
-.stat-label {
-    font-size: 0.85rem;
-    color: var(--neurotech-gray);
-    font-weight: 500;
-}
-
-.results-actions {
-    display: flex;
-    gap: 0.75rem;
-    justify-content: center;
-    flex-wrap: wrap;
-}
-
-.results-actions .btn {
-    min-width: 110px;
-}
-
-/* Modal de Evidências */
-.evidencias-lista {
-    max-height: 400px;
-    overflow-y: auto;
-}
-
-.evidencia-item {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    padding: 1rem;
-    margin-bottom: 0.75rem;
-    border-radius: var(--radius-md);
-    border: 1px solid var(--neurotech-border);
-    transition: all var(--transition-normal);
-}
-
-.evidencia-item:hover {
-    box-shadow: var(--neurotech-shadow);
-}
-
-.evidencia-item.sucesso {
-    border-color: var(--neurotech-success);
-    background: rgba(56, 161, 105, 0.05);
-}
-
-.evidencia-item.falha {
-    border-color: var(--neurotech-danger);
-    background: rgba(229, 62, 62, 0.05);
-}
-
-.evidencia-icon {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-}
-
-.evidencia-item.sucesso .evidencia-icon {
-    background: var(--neurotech-success);
-    color: white;
-}
-
-.evidencia-item.falha .evidencia-icon {
-    background: var(--neurotech-danger);
-    color: white;
-}
-
-.evidencia-info {
-    flex: 1;
-}
-
-.evidencia-info h6 {
-    margin: 0 0 0.25rem 0;
-    font-weight: 600;
-    color: var(--neurotech-primary);
-}
-
-.evidencia-info p {
-    margin: 0 0 0.5rem 0;
-    font-size: 0.85rem;
-    color: var(--neurotech-gray);
+.col-md-4 {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
 }
 
 /* Responsividade */
 @media (max-width: 768px) {
-    .evidencias-container {
-        padding: 1rem;
+    .col-md-4 {
+        margin-bottom: 1rem;
     }
     
-    .upload-area {
-        padding: 2rem 1rem;
-    }
-    
-    .processing-steps {
-        flex-direction: column;
-        gap: 1rem;
-    }
-    
-    .step {
-        flex-direction: row;
-        justify-content: flex-start;
-        text-align: left;
-        padding: 1rem;
-    }
-    
-    .step-status {
-        position: static;
-        margin-left: auto;
-    }
-    
-    .results-stats {
-        flex-direction: column;
-        gap: 1rem;
-    }
-    
-    .results-actions {
-        flex-direction: column;
-    }
-    
-    .results-actions .btn {
-        width: 100%;
-    }
-}
-
-@media (max-width: 576px) {
-    .upload-content h4 {
-        font-size: 1.2rem;
-    }
-    
-    .processing-section,
-    .results-section {
-        padding: 1.5rem;
-    }
-    
-    .stat-number {
-        font-size: 1.5rem;
+    .card-body {
+        padding: 1rem !important;
     }
 }
 </style>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Carregar o JavaScript que implementa a extração real -->
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+{% endblock %}

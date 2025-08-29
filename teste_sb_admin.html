@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste SB Admin 2 - Correções</title>
+    
+    <!-- Bootstrap 4 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@200;200i;300;300i;400;400i;600;600i;700;700i;800;800i;900;900i&display=swap" rel="stylesheet">
+    <!-- SB Admin 2 CSS -->
+    <link href="static/css/sb-admin-2.min.css" rel="stylesheet">
+    <!-- SB Admin 2 Custom CSS -->
+    <link href="static/css/sb-admin-2-custom.css" rel="stylesheet">
+    
+    <style>
+        /* Debug styles */
+        .debug-info {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            z-index: 10000;
+            max-width: 300px;
+        }
+        
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        
+        .test-button {
+            margin: 5px;
+        }
+    </style>
+</head>
+<body id="page-top">
+
+    <!-- Debug Info -->
+    <div class="debug-info">
+        <strong>Debug Info:</strong><br>
+        <span id="jquery-version">jQuery: Carregando...</span><br>
+        <span id="bootstrap-version">Bootstrap: Carregando...</span><br>
+        <span id="sidebar-state">Sidebar: Normal</span><br>
+        <span id="active-page">Página Ativa: -</span>
+    </div>
+
+    <!-- Page Wrapper -->
+    <div id="wrapper">
+
+        <!-- Sidebar -->
+        <ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
+
+            <!-- Sidebar - Brand -->
+            <a class="sidebar-brand d-flex align-items-center justify-content-center" href="/">
+                <div class="sidebar-brand-icon">
+                    <i class="fas fa-brain fa-2x text-white"></i>
+                </div>
+                <div class="sidebar-brand-text mx-3">Neurotech</div>
+            </a>
+
+            <!-- Divider -->
+            <hr class="sidebar-divider">
+
+            <!-- Heading -->
+            <div class="sidebar-heading">
+                Gerenciamento
+            </div>
+
+            <!-- Nav Item - Dashboard -->
+            <li class="nav-item">
+                <a class="nav-link" href="/">
+                    <i class="fas fa-fw fa-search"></i>
+                    <span>Buscar casos de teste</span>
+                </a>
+            </li>
+
+            <!-- Nav Item - Planilha -->
+            <li class="nav-item">
+                <a class="nav-link" href="/planilha-manual">
+                    <i class="fas fa-fw fa-file-import"></i>
+                    <span>Importar de planilha</span>
+                </a>
+            </li>
+
+            <!-- Nav Item - Evidências -->
+            <li class="nav-item">
+                <a class="nav-link" href="/evidencias">
+                    <i class="fas fa-fw fa-camera"></i>
+                    <span>Extração de Evidências</span>
+                </a>
+            </li>
+
+            <!-- Divider -->
+            <hr class="sidebar-divider">
+
+            <!-- Heading -->
+            <div class="sidebar-heading">
+                Relatórios
+            </div>
+
+            <!-- Nav Item - Métricas -->
+            <li class="nav-item">
+                <a class="nav-link" href="/metricas">
+                    <i class="fas fa-fw fa-chart-bar"></i>
+                    <span>Métricas</span>
+                </a>
+            </li>
+
+            <!-- Divider -->
+            <hr class="sidebar-divider d-none d-md-block">
+
+            <!-- Sidebar Toggler (Sidebar) -->
+            <div class="text-center d-none d-md-inline">
+                <button class="rounded-circle border-0" id="sidebarToggle"></button>
+            </div>
+
+        </ul>
+        <!-- End of Sidebar -->
+
+        <!-- Content Wrapper -->
+        <div id="content-wrapper" class="d-flex flex-column">
+
+            <!-- Main Content -->
+            <div id="content">
+
+                <!-- Topbar -->
+                <nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow">
+
+                    <!-- Sidebar Toggle (Topbar) -->
+                    <button id="sidebarToggleTop" class="btn btn-link d-md-none rounded-circle mr-3">
+                        <i class="fa fa-bars"></i>
+                    </button>
+
+                    <!-- Topbar Search -->
+                    <form class="d-none d-sm-inline-block form-inline mr-auto ml-md-3 my-2 my-md-0 mw-100 navbar-search">
+                        <div class="input-group">
+                            <input type="text" class="form-control bg-light border-0 small" placeholder="Buscar por..."
+                                   aria-label="Search" aria-describedby="basic-addon2">
+                            <div class="input-group-append">
+                                <button class="btn btn-primary" type="button">
+                                    <i class="fas fa-search fa-sm"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+
+                    <!-- Topbar Navbar -->
+                    <ul class="navbar-nav ml-auto">
+
+                        <!-- Nav Item - User Information -->
+                        <li class="nav-item dropdown no-arrow">
+                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
+                                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <span class="mr-2 d-none d-lg-inline text-gray-600 small">Usuário</span>
+                                <img class="img-profile rounded-circle" src="https://source.unsplash.com/QAB-WJcbgJk/60x60">
+                            </a>
+                            <!-- Dropdown - User Information -->
+                            <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in"
+                                aria-labelledby="userDropdown">
+                                <a class="dropdown-item" href="#">
+                                    <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
+                                    Perfil
+                                </a>
+                                <a class="dropdown-item" href="#">
+                                    <i class="fas fa-cogs fa-sm fa-fw mr-2 text-gray-400"></i>
+                                    Configurações
+                                </a>
+                                <div class="dropdown-divider"></div>
+                                <a class="dropdown-item" href="#" data-toggle="modal" data-target="#logoutModal">
+                                    <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
+                                    Logout
+                                </a>
+                            </div>
+                        </li>
+
+                    </ul>
+
+                </nav>
+                <!-- End of Topbar -->
+
+                <!-- Begin Page Content -->
+                <div class="container-fluid">
+
+                    <!-- Page Heading -->
+                    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                        <h1 class="h3 mb-0 text-gray-800">Teste SB Admin 2 - Correções</h1>
+                    </div>
+
+                    <!-- Test Sections -->
+                    <div class="test-section">
+                        <h4>Teste 1: Toggle do Sidebar</h4>
+                        <p>Clique nos botões para testar o toggle do sidebar:</p>
+                        <button class="btn btn-primary test-button" onclick="testSidebarToggle()">
+                            <i class="fas fa-bars"></i> Toggle Sidebar
+                        </button>
+                        <button class="btn btn-secondary test-button" onclick="resetSidebar()">
+                            <i class="fas fa-undo"></i> Reset Sidebar
+                        </button>
+                        <div id="sidebar-test-result" class="mt-2"></div>
+                    </div>
+
+                    <div class="test-section">
+                        <h4>Teste 2: Highlight da Página Ativa</h4>
+                        <p>Teste navegando entre as páginas para ver o highlight:</p>
+                        <a href="/" class="btn btn-outline-primary test-button">Página Inicial</a>
+                        <a href="/evidencias" class="btn btn-outline-primary test-button">Evidências</a>
+                        <a href="/metricas" class="btn btn-outline-primary test-button">Métricas</a>
+                        <div id="highlight-test-result" class="mt-2"></div>
+                    </div>
+
+                    <div class="test-section">
+                        <h4>Teste 3: Dropdown do Usuário</h4>
+                        <p>Clique no dropdown do usuário no topbar para testar:</p>
+                        <div id="dropdown-test-result" class="mt-2"></div>
+                    </div>
+
+                    <div class="test-section">
+                        <h4>Teste 4: Console Debug</h4>
+                        <p>Abra o console do navegador (F12) para ver os logs de debug:</p>
+                        <button class="btn btn-info test-button" onclick="showDebugInfo()">
+                            <i class="fas fa-bug"></i> Mostrar Info Debug
+                        </button>
+                        <div id="debug-test-result" class="mt-2"></div>
+                    </div>
+
+                </div>
+                <!-- /.container-fluid -->
+
+            </div>
+            <!-- End of Main Content -->
+
+            <!-- Footer -->
+            <footer class="sticky-footer bg-white">
+                <div class="container my-auto">
+                    <div class="copyright text-center my-auto">
+                        <span>Copyright &copy; Neurotech 2025</span>
+                    </div>
+                </div>
+            </footer>
+            <!-- End of Footer -->
+
+        </div>
+        <!-- End of Content Wrapper -->
+
+    </div>
+    <!-- End of Page Wrapper -->
+
+    <!-- Scroll to Top Button-->
+    <a class="scroll-to-top rounded" href="#page-top">
+        <i class="fas fa-angle-up"></i>
+    </a>
+
+    <!-- Bootstrap core JavaScript-->
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Core plugin JavaScript-->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-easing/1.4.1/jquery.easing.min.js"></script>
+    <!-- SB Admin 2 JavaScript -->
+    <script src="static/js/sb-admin-2.min.js"></script>
+    <!-- SB Admin 2 Custom JavaScript -->
+    <script src="static/js/sb-admin-2-custom.js"></script>
+    
+    <script>
+        // Funções de teste
+        function testSidebarToggle() {
+            $('#sidebarToggle').click();
+            $('#sidebar-test-result').html('<div class="alert alert-success">Toggle executado! Verifique o sidebar.</div>');
+            updateDebugInfo();
+        }
+        
+        function resetSidebar() {
+            $('body').removeClass('sidebar-toggled');
+            $('.sidebar').removeClass('toggled');
+            $('#sidebar-test-result').html('<div class="alert alert-info">Sidebar resetado!</div>');
+            updateDebugInfo();
+        }
+        
+        function showDebugInfo() {
+            var info = {
+                'jQuery Version': $.fn.jquery,
+                'Bootstrap': typeof bootstrap !== 'undefined' ? 'Loaded' : 'Not loaded',
+                'Sidebar State': $('.sidebar').hasClass('toggled') ? 'Toggled' : 'Normal',
+                'Active Links': $('.sidebar .nav-item .nav-link.active').length,
+                'Dropdowns': $('.dropdown').length
+            };
+            
+            var html = '<div class="alert alert-info"><strong>Debug Info:</strong><br>';
+            for (var key in info) {
+                html += key + ': ' + info[key] + '<br>';
+            }
+            html += '</div>';
+            
+            $('#debug-test-result').html(html);
+        }
+        
+        function updateDebugInfo() {
+            $('#jquery-version').text('jQuery: ' + $.fn.jquery);
+            $('#bootstrap-version').text('Bootstrap: ' + (typeof bootstrap !== 'undefined' ? 'Loaded' : 'Not loaded'));
+            $('#sidebar-state').text('Sidebar: ' + ($('.sidebar').hasClass('toggled') ? 'Toggled' : 'Normal'));
+            $('#active-page').text('Página Ativa: ' + $('.sidebar .nav-item .nav-link.active').length + ' links');
+        }
+        
+        // Atualizar debug info quando a página carregar
+        $(document).ready(function() {
+            setTimeout(updateDebugInfo, 1000);
+            
+            // Monitorar mudanças no sidebar
+            $('.sidebar').on('classChange', function() {
+                updateDebugInfo();
+            });
+        });
+    </script>
+
+</body>
+</html>

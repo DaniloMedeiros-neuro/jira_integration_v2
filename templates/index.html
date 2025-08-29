@@ -1,353 +1,247 @@
-{% extends "base.html" %}
+{% extends "base_sb_admin.html" %}
 
 {% block title %}Neurotech - Gerenciador de Casos de Teste{% endblock %}
 
 {% block page_title %}Gerenciador de Casos de Teste{% endblock %}
 
-{% block page_subtitle %}Busque requisitos e visualize seus casos de teste{% endblock %}
-
 {% block content %}
-<!-- Search Section -->
-<div class="search-section">
-    <div class="search-container">
-        <div class="search-box">
-            <div class="search-input">
-                <i class="fas fa-clipboard-list search-icon"></i>
-                <input type="text" id="requisitoPai" placeholder="Digite o ID do requisito (ex: REQ-123)" 
-                       autocomplete="off" spellcheck="false">
-                <button class="search-btn" onclick="buscarRequisito()">
-                    <i class="fas fa-search"></i>
-                    Buscar
-                </button>
+<!-- Page Heading -->
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Buscar Casos de Teste</h1>
+</div>
+
+<!-- Search Card -->
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">
+            <i class="fas fa-search fa-fw me-2"></i>Buscar Requisito
+        </h6>
+    </div>
+    <div class="card-body">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text">
+                            <i class="fas fa-clipboard-list"></i>
+                        </span>
+                    </div>
+                    <input type="text" class="form-control" id="requisitoPai" 
+                           placeholder="Digite o ID do requisito (ex: BC-126)" 
+                           autocomplete="off" spellcheck="false">
+                    <div class="input-group-append">
+                        <button class="btn btn-primary" type="button" onclick="buscarRequisito()">
+                            <i class="fas fa-search fa-sm"></i>
+                            Buscar
+                        </button>
+                    </div>
+                </div>
+                <small class="form-text text-muted">
+                    <i class="fas fa-info-circle me-1"></i>
+                    Digite o ID do requisito pai para buscar todos os casos de teste relacionados
+                </small>
             </div>
         </div>
     </div>
 </div>
 
 <!-- Results Section -->
-<div id="resultados" class="results-section" style="display: none;">
-    <div class="results-header">
-        <div class="results-info">
-            <h2>Casos de Teste</h2>
-            <span id="totalCasos" class="results-count"></span>
+<div id="resultados" style="display: none;">
+    <!-- Requisito Info Card -->
+    <div id="requisitoInfoCard" class="card shadow mb-4" style="display: none;">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">
+                <i class="fas fa-file-alt fa-fw me-2"></i>Informações do Requisito
+            </h6>
         </div>
-        <div class="results-actions">
-            <div class="view-toggle">
-                <button id="btnListView" class="btn btn-ghost btn-sm view-toggle-btn active" onclick="toggleView('list')">
-                    <i class="fas fa-list"></i>
-                    Lista
+        <div class="card-body" id="requisitoInfoContent">
+            <!-- Conteúdo será preenchido dinamicamente -->
+        </div>
+    </div>
+
+    <!-- Cases Results Card -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+            <h6 class="m-0 font-weight-bold text-primary">
+                <i class="fas fa-vial fa-fw me-2"></i>Casos de Teste
+                <span id="totalCasos" class="badge badge-primary ml-2">0</span>
+            </h6>
+            <div class="d-flex align-items-center">
+                <!-- View Toggle -->
+                <div class="btn-group btn-group-sm mr-3" role="group">
+                    <button type="button" class="btn btn-outline-primary active" id="btnListView" onclick="toggleView('list')">
+                        <i class="fas fa-list"></i>
+                    </button>
+                    <button type="button" class="btn btn-outline-primary" id="btnCardView" onclick="toggleView('card')">
+                        <i class="fas fa-th-large"></i>
+                    </button>
+                </div>
+                <!-- Action Buttons -->
+                <button id="btnNovoCaso" class="btn btn-success btn-sm mr-2" onclick="abrirEdicaoTela()" style="display: none;">
+                    <i class="fas fa-plus fa-sm"></i>
+                    Novo Caso
                 </button>
-                <button id="btnCardView" class="btn btn-ghost btn-sm view-toggle-btn" onclick="toggleView('card')">
-                    <i class="fas fa-th-large"></i>
-                    Cards
+                <button id="btnPlanilha" class="btn btn-info btn-sm" onclick="visualizarPlanilha()" style="display: none;">
+                    <i class="fas fa-table fa-sm"></i>
+                    Planilha
                 </button>
             </div>
-            <button id="btnNovoCaso" class="btn btn-primary" onclick="abrirEdicaoTela()" style="display: none;">
-                <i class="fas fa-plus"></i>
-                Novo Caso de Teste
-            </button>
-            <button id="btnPlanilha" class="btn btn-outline" onclick="visualizarPlanilha()" style="display: none;">
-                <i class="fas fa-table"></i>
-                Planilha
-            </button>
-
         </div>
-    </div>
-    
-    <div class="results-content">
-        <div id="loading" class="loading" style="display: none;">
-            <div class="loading-spinner"></div>
-            <p>Carregando...</p>
-        </div>
-        
-        <div id="listaCasos" class="cases-list active"></div>
-        <div id="cardsCasos" class="cases-grid"></div>
-    </div>
-</div>
-
-<!-- Seção de Edição em Tela -->
-<div id="edicaoTela" class="edicao-tela" style="display: none;">
-    <div class="edicao-tela-header">
-        <div class="edicao-tela-title">
-            <h3 id="edicaoTelaTitle">
-                <i class="fas fa-plus me-2"></i>
-                Novo Caso de Teste
-            </h3>
-            <span class="edicao-tela-subtitle">Edite os dados do caso de teste</span>
-        </div>
-        <div class="edicao-tela-actions">
-            <button type="button" class="btn btn-outline-secondary" onclick="fecharEdicaoTela()">
-                <i class="fas fa-times me-1"></i>
-                Cancelar
-            </button>
-            <button type="button" class="btn btn-primary" onclick="salvarCasoTesteTela()">
-                <i class="fas fa-save me-1"></i>
-                Salvar
-            </button>
-        </div>
-    </div>
-    
-    <div class="edicao-tela-content">
-
-        
-        <form id="formCasoTesteTela">
-            <input type="hidden" id="issueKeyTela" name="issueKey">
-            <input type="hidden" id="issuePaiFormTela" name="issuePai">
+        <div class="card-body">
+            <!-- Loading -->
+            <div id="loading" class="text-center py-4" style="display: none;">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="sr-only">Carregando...</span>
+                </div>
+                <p class="mt-2 text-muted">Carregando casos de teste...</p>
+            </div>
             
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="tituloTela" class="form-label">Título *</label>
-                    <input type="text" class="form-control" id="tituloTela" name="titulo" required>
-                </div>
-                
-                <div class="form-group">
-                    <label for="statusTela" class="form-label">Status</label>
-                    <select class="form-select" id="statusTela" name="status">
-                        <option value="To Do">To Do</option>
-                        <option value="In Progress">In Progress</option>
-                        <option value="Done">Done</option>
-                    </select>
-                </div>
+            <!-- Empty State -->
+            <div id="emptyState" class="text-center py-5" style="display: none;">
+                <i class="fas fa-inbox fa-3x text-gray-300 mb-3"></i>
+                <h5 class="text-gray-500">Nenhum caso de teste encontrado</h5>
+                <p class="text-muted">Não foram encontrados casos de teste para este requisito.</p>
+                <button class="btn btn-primary" onclick="abrirEdicaoTela()">
+                    <i class="fas fa-plus me-1"></i>
+                    Criar Primeiro Caso de Teste
+                </button>
             </div>
-
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="tipoExecucaoTela" class="form-label">Tipo de Execução</label>
-                    <select class="form-select" id="tipoExecucaoTela" name="tipoExecucao">
-                        <option value="Automatizado">Automatizado</option>
-                        <option value="Manual">Manual</option>
-                        <option value="Semi-automatizado">Semi-automatizado</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label for="tipoTesteTela" class="form-label">Tipo de Teste</label>
-                    <select class="form-select" id="tipoTesteTela" name="tipoTeste">
-                        <option value="Funcional">Funcional</option>
-                        <option value="Não Funcional">Não Funcional</option>
-                        <option value="Integração">Integração</option>
-                        <option value="Regressão">Regressão</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label for="componentesTela" class="form-label">Componentes</label>
-                    <select class="form-select" id="componentesTela" name="componentes">
-                        <option value="API">API</option>
-                        <option value="Frontend">Frontend</option>
-                        <option value="Backend">Backend</option>
-                        <option value="Mobile">Mobile</option>
-                        <option value="Web">Web</option>
-                    </select>
-                </div>
+            
+            <!-- Cases List View -->
+            <div id="listaCasos" class="cases-list active">
+                <!-- Cases will be populated here -->
             </div>
-
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="objetivoTela" class="form-label">Objetivo</label>
-                    <textarea class="form-control" id="objetivoTela" name="objetivo" rows="3" placeholder="Descreva o objetivo do teste"></textarea>
-                </div>
+            
+            <!-- Cases Grid View -->
+            <div id="cardsCasos" class="cases-grid" style="display: none;">
+                <!-- Cards will be populated here -->
             </div>
-
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="preCondicoesTela" class="form-label">Pré-condições</label>
-                    <textarea class="form-control" id="preCondicoesTela" name="preCondicoes" rows="3" placeholder="Descreva as pré-condições necessárias"></textarea>
-                </div>
-            </div>
-
-            <div class="form-row">
-                <div class="form-group full-width">
-                    <label for="descricaoTela" class="form-label">Descrição/Cenário BDD *</label>
-                    <div class="bdd-editor">
-                        <div class="bdd-toolbar">
-                            <button type="button" class="btn btn-sm btn-outline-primary" onclick="insertBDDKeywordTela('Given')">
-                                <i class="fas fa-plus"></i> Given
-                            </button>
-                            <button type="button" class="btn btn-sm btn-outline-primary" onclick="insertBDDKeywordTela('When')">
-                                <i class="fas fa-play"></i> When
-                            </button>
-                            <button type="button" class="btn btn-sm btn-outline-primary" onclick="insertBDDKeywordTela('Then')">
-                                <i class="fas fa-check"></i> Then
-                            </button>
-                            <button type="button" class="btn btn-sm btn-outline-primary" onclick="insertBDDKeywordTela('And')">
-                                <i class="fas fa-plus"></i> And
-                            </button>
-                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="formatBDDTela()">
-                                <i class="fas fa-magic"></i> Formatar
-                            </button>
-                        </div>
-                        <textarea class="form-control bdd-textarea" id="descricaoTela" name="descricao" rows="8" placeholder="Descreva o cenário de teste em formato BDD (Given/When/Then)&#10;&#10;Exemplo:&#10;Given que o usuário está logado no sistema&#10;When ele acessa a página de perfil&#10;Then deve visualizar suas informações pessoais" required></textarea>
-                        <div class="bdd-preview" id="bddPreviewTela"></div>
-                    </div>
-                </div>
-            </div>
-        </form>
+        </div>
     </div>
 </div>
 
-<!-- Modal de Evidências -->
-<div class="modal fade" id="modalEvidencias" tabindex="-1">
-    <div class="modal-dialog modal-lg">
+<!-- Edit Modal -->
+<div class="modal fade" id="edicaoModal" tabindex="-1" role="dialog" aria-labelledby="edicaoModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">
-                    <i class="fas fa-camera me-2"></i>
-                    Sistema de Evidências de Testes
+                <h5 class="modal-title" id="edicaoModalLabel">
+                    <i class="fas fa-plus me-2"></i>
+                    Novo Caso de Teste
                 </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
             </div>
             <div class="modal-body">
-                <div class="evidencias-container">
-                    <!-- Seção de Upload de Log -->
-                    <div class="evidencias-section">
-                        <h6 class="evidencias-section-title">
-                            <i class="fas fa-upload me-2"></i>
-                            Upload de Log de Testes
-                        </h6>
-                        <div class="upload-area" id="uploadArea">
-                            <div class="upload-content">
-                                <i class="fas fa-file-upload upload-icon"></i>
-                                <p class="upload-text">Arraste o arquivo log.html aqui ou clique para selecionar</p>
-                                <input type="file" id="logFileInput" accept=".html" style="display: none;">
-                                <button type="button" class="btn btn-outline-primary btn-sm" onclick="document.getElementById('logFileInput').click()">
-                                    Selecionar Arquivo
-                                </button>
-                            </div>
-                        </div>
-                        <div id="fileInfo" class="file-info" style="display: none;">
-                            <div class="file-info-content">
-                                <i class="fas fa-file-code file-icon"></i>
-                                <div class="file-details">
-                                    <span class="file-name" id="fileName"></span>
-                                    <span class="file-size" id="fileSize"></span>
-                                </div>
-                                <button type="button" class="btn btn-sm btn-outline-danger" onclick="removerArquivo()">
-                                    <i class="fas fa-times"></i>
-                                </button>
+                <form id="formCasoTesteTela">
+                    <input type="hidden" id="issueKeyTela" name="issueKey">
+                    <input type="hidden" id="issuePaiFormTela" name="issuePai">
+                    
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label for="tituloTela" class="form-label">Título *</label>
+                                <input type="text" class="form-control" id="tituloTela" name="titulo" required>
                             </div>
                         </div>
                     </div>
-
-                    <!-- Seção de Processamento -->
-                    <div class="evidencias-section" id="processamentoSection" style="display: none;">
-                        <h6 class="evidencias-section-title">
-                            <i class="fas fa-cogs me-2"></i>
-                            Processamento de Evidências
-                        </h6>
-                        <div class="processamento-steps">
-                            <div class="step-item" id="step1">
-                                <div class="step-icon">
-                                    <i class="fas fa-camera"></i>
-                                </div>
-                                <div class="step-content">
-                                    <h6>Extrair Screenshots</h6>
-                                    <p>Captura automática de evidências visuais</p>
-                                </div>
-                                <div class="step-status" id="step1Status">
-                                    <i class="fas fa-clock"></i>
-                                </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="tipoExecucaoTela" class="form-label">Tipo de Execução *</label>
+                                <select class="form-control" id="tipoExecucaoTela" name="tipo_execucao" required>
+                                    <option value="">Selecione...</option>
+                                    <option value="Manual">Manual</option>
+                                    <option value="Automático">Automático</option>
+                                    <option value="Semi-automático">Semi-automático</option>
+                                </select>
                             </div>
-                            <div class="step-item" id="step2">
-                                <div class="step-icon">
-                                    <i class="fas fa-folder-open"></i>
-                                </div>
-                                <div class="step-content">
-                                    <h6>Organizar por Status</h6>
-                                    <p>Separação entre sucessos e falhas</p>
-                                </div>
-                                <div class="step-status" id="step2Status">
-                                    <i class="fas fa-clock"></i>
-                                </div>
-                            </div>
-                            <div class="step-item" id="step3">
-                                <div class="step-icon">
-                                    <i class="fas fa-paper-plane"></i>
-                                </div>
-                                <div class="step-content">
-                                    <h6>Enviar ao Jira</h6>
-                                    <p>Anexo automático aos casos de teste</p>
-                                </div>
-                                <div class="step-status" id="step3Status">
-                                    <i class="fas fa-clock"></i>
-                                </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="tipoTesteTela" class="form-label">Tipo de Teste *</label>
+                                <select class="form-control" id="tipoTesteTela" name="tipo_teste" required>
+                                    <option value="">Selecione...</option>
+                                    <option value="Funcional">Funcional</option>
+                                    <option value="Não Funcional">Não Funcional</option>
+                                    <option value="Regressão">Regressão</option>
+                                    <option value="Smoke">Smoke</option>
+                                    <option value="Sanity">Sanity</option>
+                                </select>
                             </div>
                         </div>
                     </div>
-
-                    <!-- Seção de Resultados -->
-                    <div class="evidencias-section" id="resultadosSection" style="display: none;">
-                        <h6 class="evidencias-section-title">
-                            <i class="fas fa-chart-bar me-2"></i>
-                            Resultados do Processamento
-                        </h6>
-                        <div class="resultados-stats">
-                            <div class="stat-item">
-                                <div class="stat-icon success">
-                                    <i class="fas fa-check-circle"></i>
-                                </div>
-                                <div class="stat-content">
-                                    <span class="stat-number" id="sucessosCount">0</span>
-                                    <span class="stat-label">Sucessos</span>
-                                </div>
+                    
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label for="descricaoTela" class="form-label">Descrição</label>
+                                <textarea class="form-control" id="descricaoTela" name="descricao" rows="3"></textarea>
                             </div>
-                            <div class="stat-item">
-                                <div class="stat-icon error">
-                                    <i class="fas fa-times-circle"></i>
-                                </div>
-                                <div class="stat-content">
-                                    <span class="stat-number" id="falhasCount">0</span>
-                                    <span class="stat-label">Falhas</span>
-                                </div>
-                            </div>
-                            <div class="stat-item">
-                                <div class="stat-icon info">
-                                    <i class="fas fa-paper-plane"></i>
-                                </div>
-                                <div class="stat-content">
-                                    <span class="stat-number" id="enviadosCount">0</span>
-                                    <span class="stat-label">Enviados</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="resultados-actions">
-                            <button type="button" class="btn btn-outline-primary" onclick="visualizarEvidencias()">
-                                <i class="fas fa-eye me-1"></i>
-                                Visualizar Evidências
-                            </button>
-                            <button type="button" class="btn btn-primary" onclick="enviarEvidenciasJira()">
-                                <i class="fas fa-paper-plane me-1"></i>
-                                Enviar ao Jira
-                            </button>
                         </div>
                     </div>
-                </div>
+                    
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label for="objetivoTela" class="form-label">Objetivo</label>
+                                <textarea class="form-control" id="objetivoTela" name="objetivo" rows="2"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label for="preCondicoesTela" class="form-label">Pré-condições</label>
+                                <textarea class="form-control" id="preCondicoesTela" name="pre_condicoes" rows="2"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label for="componentesTela" class="form-label">Componentes</label>
+                                <input type="text" class="form-control" id="componentesTela" name="componentes" 
+                                       placeholder="Digite os componentes separados por vírgula">
+                            </div>
+                        </div>
+                    </div>
+                </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
-                <button type="button" class="btn btn-primary" id="btnProcessarEvidencias" onclick="processarEvidencias()" style="display: none;">
-                    <i class="fas fa-play me-1"></i>
-                    Processar Evidências
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                    <i class="fas fa-times me-1"></i>
+                    Cancelar
+                </button>
+                <button type="button" class="btn btn-primary" onclick="salvarCasoTesteTela()">
+                    <i class="fas fa-save me-1"></i>
+                    Salvar
                 </button>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Modal de Confirmação -->
-<div class="modal fade" id="modalConfirmacao">
-    <div class="modal-dialog">
+<!-- Confirmation Modal -->
+<div class="modal fade" id="modalConfirmacao" tabindex="-1" role="dialog" aria-labelledby="modalConfirmacaoLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Confirmar Exclusão</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                <h5 class="modal-title" id="modalConfirmacaoLabel">Confirmar Exclusão</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
             </div>
             <div class="modal-body">
                 <p>Tem certeza que deseja excluir este caso de teste?</p>
                 <p class="text-muted" id="confirmacaoTexto"></p>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
                 <button type="button" class="btn btn-danger" onclick="confirmarExclusao()">
                     <i class="fas fa-trash me-1"></i>
                     Excluir

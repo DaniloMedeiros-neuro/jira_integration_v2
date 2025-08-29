@@ -1,0 +1,551 @@
+/* Customização do SB Admin 2 para Neurotech */
+
+/* Paleta de cores exata do SB Admin 2 */
+:root {
+    /* Primary Colors */
+    --primary: #4e73df;
+    --primary-dark: #2e59d9;
+    --primary-light: #858796;
+
+    /* Secondary Colors */
+    --secondary: #858796;
+    --secondary-dark: #6e707e;
+    --secondary-light: #b7b9cc;
+
+    /* Success Colors */
+    --success: #1cc88a;
+    --success-dark: #17a673;
+    --success-light: #36e9b1;
+
+    /* Info Colors */
+    --info: #36b9cc;
+    --info-dark: #2a96a5;
+    --info-light: #5ed3e8;
+
+    /* Warning Colors */
+    --warning: #f6c23e;
+    --warning-dark: #f4b619;
+    --warning-light: #f8d675;
+
+    /* Danger Colors */
+    --danger: #e74a3b;
+    --danger-dark: #be2617;
+    --danger-light: #f1948a;
+
+    /* Light/Dark Colors */
+    --light: #f8f9fc;
+    --dark: #5a5c69;
+    --white: #ffffff;
+    --gray-100: #f8f9fc;
+    --gray-200: #eaecf4;
+    --gray-300: #dddfeb;
+    --gray-400: #d1d3e2;
+    --gray-500: #b7b9cc;
+    --gray-600: #858796;
+    --gray-700: #6e707e;
+    --gray-800: #5a5c69;
+    --gray-900: #3a3b45;
+}
+
+/* Gradientes do SB Admin 2 */
+.bg-gradient-primary {
+    background: linear-gradient(180deg, #4e73df 10%, #224abe 100%) !important;
+}
+
+.bg-gradient-success {
+    background: linear-gradient(180deg, #1cc88a 10%, #13855c 100%) !important;
+}
+
+.bg-gradient-info {
+    background: linear-gradient(180deg, #36b9cc 10%, #258391 100%) !important;
+}
+
+.bg-gradient-warning {
+    background: linear-gradient(180deg, #f6c23e 10%, #dda20a 100%) !important;
+}
+
+.bg-gradient-danger {
+    background: linear-gradient(180deg, #e74a3b 10%, #be2617 100%) !important;
+}
+
+/* Sidebar Customizações - CORREÇÃO CRÍTICA COM MAIOR ESPECIFICIDADE */
+body #wrapper .sidebar {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    height: 100vh !important;
+    width: 14rem !important;
+    z-index: 1000 !important;
+    transition: width 0.3s ease !important;
+    overflow-y: auto !important;
+}
+
+body #wrapper .sidebar-brand {
+    background: rgba(255, 255, 255, 0.1) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+    padding: 1rem !important;
+}
+
+body #wrapper .sidebar-brand-text {
+    font-family: 'Nunito', sans-serif !important;
+    font-weight: 700 !important;
+    font-size: 1.1rem !important;
+    color: #ffffff !important;
+}
+
+body #wrapper .sidebar-heading {
+    color: rgba(255, 255, 255, 0.7) !important;
+    font-size: 0.75rem !important;
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+    padding: 0.75rem 1rem 0.25rem !important;
+    margin: 0 !important;
+}
+
+body #wrapper .sidebar .nav-item .nav-link {
+    color: rgba(255, 255, 255, 0.8) !important;
+    padding: 0.75rem 1rem !important;
+    font-size: 0.85rem !important;
+    font-weight: 600 !important;
+    transition: all 0.3s ease !important;
+}
+
+body #wrapper .sidebar .nav-item .nav-link:hover {
+    color: #ffffff !important;
+    background: rgba(255, 255, 255, 0.1) !important;
+}
+
+body #wrapper .sidebar .nav-item .nav-link.active {
+    color: #ffffff !important;
+    background: rgba(255, 255, 255, 0.2) !important;
+    border-left: 4px solid #ffffff !important;
+}
+
+body #wrapper .sidebar .nav-item .nav-link i {
+    margin-right: 0.5rem !important;
+    width: 1rem !important;
+    text-align: center !important;
+}
+
+/* Topbar Customizações */
+body #wrapper .topbar {
+    background: #ffffff !important;
+    box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15) !important;
+    height: 4.375rem !important;
+    padding: 0 1rem !important;
+}
+
+body #wrapper .topbar .navbar-search {
+    width: 20rem !important;
+}
+
+body #wrapper .topbar .navbar-search .form-control {
+    background: #f8f9fc !important;
+    border: 1px solid #d1d3e2 !important;
+    border-radius: 0.35rem !important;
+    padding: 0.375rem 0.75rem !important;
+}
+
+body #wrapper .topbar .navbar-search .btn {
+    background: var(--primary) !important;
+    border: 1px solid var(--primary) !important;
+    border-radius: 0.35rem !important;
+    color: #ffffff !important;
+}
+
+/* Content Wrapper */
+body #wrapper #content-wrapper {
+    margin-left: 14rem !important;
+    transition: margin-left 0.3s ease !important;
+    min-height: 100vh !important;
+    background: #f8f9fc !important;
+}
+
+body.sidebar-toggled #wrapper #content-wrapper {
+    margin-left: 0 !important;
+}
+
+/* ========================================
+   PÁGINA DE BUSCA DE CASOS DE TESTE - REFATORADA SB ADMIN 2
+   ======================================== */
+
+/* Cards e Layout Geral */
+.card {
+    border: 1px solid #e3e6f0 !important;
+    border-radius: 0.35rem !important;
+    box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15) !important;
+    margin-bottom: 1.5rem !important;
+}
+
+.card-header {
+    background: #f8f9fc !important;
+    border-bottom: 1px solid #e3e6f0 !important;
+    padding: 1rem 1.25rem !important;
+}
+
+.card-body {
+    padding: 1.25rem !important;
+}
+
+/* Input Groups */
+.input-group-text {
+    background-color: #f8f9fc !important;
+    border: 1px solid #d1d3e2 !important;
+    color: var(--gray-600) !important;
+}
+
+.input-group .form-control {
+    border: 1px solid #d1d3e2 !important;
+    border-radius: 0 !important;
+}
+
+.input-group .form-control:focus {
+    border-color: var(--primary) !important;
+    box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25) !important;
+}
+
+.input-group .btn {
+    border-radius: 0 0.35rem 0.35rem 0 !important;
+}
+
+/* Cases List View */
+.cases-list {
+    display: none !important;
+}
+
+.cases-list.active {
+    display: block !important;
+}
+
+.case-list-item {
+    background: #ffffff !important;
+    border: 1px solid #e3e6f0 !important;
+    border-radius: 0.35rem !important;
+    padding: 1.5rem !important;
+    margin-bottom: 1rem !important;
+    transition: all 0.3s ease !important;
+    cursor: pointer !important;
+}
+
+.case-list-item:hover {
+    box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15) !important;
+    transform: translateY(-2px) !important;
+    border-color: var(--primary) !important;
+}
+
+.case-list-title {
+    color: var(--gray-800) !important;
+    font-size: 1.1rem !important;
+    font-weight: 700 !important;
+    margin-bottom: 0.75rem !important;
+    font-family: 'Nunito', sans-serif !important;
+}
+
+.case-list-meta {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 1rem !important;
+    margin-bottom: 1rem !important;
+}
+
+.case-list-meta-item {
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.5rem !important;
+    color: var(--gray-600) !important;
+    font-size: 0.875rem !important;
+}
+
+.case-list-meta-item i {
+    color: var(--gray-500) !important;
+    width: 1rem !important;
+    text-align: center !important;
+}
+
+.case-list-description {
+    color: var(--gray-600) !important;
+    font-size: 0.875rem !important;
+    line-height: 1.5 !important;
+    margin-top: 1rem !important;
+}
+
+.case-description-texto {
+    margin-top: 0.5rem !important;
+    padding: 0.75rem !important;
+    background: #f8f9fc !important;
+    border-radius: 0.35rem !important;
+    border-left: 3px solid var(--primary) !important;
+}
+
+/* Cases Grid View */
+.cases-grid {
+    display: none !important;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)) !important;
+    gap: 1.5rem !important;
+}
+
+.cases-grid.active {
+    display: grid !important;
+}
+
+.case-card {
+    background: #ffffff !important;
+    border: 1px solid #e3e6f0 !important;
+    border-radius: 0.35rem !important;
+    padding: 1.5rem !important;
+    transition: all 0.3s ease !important;
+    height: fit-content !important;
+    cursor: pointer !important;
+}
+
+.case-card:hover {
+    box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15) !important;
+    transform: translateY(-2px) !important;
+    border-color: var(--primary) !important;
+}
+
+/* Status Classes */
+.case-status {
+    padding: 0.25rem 0.75rem !important;
+    border-radius: 0.35rem !important;
+    font-size: 0.75rem !important;
+    font-weight: 600 !important;
+}
+
+.case-status.status-todo {
+    background: #fff3cd !important;
+    color: #856404 !important;
+}
+
+.case-status.status-in-progress {
+    background: #cce5ff !important;
+    color: #004085 !important;
+}
+
+.case-status.status-done {
+    background: #d4edda !important;
+    color: #155724 !important;
+}
+
+.case-status.status-blocked {
+    background: #f8d7da !important;
+    color: #721c24 !important;
+}
+
+/* Requisito Info */
+.requisito-info {
+    background: #ffffff !important;
+    border-radius: 0.35rem !important;
+    padding: 1.5rem !important;
+}
+
+.requisito-header {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: flex-start !important;
+    margin-bottom: 1rem !important;
+}
+
+.requisito-titulo {
+    color: var(--gray-800) !important;
+    font-size: 1.25rem !important;
+    font-weight: 700 !important;
+    margin: 0 !important;
+    font-family: 'Nunito', sans-serif !important;
+}
+
+.requisito-id {
+    background: var(--primary) !important;
+    color: #ffffff !important;
+    padding: 0.5rem 1rem !important;
+    border-radius: 0.35rem !important;
+    font-size: 0.875rem !important;
+    font-weight: 600 !important;
+}
+
+.requisito-meta {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 1rem !important;
+    margin-bottom: 1rem !important;
+}
+
+.requisito-meta-item {
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.5rem !important;
+    color: var(--gray-600) !important;
+    font-size: 0.875rem !important;
+    padding: 0.5rem 0.75rem !important;
+    background: #f8f9fc !important;
+    border-radius: 0.35rem !important;
+}
+
+.requisito-meta-item i {
+    color: var(--gray-500) !important;
+}
+
+.requisito-descricao {
+    margin-top: 1rem !important;
+}
+
+.requisito-descricao-texto {
+    margin-top: 0.5rem !important;
+    padding: 1rem !important;
+    background: #f8f9fc !important;
+    border-radius: 0.35rem !important;
+    border-left: 3px solid var(--primary) !important;
+    color: var(--gray-700) !important;
+    line-height: 1.6 !important;
+}
+
+/* Empty State */
+#emptyState {
+    text-align: center !important;
+    padding: 3rem !important;
+}
+
+#emptyState i {
+    color: var(--gray-300) !important;
+    margin-bottom: 1rem !important;
+}
+
+#emptyState h5 {
+    color: var(--gray-500) !important;
+    margin-bottom: 0.5rem !important;
+}
+
+#emptyState p {
+    color: var(--gray-600) !important;
+    margin-bottom: 1.5rem !important;
+}
+
+/* Loading */
+#loading {
+    text-align: center !important;
+    padding: 2rem !important;
+}
+
+.spinner-border {
+    width: 3rem !important;
+    height: 3rem !important;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .requisito-header {
+        flex-direction: column !important;
+        gap: 1rem !important;
+    }
+    
+    .requisito-meta {
+        flex-direction: column !important;
+    }
+    
+    .case-list-meta {
+        flex-direction: column !important;
+        gap: 0.5rem !important;
+    }
+    
+    .cases-grid {
+        grid-template-columns: 1fr !important;
+    }
+    
+    .card-header .d-flex {
+        flex-direction: column !important;
+        gap: 1rem !important;
+        align-items: stretch !important;
+    }
+}
+
+/* ========================================
+   SOBRESCRITA DE ESTILOS ANTIGOS
+   ======================================== */
+
+/* Remover estilos antigos que conflitam */
+.neurotech-theme {
+    padding-top: 0 !important;
+}
+
+#topNavbar {
+    display: none !important;
+}
+
+/* Garantir que o body use a fonte do SB Admin 2 */
+body {
+    font-family: 'Nunito', sans-serif !important;
+    background: #f8f9fc !important;
+}
+
+/* Remover margens e paddings desnecessários */
+.container-fluid {
+    padding: 1.5rem !important;
+}
+
+/* Ajustar cards para o padrão SB Admin 2 */
+.card {
+    border: 1px solid #e3e6f0 !important;
+    border-radius: 0.35rem !important;
+    box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15) !important;
+}
+
+.card-header {
+    background: #f8f9fc !important;
+    border-bottom: 1px solid #e3e6f0 !important;
+    padding: 1rem 1.25rem !important;
+}
+
+.card-body {
+    padding: 1.25rem !important;
+}
+
+/* ========================================
+   CORREÇÕES ESPECÍFICAS PARA EVITAR EXECUÇÃO AUTOMÁTICA
+   ======================================== */
+
+/* Garantir que botões não sejam clicados automaticamente */
+.btn {
+    pointer-events: auto !important;
+    user-select: none !important;
+    -webkit-user-select: none !important;
+    -moz-user-select: none !important;
+    -ms-user-select: none !important;
+}
+
+/* Garantir que o botão Novo Caso de Teste não seja executado automaticamente */
+#btnNovoCaso {
+    pointer-events: auto !important;
+    cursor: pointer !important;
+    transition: all 0.3s ease !important;
+}
+
+#btnNovoCaso:hover {
+    transform: translateY(-1px) !important;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075) !important;
+}
+
+#btnNovoCaso:active {
+    transform: translateY(0) !important;
+}
+
+/* Garantir que a edição em tela não seja aberta automaticamente */
+#edicaoTela {
+    display: none !important;
+    pointer-events: auto !important;
+}
+
+#edicaoTela.show {
+    display: flex !important;
+}
+
+/* Garantir que elementos não sejam clicados automaticamente */
+* {
+    pointer-events: auto !important;
+}
+
+/* Exceção para elementos que devem ter pointer-events: none */
+.disabled, 
+[disabled], 
+.btn:disabled {
+    pointer-events: none !important;
+}
